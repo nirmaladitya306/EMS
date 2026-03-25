@@ -12,6 +12,8 @@ import { HRDashboardPage } from "../pages/HumanResources/Dashboard Childs/dashbo
 import { HRProtectedRoutes } from "./HRprotectedroutes.jsx"
 import { HREmployeesPage } from "../pages/HumanResources/Dashboard Childs/employeespage.jsx"
 import { HRDepartmentPage } from "../pages/HumanResources/Dashboard Childs/departmentpage.jsx"
+import { DocumentExpiryPage } from "../pages/HumanResources/Dashboard Childs/documentexpirypage.jsx"
+import { LeaveRecommendationPage } from "../pages/HumanResources/Dashboard Childs/leaverecommendationpage.jsx"
 export const HRRoutes = [
     {
         path: "/auth/HR/signup",
@@ -36,6 +38,14 @@ export const HRRoutes = [
             {
                 path: "/HR/dashboard/departments",
                 element: <HRDepartmentPage />
+            },
+            {
+                path: "/HR/dashboard/documents",
+                element: <DocumentExpiryPage />
+            },
+            {
+                path: "/HR/dashboard/leave-recommendation",
+                element: <LeaveRecommendationPage />
             }
         ]
     },
