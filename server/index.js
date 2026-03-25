@@ -17,6 +17,8 @@ import InterviewInsightRouter from './routes/InterviewInsights.route.js'
 import GenerateRequestRouter from './routes/GenerateRequest.route.js'
 import CorporateCalendarRouter from './routes/CorporateCalendar.route.js'
 import BalanceRouter from './routes/Balance.route.js'
+import DocumentRouter from './routes/Document.route.js'
+import LeaveRecommendationRouter from './routes/LeaveRecommendation.route.js'
 import { ConnectDB } from './config/connectDB.js';
 import cookieParser from 'cookie-parser';
 import cors from "cors"
@@ -32,7 +34,7 @@ app.use(cors({
   origin: process.env.CLIENT_URL, // Adjust this to match your front-end origin exactly
   credentials: true, // This is optional and depends on whether you’re using cookies
 }));
-// app.options('*', cors())
+app.options('*', cors())
 
 app.use("/api/auth/employee", EmployeeAuthRouter) 
 
@@ -65,6 +67,10 @@ app.use("/api/v1/generate-request", GenerateRequestRouter)
 app.use("/api/v1/corporate-calendar", CorporateCalendarRouter)
 
 app.use("/api/v1/balance", BalanceRouter)
+
+app.use("/api/v1/document", DocumentRouter)
+
+app.use("/api/v1/leave-recommendation", LeaveRecommendationRouter)
 
 app.listen(process.env.PORT, async () => {
   await ConnectDB()

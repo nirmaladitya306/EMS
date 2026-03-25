@@ -109,7 +109,7 @@ export const SignUP = ({ handlesignupform, handlesubmitform, stateformdata, erro
                                         <input
                                             id="textpassword"
                                             name="textpassword"
-                                            type="text"
+                                            type="password"
                                             required
                                             autoComplete="text"
                                             value={stateformdata.textpassword}
@@ -177,7 +177,7 @@ export const SignUP = ({ handlesignupform, handlesubmitform, stateformdata, erro
                             </div>
                             <div className="label-field-pair flex flex-col">
                                 <label htmlFor="lastname">
-                                    last Name
+                                    Last Name
                                 </label>
                                 <input
                                     id="lastname"
@@ -210,7 +210,7 @@ export const SignUP = ({ handlesignupform, handlesubmitform, stateformdata, erro
                                 <input
                                     id="textpassword"
                                     name="textpassword"
-                                    type="text"
+                                    type="password"
                                     required
                                     autoComplete="textpassword"
                                     value={stateformdata.textpassword}
