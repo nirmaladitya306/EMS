@@ -10,6 +10,7 @@ export const HandleGetDashboard = createAsyncThunk("HandleGetDashboard", async (
         })
         return response.data
     } catch (error) {
-        return rejectWithValue(error.response.data); 
+        if (error.response?.data) return rejectWithValue(error.response.data);
+        return rejectWithValue({ success: false, message: error.message || "Network error" }); 
     }
 })

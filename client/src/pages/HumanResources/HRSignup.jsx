@@ -48,12 +48,15 @@ export const HRSignupPage = () => {
         loadingbar.current.complete()
     }
 
+    // Run only once on mount to redirect already-authenticated users.
+    // We deliberately do NOT dispatch CHECK_VERIFY_EMAIL here — it races
+    // with the signup POST and can overwrite isAuthenticated back to false,
+    // freezing the loading bar permanently.
     useEffect(() => {
-        if (!HRState.isAuthenticated && !HRState.isVerified) {
-            dispatch(HandleGetHumanResources({ apiroute: "CHECKLOGIN" }))
-            dispatch(HandleGetHumanResources({ apiroute: "CHECK_VERIFY_EMAIL" }))
-        }
+        dispatch(HandleGetHumanResources({ apiroute: "CHECKLOGIN" }))
+    }, [])
 
+    useEffect(() => {
         if (HRState.isAuthenticated && HRState.isVerified) {
             loadingbar.current.complete()
             navigate("/HR/dashboard/dashboard-data")

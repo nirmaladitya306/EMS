@@ -4,30 +4,33 @@ import { DataTable } from "../../../components/common/Dashboard/datatable.jsx"
 import { useEffect } from "react"
 import { HandleGetDashboard } from "../../../redux/Thunks/DashboardThunk.js"
 import { useDispatch, useSelector } from "react-redux"
-import { useNavigate } from "react-router-dom"
 import { Loading } from "../../../components/common/loading.jsx"
+import employeeImg from "../../../assets/HR-Dashboard/employee-2.png"
+import departmentImg from "../../../assets/HR-Dashboard/department.png"
+import leaveImg from "../../../assets/HR-Dashboard/leave.png"
+import requestImg from "../../../assets/HR-Dashboard/request.png"
+
 export const HRDashboardPage = () => {
-    console.log("Reloaded")
     const DashboardState = useSelector((state) => state.dashboardreducer)
     const dispatch = useDispatch()
     const DataArray = [
         {
-            image: "/../../src/assets/HR-Dashboard/employee-2.png",
+            image: employeeImg,
             dataname: "employees",
             path: "/HR/dashboard/employees"
         },
         {
-            image: "/../../src/assets/HR-Dashboard/department.png",
+            image: departmentImg,
             dataname: "departments",
             path: "/HR/dashboard/departments",
         },
         {
-            image: "/../../src/assets/HR-Dashboard/leave.png",
+            image: leaveImg,
             dataname: "leaves",
             path: "/HR/dashboard/leaves"
         },
         {
-            image: "/../../src/assets/HR-Dashboard/request.png",
+            image: requestImg,
             dataname: "requestes",
             path: "/HR/dashboard/requestes"
         }

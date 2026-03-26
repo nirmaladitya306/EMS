@@ -11,7 +11,10 @@ export const HandleGetEmployees = createAsyncThunk("handleGetEmployees", async (
         })
         return response.data
     } catch (error) { 
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) {
+            return rejectWithValue(error.response.data);
+        }
+        return rejectWithValue({ gologin: true, message: error.message || "Network error" });
     }
 })
 
@@ -31,12 +34,15 @@ export const HandlePostEmployees = createAsyncThunk("HandlePostEmployees", async
             return response.data
         }
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) {
+            return rejectWithValue(error.response.data);
+        }
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 })
 
-export const HandlePutEmployees = createAsyncThunk()
+export const HandlePutEmployees = createAsyncThunk("HandlePutEmployees", async () => { })
 
-export const HandlePatchEmployees = createAsyncThunk()
+export const HandlePatchEmployees = createAsyncThunk("HandlePatchEmployees", async () => { })
 
-export const HandleDeleteEmployees = createAsyncThunk()
+export const HandleDeleteEmployees = createAsyncThunk("HandleDeleteEmployees", async () => { })

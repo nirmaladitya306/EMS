@@ -34,8 +34,6 @@ export const HRForgotPasswordPage = () => {
         }
     }, [HRstate.data])
 
-    console.log(HRstate)
-
 
     return (
 

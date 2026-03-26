@@ -1,6 +1,6 @@
 import { Document } from '../models/Document.model.js'
 import { Employee } from '../models/Employee.model.js'
-import { Emailclient, sender } from '../mailtrap/mailtrap.config.js'
+import { transporter } from '../mailtrap/mailtrap.config.js'
 import { DOCUMENT_EXPIRY_ALERT_TEMPLATE } from '../mailtrap/documentexpirytemplates.js'
 import dayjs from 'dayjs'
 
@@ -51,13 +51,12 @@ const sendExpiryEmail = async (employeeEmail, employeeName, doc, daysLeft) => {
         .replace('{actionMessage}',  actionMessage)
 
     try {
-        await Emailclient.send({
-            from: sender,
-            to: [{ email: employeeEmail }],
+        await transporter.sendMail({
+            from: '"EMS" <no-reply@ems.com>',
+            to: employeeEmail,
             subject: headerTitle,
-            html,
-            category: 'Document Expiry Alert'
-        })
+            html
+        });
         return true
     } catch (err) {
         console.error('Document expiry email error:', err.message)

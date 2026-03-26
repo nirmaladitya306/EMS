@@ -10,7 +10,8 @@ export const HandleGetHRDepartments = createAsyncThunk('HandleGetHRDepartments',
         });
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) return rejectWithValue(error.response.data);
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 });
 
@@ -22,7 +23,8 @@ export const HandlePostHRDepartments = createAsyncThunk('HandlePostHRDepartments
         });
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) return rejectWithValue(error.response.data);
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 });
 
@@ -34,7 +36,8 @@ export const HandlePatchHRDepartments = createAsyncThunk('HandlePatchHRDepartmen
         });
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) return rejectWithValue(error.response.data);
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 });
 
@@ -47,6 +50,7 @@ export const HandleDeleteHRDepartments = createAsyncThunk("HandleDeleteHRDepartm
         });
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) return rejectWithValue(error.response.data);
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 });

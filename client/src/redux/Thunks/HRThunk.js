@@ -11,7 +11,12 @@ export const HandleGetHumanResources = createAsyncThunk("HandleGetHumanResources
         return response.data;
     }
     catch (error) {
-        return rejectWithValue(error.response.data);
+        // error.response is undefined on network errors or CORS blocks.
+        // Falling through without rejectWithValue crashes the reducer.
+        if (error.response?.data) {
+            return rejectWithValue(error.response.data);
+        }
+        return rejectWithValue({ gologin: true, message: error.message || "Network error" });
     }
 })
 
@@ -32,12 +37,15 @@ export const HandlePostHumanResources = createAsyncThunk("HandlePostHumanResourc
             return response.data 
         }
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) {
+            return rejectWithValue(error.response.data);
+        }
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 })
 
 export const HandlePutHumanResources = createAsyncThunk("HandlePutHumanResources", async (HRData, { rejectWithValue }) => { })
 
-export const HandlePatchHumanResources = createAsyncThunk("HandlePutHumanResources", async (HRData, { rejectWithValue }) => { })
+export const HandlePatchHumanResources = createAsyncThunk("HandlePatchHumanResources", async (HRData, { rejectWithValue }) => { })
 
-export const HandleDeleteHumanResources = createAsyncThunk("HandlePutHumanResources", async (HRData, { rejectWithValue }) => { })
+export const HandleDeleteHumanResources = createAsyncThunk("HandleDeleteHumanResources", async (HRData, { rejectWithValue }) => { })

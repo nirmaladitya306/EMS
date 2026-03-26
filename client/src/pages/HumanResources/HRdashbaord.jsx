@@ -12,11 +12,11 @@ export const HRDashbaord = () => {
 
 
     useEffect(() => {
-        navigate(`/HR/dashboard/${pathArray[pathArray.length - 1]}`)
-    }, [])
+        if (location.pathname === "/HR/dashboard" || location.pathname === "/HR/dashboard/") {
+            navigate("/HR/dashboard/dashboard-data", { replace: true })
+        }
+    }, [location.pathname])
 
-
-    console.log("this is the current path location", location)
 
 
     return (

@@ -242,23 +242,4 @@ Phase 4: Optimize for scalability and deploy a production-ready version.
 
 
 
-## 🧑‍💻 Authors & Acknowledgments
-
-Darsh Jogi: Project Lead and Software Engineer
-
-Special Thanks: To all contributors and testers who made this project possible.
-
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 📬 Contact
-
-For any questions or support, feel free to reach out:
-
-Email: darshjogi001@gmail.com
-
-LinkedIn: [Darsh Jogi](https://www.linkedin.com/in/darsh-jogi-info/).
-
 Thank you for visiting the Employees Management System (EMS) project! We hope it provides valuable insights into how technology can simplify employee management.

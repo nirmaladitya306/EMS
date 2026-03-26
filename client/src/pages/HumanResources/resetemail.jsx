@@ -1,4 +1,4 @@
-import { ResetVerifyEmailPage } from "../common/verify-email"
+import { ResetVerifyEmailPage } from "../../pages/common/verify-email"
 import { SignIn } from "../../components/common/sign-in.jsx"
 import { useSelector, useDispatch } from "react-redux"
 import { useState, useEffect, useRef } from "react"
@@ -31,7 +31,7 @@ export const ResetHRVerifyEmailPage = () => {
     useEffect(() => {
         if (HRState.isVerified) {
             loadingbar.current.complete()
-            navigate("/auth/HR/dashboard")
+            navigate("/HR/dashboard/dashboard-data")
         }
 
         if (HRState.isVerifiedEmailAvailable) {
@@ -39,8 +39,6 @@ export const ResetHRVerifyEmailPage = () => {
             navigate("/auth/HR/verify-email")
         }
     }, [HRState.isVerified, HRState.isVerifiedEmailAvailable])
-
-    console.log(HRState)
 
     return (
         <>

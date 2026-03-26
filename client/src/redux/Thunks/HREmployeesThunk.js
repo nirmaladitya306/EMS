@@ -12,7 +12,8 @@ export const HandleGetHREmployees = createAsyncThunk('HandleGetHREmployees', asy
     }
 
     catch (error) {
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) return rejectWithValue(error.response.data);
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 }) 
 
@@ -24,7 +25,8 @@ export const HandlePostHREmployees = createAsyncThunk('HandlePostHREmploy', asyn
         })
         return response.data
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) return rejectWithValue(error.response.data);
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 })
 
@@ -39,6 +41,7 @@ export const HandleDeleteHREmployees = createAsyncThunk("HandleDeleteHREmployees
             return response.data
         }
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        if (error.response?.data) return rejectWithValue(error.response.data);
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 })

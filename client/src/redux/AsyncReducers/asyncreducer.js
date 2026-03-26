@@ -104,25 +104,20 @@ export const HRAsyncReducer = (builder, thunk) => {
                 state.error.status = true;
                 state.error.message = action.payload.message
                 state.error.content = action.payload
-            }
-            if (action.payload.type == "HRcodeavailable") {
-                // state.isSignUp = true
+            } else if (action.payload.type == "HRcodeavailable") {
                 state.isLoading = false;
-                // state.isAuthenticated = true
                 state.isVerified = false
                 state.isVerifiedEmailAvailable = false
                 state.error.status = false;
                 state.error.content = action.payload
-            }
-            if (action.payload.gologin) {
+            } else if (action.payload.gologin) {
                 state.isSignUp = false
                 state.isLoading = false;
                 state.isAuthenticated = false
                 state.error.status = false;
                 state.error.message = action.payload.message
                 state.error.content = action.payload
-            }
-            else {
+            } else {
                 state.isLoading = false;
                 state.error.status = true;
                 state.error.message = action.payload.message

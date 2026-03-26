@@ -25,7 +25,7 @@ export const HRRoutes = [
     },
     {
         path: "/HR/dashboard",
-        element: <HRDashbaord />,
+        element: <HRProtectedRoutes><HRDashbaord /></HRProtectedRoutes>,
         children: [
             {
                 path: "/HR/dashboard/dashboard-data",

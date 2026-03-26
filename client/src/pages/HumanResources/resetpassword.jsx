@@ -49,8 +49,6 @@ export const ResetHRPasswordPage = () => {
         }
     }, [HRState.isResetPassword])
 
-    console.log(HRState)
-
     return (
         <div className="reset-password-container">
             <LoadingBar ref={loadingbar} />
