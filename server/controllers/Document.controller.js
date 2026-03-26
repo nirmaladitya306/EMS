@@ -98,10 +98,14 @@ export const HandleCreateDocument = async (req, res) => {
             organizationID: req.ORGID
         })
 
+        const { HumanResources: HR1 } = await import('../models/HR.model.js')
+        const hrDoc = await HR1.findById(req.HRid).select('firstname lastname')
+        const hrDocName = hrDoc ? `${hrDoc.firstname} ${hrDoc.lastname}` : 'HR Admin'
+
         await createLog({
-            actorID: req.HRid, actorName: 'HR Admin',
+            actorID: req.HRid, actorName: hrDocName,
             actorRole: 'HR-Admin', action: 'DOCUMENT_CREATED',
-            description: `Document "${documentname}" (${documenttype}) added for employee`,
+            description: `${hrDocName} added document "${documentname}" (${documenttype}) for employee`,
             targetID: document._id, targetModel: 'Document',
             organizationID: req.ORGID, req
         })
@@ -189,10 +193,15 @@ export const HandleDeleteDocument = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Document not found' })
         }
         await doc.deleteOne()
+
+        const { HumanResources: HR2 } = await import('../models/HR.model.js')
+        const hrDel = await HR2.findById(req.HRid).select('firstname lastname')
+        const hrDelName = hrDel ? `${hrDel.firstname} ${hrDel.lastname}` : 'HR Admin'
+
         await createLog({
-            actorID: req.HRid, actorName: 'HR Admin',
+            actorID: req.HRid, actorName: hrDelName,
             actorRole: 'HR-Admin', action: 'DOCUMENT_DELETED',
-            description: `Document "${doc.documentname}" was deleted`,
+            description: `${hrDelName} deleted document "${doc.documentname}"`,
             targetID: documentID, targetModel: 'Document',
             organizationID: req.ORGID, req
         })
@@ -245,10 +254,14 @@ export const HandleRunAlertEngine = async (req, res) => {
             await doc.save()
         }
 
+        const { HumanResources: HR3 } = await import('../models/HR.model.js')
+        const hrAlert = await HR3.findById(req.HRid).select('firstname lastname')
+        const hrAlertName = hrAlert ? `${hrAlert.firstname} ${hrAlert.lastname}` : 'HR Admin'
+
         await createLog({
-            actorID: req.HRid, actorName: 'HR Admin',
+            actorID: req.HRid, actorName: hrAlertName,
             actorRole: 'HR-Admin', action: 'DOCUMENT_ALERT_RUN',
-            description: `Document alert engine run: ${alertsSent} alert(s) sent, ${statusFixed} status(es) updated`,
+            description: `${hrAlertName} ran document alert engine: ${alertsSent} alert(s) sent, ${statusFixed} status(es) updated`,
             meta: { alertsSent, statusFixed },
             organizationID: req.ORGID, req
         })

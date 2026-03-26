@@ -1,144 +1,143 @@
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarHeader,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-} from "@/components/ui/sidebar"
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 
-import { NavLink } from "react-router-dom"
+import { NavLink } from "react-router-dom";
 
 export function HRdashboardSidebar() {
-    return (
-        <Sidebar>
-            <SidebarContent>
-                <SidebarGroup>
-                    {/* <SidebarGroupLabel>HR-Dashboard EMS</SidebarGroupLabel> */}
-                    <SidebarGroupContent>
+  const linkClass = ({ isActive }) =>
+    isActive ? "bg-blue-200 rounded-lg" : "";
 
-                        <SidebarMenu className="gap-3 p-2">
+  const itemClass = "flex gap-4 hover:bg-blue-200 rounded-lg";
 
+  return (
+    <Sidebar>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-3 p-2">
 
-                            <NavLink to={"/HR/dashboard/dashboard-data"} className={({ isActive }) => { return isActive ? "bg-blue-200 rounded-lg" : "" }}>
+              {/* Dashboard */}
+              <NavLink to="/HR/dashboard/dashboard-data" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/dashboard.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Dashboard</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                                <SidebarMenuItem className="flex gap-4 hover:bg-blue-200 rounded-lg">
-                                    <img src="/../../src/assets/HR-Dashboard/dashboard.png" alt="" className="w-7 ms-2 my-1" />
-                                    <button className="text-[16px]">Dashboard</button>
-                                </SidebarMenuItem>
+              {/* Employees */}
+              <NavLink to="/HR/dashboard/employees" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/employee-2.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Employees</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                            </NavLink>
+              {/* Departments */}
+              <NavLink to="/HR/dashboard/departments" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/department.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Departments</button>
+                </SidebarMenuItem>
+              </NavLink>
 
+              {/* Document Alerts */}
+              <NavLink to="/HR/dashboard/documents" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/attendance.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Document Alerts</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                            <NavLink to={"/HR/dashboard/employees"} className={({ isActive }) => { return isActive ? "bg-blue-200 rounded-lg" : "" }}>
+              {/* Leave Engine */}
+              <NavLink to="/HR/dashboard/leave-recommendation" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/leave.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Leave Engine</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                                <SidebarMenuItem className="flex gap-4 hover:bg-blue-200 rounded-lg">
-                                    <img src="/../../src/assets/HR-Dashboard/employee-2.png" alt="" className="w-7 ms-2 my-1" />
-                                    <button className="text-[16px]">Employees</button>
-                                </SidebarMenuItem>
+              {/* Activity Log */}
+              <NavLink to="/HR/dashboard/activity-log" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Activity Log</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                            </NavLink>
+              {/* Salary */}
+              <NavLink to="/HR/dashboard/salary" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/salary4.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Salary</button>
+                </SidebarMenuItem>
+              </NavLink>
 
+              {/* Issue Notices */}
+              <NavLink to="/HR/dashboard/notices" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/notice.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Issue Notices</button>
+                </SidebarMenuItem>
+              </NavLink>
 
+              {/* Leaves */}
+              <NavLink to="/HR/dashboard/leaves" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/leave.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Leaves</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                            <NavLink to={"/HR/dashboard/departments"} className={({ isActive }) => { return isActive ? "bg-blue-200 rounded-lg" : "" }}>
+              {/* Attendance */}
+              <NavLink to="/HR/dashboard/attendance" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/attendance.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Attendances</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                                <SidebarMenuItem className="flex gap-4 hover:bg-blue-200 rounded-lg">
+              {/* Recruitment */}
+              <NavLink to="/HR/dashboard/recruitment" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/recruitment.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Recruitment</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                                    <img src="/../../src/assets/HR-Dashboard/department.png" alt="" className="w-7 ms-2 my-1" />
-                                    <button className="text-[16px]">Departments</button>
+              {/* Interview Insights */}
+              <NavLink to="/HR/dashboard/interview-insights" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/interview-insights.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Interview Insights</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                                </SidebarMenuItem>
+              {/* Requests */}
+              <NavLink to="/HR/dashboard/requests" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/request.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Requests</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                            </NavLink>
+              {/* HR Profiles */}
+              <NavLink to="/HR/dashboard/hr-profiles" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/HR-profiles.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">HR Profiles</button>
+                </SidebarMenuItem>
+              </NavLink>
 
-                            <NavLink to={"/HR/dashboard/documents"} className={({ isActive }) => { return isActive ? "bg-blue-200 rounded-lg" : "" }}>
-                                <SidebarMenuItem className="flex gap-4 hover:bg-blue-200 rounded-lg">
-                                    <img src="/../../src/assets/HR-Dashboard/attendance.png" alt="" className="w-7 ms-2 my-1" />
-                                    <button className="text-[16px]">Document Alerts</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to={"/HR/dashboard/leave-recommendation"} className={({ isActive }) => { return isActive ? "bg-blue-200 rounded-lg" : "" }}>
-                                <SidebarMenuItem className="flex gap-4 hover:bg-blue-200 rounded-lg">
-                                    <img src="/../../src/assets/HR-Dashboard/leave.png" alt="" className="w-7 ms-2 my-1" />
-                                    <button className="text-[16px]">Leave Engine</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to={"/HR/dashboard/activity-log"} className={({ isActive }) => { return isActive ? "bg-blue-200 rounded-lg" : "" }}>
-                                <SidebarMenuItem className="flex gap-4 hover:bg-blue-200 rounded-lg">
-                                    <img src="/../../src/assets/HR-Dashboard/activitylog.png" alt="" className="w-7 ms-2 my-1" />
-                                    <button className="text-[16px]">Activity Log</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <SidebarMenuItem className="my-1">
-                                <SidebarMenuButton className="gap-4">
-                                    <img src="/../../src/assets/HR-Dashboard/salary4.png" alt="" className="w-7" />
-                                    <button className="text-[16px]">Salary</button>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem className="my-1">
-                                <SidebarMenuButton className="gap-4">
-                                    <img src="/../../src/assets/HR-Dashboard/notice.png" alt="" className="w-7" />
-                                    <button className="text-[16px]">Issue Notices</button>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem className="my-1">
-                                <SidebarMenuButton className="gap-4">
-                                    <img src="/../../src/assets/HR-Dashboard/leave.png" alt="" className="w-7" />
-                                    <button className="text-[16px]">Leaves</button>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem className="my-1">
-                                <SidebarMenuButton className="gap-4">
-                                    <img src="/../../src/assets/HR-Dashboard/attendance.png" alt="" className="w-7" />
-                                    <button className="text-[16px]">Attendances</button>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem className="my-1">
-                                <SidebarMenuButton className="gap-4">
-                                    <img src="/../../src/assets/HR-Dashboard/recruitment.png" alt="" className="w-7" />
-                                    <button className="text-[16px]">Recruitment</button>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem className="my-1">
-                                <SidebarMenuButton className="gap-4">
-                                    <img src="/../../src/assets/HR-Dashboard/interview-insights.png" alt="" className="w-7" />
-                                    <button className="text-[16px]">Interview Insights</button>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem className="my-1">
-                                <SidebarMenuButton className="gap-4">
-                                    <img src="/../../src/assets/HR-Dashboard/request.png" alt="" className="w-7" />
-                                    <button className="text-[16px]">Requests</button>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem className="my-1">
-                                <SidebarMenuButton className="gap-4">
-                                    <img src="/../../src/assets/HR-Dashboard/HR-profiles.png" alt="" className="w-7" />
-                                    <button className="text-[16px]">HR Profiles</button>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                        </SidebarMenu>
-
-                    </SidebarGroupContent>
-                </SidebarGroup>
-            </SidebarContent>
-        </Sidebar>
-    )
-
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
 }

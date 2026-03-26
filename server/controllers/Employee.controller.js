@@ -1,7 +1,88 @@
-import { Department } from "../models/Department.model.js" 
+import { Department } from "../models/Department.model.js"
 import { Employee } from "../models/Employee.model.js"
 import { Organization } from "../models/Organization.model.js"
 import { createLog } from "../utils/activityLogger.js"
+
+export const HandleEmployeeUpdate = async (req, res) => {
+    try {
+        const { employeeId, updatedEmployee } = req.body
+
+        const employee = await Employee.findByIdAndUpdate(
+            employeeId,
+            updatedEmployee,
+            { new: true }
+        )
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: "employee not found" })
+        }
+
+        const isHR = !!req.HRid
+
+        let actorName = "Unknown"
+
+        if (isHR) {
+            const { HumanResources } = await import('../models/HR.model.js')
+            const hr = await HumanResources.findById(req.HRid)
+            actorName = hr ? `${hr.firstname} ${hr.lastname}` : "HR Admin"
+        } else {
+            actorName = `${employee.firstname} ${employee.lastname}`
+        }
+
+        // ✅ NO ROLE PASSED
+        await createLog({
+            actorID: isHR ? req.HRid : req.EMid,
+            actorName,
+            action: 'EMPLOYEE_UPDATED',
+            description: `${actorName} updated employee ${employee.firstname} ${employee.lastname}`,
+            targetID: employeeId,
+            targetModel: 'Employee',
+            organizationID: req.ORGID,
+            req
+        })
+
+        return res.status(200).json({ success: true, data: employee })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "internal server error" })
+    }
+}
+
+export const HandleEmployeeDelete = async (req, res) => {
+    try {
+        const { employeeId } = req.params
+
+        const employee = await Employee.findById(employeeId)
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: "employee not found" })
+        }
+
+        await employee.deleteOne()
+
+        const { HumanResources } = await import('../models/HR.model.js')
+        const hr = await HumanResources.findById(req.HRid)
+
+        const hrName = hr ? `${hr.firstname} ${hr.lastname}` : "HR Admin"
+
+        // ✅ NO ROLE PASSED
+        await createLog({
+            actorID: req.HRid,
+            actorName: hrName,
+            action: 'EMPLOYEE_DELETED',
+            description: `${hrName} deleted employee ${employee.firstname} ${employee.lastname}`,
+            targetID: employeeId,
+            targetModel: 'Employee',
+            organizationID: req.ORGID,
+            req
+        })
+
+        return res.status(200).json({ success: true })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "internal server error" })
+    }
+}
 
 export const HandleAllEmployees = async (req, res) => {
     try {
@@ -21,22 +102,6 @@ export const HandleAllEmployeesIDS = async (req, res) => {
     }
 }
 
-export const HandleEmployeeByHR = async (req, res) => {
-    try {
-        const { employeeId } = req.params
-        const employee = await Employee.findOne({ _id: employeeId, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest")
-
-        if (!employee) {
-            return res.status(404).json({ success: false, message: "employee not found" })
-        }
-        
-        return res.status(200).json({ success: true, data: employee, type: "GetEmployee" })
-    }
-    catch (error) {
-        return res.status(404).json({ success: false, error: error, message: "employee not found" }) 
-    }
-}
-
 export const HandleEmployeeByEmployee = async (req, res) => {
     try {
         const employee = await Employee.findOne({ _id: req.EMid, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest")
@@ -52,68 +117,18 @@ export const HandleEmployeeByEmployee = async (req, res) => {
     }
 }
 
-export const HandleEmployeeUpdate = async (req, res) => {
-    try {
-        const { employeeId, updatedEmployee } = req.body
-
-        const checkeemployee = await Employee.findById(employeeId)
-
-        if (!checkeemployee) {
-            return res.status(404).json({ success: false, message: "employee not found" })
-        }
-
-        const employee = await Employee.findByIdAndUpdate(employeeId, updatedEmployee, { new: true }).select("firstname lastname email contactnumber department")
-        await createLog({
-            actorID: req.HRid || req.EMid,
-            actorName: employee ? `${employee.firstname} ${employee.lastname}` : 'Unknown',
-            actorRole: req.Role || req.EMrole || 'Employee',
-            action: 'EMPLOYEE_UPDATED',
-            description: `Employee record updated for ${employee?.firstname} ${employee?.lastname}`,
-            targetID: employeeId, targetModel: 'Employee',
-            organizationID: req.ORGID, req
-        })
-        return res.status(200).json({ success: true, data: employee })
-
-    } catch (error) {
-        return res.status(500).json({ success: false, error: error, message: "internal server error" })
-    }
-}
-
-export const HandleEmployeeDelete = async (req, res) => {
+export const HandleEmployeeByHR = async (req, res) => {
     try {
         const { employeeId } = req.params
-        const employee = await Employee.findOne({ _id: employeeId })
+        const employee = await Employee.findOne({ _id: employeeId, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest")
 
         if (!employee) {
             return res.status(404).json({ success: false, message: "employee not found" })
         }
-
-        const department = await Department.findById(employee.department)
-
-        if (department) {
-            department.employees.splice(department.employees.indexOf(employeeId), 1)
-            await department.save()
-        }
-
-        const organization = await Organization.findById(employee.organizationID)
-
-        if (!organization) {
-            return res.status(404).json({ success: false, message: "organization not found" })
-        }
-
-        organization.employees.splice(organization.employees.indexOf(employeeId), 1)
-
-        await organization.save()
-        await employee.deleteOne()
-        await createLog({
-            actorID: req.HRid, actorName: 'HR Admin',
-            actorRole: 'HR-Admin', action: 'EMPLOYEE_DELETED',
-            description: `Employee ${employee.firstname} ${employee.lastname} was deleted`,
-            targetID: employeeId, targetModel: 'Employee',
-            organizationID: req.ORGID, req
-        })
-        return res.status(200).json({ success: true, message: "Employee deleted successfully", type : "EmployeeDelete" })
-    } catch (error) {
-        return res.status(500).json({ success: false, error: error, message: "internal server error" })
+        
+        return res.status(200).json({ success: true, data: employee, type: "GetEmployee" })
+    }
+    catch (error) {
+        return res.status(404).json({ success: false, error: error, message: "employee not found" }) 
     }
 }

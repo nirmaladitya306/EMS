@@ -47,11 +47,17 @@ export const HandleEmplyoeeSignup = async (req, res) => {
             organization.employees.push(newEmployee._id)
             await organization.save()
 
+            // The actor is the HR who created the employee, not the employee themselves
+            const { HumanResources } = await import('../models/HR.model.js')
+            const hr = req.HRid ? await HumanResources.findById(req.HRid).select('firstname lastname') : null
+            const hrName = hr ? `${hr.firstname} ${hr.lastname}` : 'HR Admin'
+
             await createLog({
-                actorID: req.HRid || newEmployee._id,
-                actorName: `${newEmployee.firstname} ${newEmployee.lastname}`,
-                actorRole: 'HR-Admin', action: 'EMPLOYEE_CREATED',
-                description: `New employee ${newEmployee.firstname} ${newEmployee.lastname} (${newEmployee.email}) was registered`,
+                actorID:   req.HRid || newEmployee._id,
+                actorName: hrName,
+                actorRole: 'HR-Admin',
+                action:    'EMPLOYEE_CREATED',
+                description: `${hrName} registered new employee ${newEmployee.firstname} ${newEmployee.lastname} (${newEmployee.email})`,
                 targetID: newEmployee._id, targetModel: 'Employee',
                 organizationID: organization._id, req
             })
@@ -137,8 +143,16 @@ export const HandleEmplyoeeLogin = async (req, res) => {
 
         GenerateJwtTokenAndSetCookiesEmployee(res, employee._id, employee.role, employee.organizationID)
         employee.lastlogin = new Date()
-
         await employee.save()
+
+        await createLog({
+            actorID:   employee._id,
+            actorName: `${employee.firstname} ${employee.lastname}`,
+            actorRole: 'Employee',
+            action:    'LOGIN',
+            description: `Employee ${employee.firstname} ${employee.lastname} logged in`,
+            organizationID: employee.organizationID, req
+        })
         return res.status(200).json({ success: true, message: "Emplyoee Login Successfull" })
 
     } catch (error) {

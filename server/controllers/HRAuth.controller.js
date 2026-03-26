@@ -7,85 +7,52 @@ import { GenerateVerificationToken } from "../utils/generateverificationtoken.js
 import { Organization } from "../models/Organization.model.js"
 import { createLog } from "../utils/activityLogger.js"
 
-export const HandleHRSignup = async (req, res) => {
+export const HandleHRLogin = async (req, res) => {
+    const { email, password } = req.body
     try {
-        const { firstname, lastname, email, password, contactnumber, name, description, OrganizationURL, OrganizationMail } = req.body
-
-        if (!name || !description || !OrganizationURL || !OrganizationMail) {
-            throw new Error("All Fields are required")
-        }
-
-        if (!firstname || !lastname || !email || !password || !contactnumber) {
-            throw new Error("All Fields are required")
-        }
-
-        const organization = await Organization.findOne({ name: name, OrganizationURL: OrganizationURL, OrganizationMail: OrganizationMail })
-
         const HR = await HumanResources.findOne({ email: email })
 
-        if (HR) {
-            return res.status(400).json({ success: false, message: "HR already exists, please go to the login page or create new HR", type: "signup" })
+        if (!HR) {
+            return res.status(400).json({ success: false, message: "Invalid Credentials", type: "HRLogin" })
         }
 
-        if (!organization && !HR) {
+        const isMatch = await bcrypt.compare(password, HR.password)
 
-            const newOrganization = await Organization.create({
-                name,
-                description,
-                OrganizationURL,
-                OrganizationMail
-            })
-
-            const hashedpassword = await bcrypt.hash(password, 10)
-            const verificationcode = GenerateVerificationToken(6)
-
-            const newHR = await HumanResources.create({
-                firstname,
-                lastname,
-                email,
-                password: hashedpassword,
-                contactnumber,
-                role: "HR-Admin",
-                organizationID: newOrganization._id,
-                verificationtoken: verificationcode,
-                verificationtokenexpires: Date.now() + 5 * 60 * 1000
-            })
-
-            newOrganization.HRs.push(newHR._id)
-            await newOrganization.save()
-
-            GenerateJwtTokenAndSetCookiesHR(res, newHR._id, newHR.role, newOrganization._id)
-            const VerificationEmailStatus = await SendVerificationEmail(email, verificationcode)
-            return res.status(201).json({ success: true, message: "Organization Created Successfully & HR Registered Successfully", VerificationEmailStatus: VerificationEmailStatus, type: "signup", HRid: newHR._id })
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: "Invalid Credentials", type: "HRLogin" })
         }
 
-        if (organization && !HR) {
+        GenerateJwtTokenAndSetCookiesHR(res, HR._id, HR.role, HR.organizationID)
 
-            const hashedpassword = await bcrypt.hash(password, 10)
-            const verificationcode = GenerateVerificationToken(6)
+        HR.lastlogin = new Date()
+        await HR.save()
 
-            const newHR = await HumanResources.create({
-                firstname,
-                lastname,
-                email,
-                password: hashedpassword,
-                contactnumber,
-                role: "HR-Admin",
-                organizationID: organization._id,
-                verificationtoken: verificationcode,
-                verificationtokenexpires: Date.now() + 5 * 60 * 1000
-            })
+        // ✅ NO ROLE PASSED
+        await createLog({
+            actorID: HR._id,
+            actorName: `${HR.firstname} ${HR.lastname}`,
+            action: 'LOGIN',
+            description: `HR ${HR.firstname} ${HR.lastname} logged in`,
+            organizationID: HR.organizationID,
+            req
+        })
 
-            organization.HRs.push(newHR._id)
-            await organization.save()
-
-            GenerateJwtTokenAndSetCookiesHR(res, newHR._id, newHR.role, organization._id)
-            const VerificationEmailStatus = await SendVerificationEmail(email, verificationcode)
-            return res.status(201).json({ success: true, message: "HR Registered Successfully", type: "signup", VerificationEmailStatus: VerificationEmailStatus, HRid: newHR._id })
-        }
+        return res.status(200).json({ success: true, message: "HR Login Successful" })
 
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message, type: "signup" })
+        return res.status(500).json({ success: false, message: "Internal Server Error" })
+    }
+}
+
+export const HandleHRCheck = async (req, res) => {
+    try {
+        const HR = await HumanResources.findOne({ _id: req.HRid, organizationID: req.ORGID })
+        if (!HR) {
+            return res.status(404).json({ success: false, message: "HR not found", type: "checkHR" })
+        }
+        return res.status(200).json({ success: true, message: "HR Already Logged In", type: "checkHR" })
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error, message: "internal error", type: "checkHR" })
     }
 }
 
@@ -110,67 +77,24 @@ export const HandleHRVerifyEmail = async (req, res) => {
     }
 }
 
-
-export const HandleHRLogin = async (req, res) => {
-    const { email, password } = req.body
-    try {
-        const HR = await HumanResources.findOne({ email: email })
-
-        if (!HR) {
-            return res.status(400).json({ success: false, message: "Invaild Credentials, Please Add Correct One", type: "HRLogin" })
-        }
-
-        const isMatch = await bcrypt.compare(password, HR.password)
-
-        if (!isMatch) {
-            return res.status(400).json({ success: false, message: "Invaild Credentials, Please Add Correct One", type: "HRLogin" })
-        }
-
-        GenerateJwtTokenAndSetCookiesHR(res, HR._id, HR.role, HR.organizationID)
-        HR.lastlogin = new Date()
-        await HR.save()
-        await createLog({
-            actorID: HR._id, actorName: `${HR.firstname} ${HR.lastname}`,
-            actorRole: 'HR-Admin', action: 'LOGIN',
-            description: `HR ${HR.firstname} ${HR.lastname} logged in`,
-            organizationID: HR.organizationID, req
-        })
-        return res.status(200).json({ success: true, message: "HR Login Successfull", type: "HRLogin" })
-    }
-    catch (error) {
-        return res.status(500).json({ success: false, message: "Internal Server Error", error: error, type: "HRLogin" })
-    }
-}
-
-export const HandleHRLogout = async (req, res) => {
-    try {
-        const HR = await HumanResources.findById(req.HRid)
-        if (HR) {
-            await createLog({
-                actorID: HR._id, actorName: `${HR.firstname} ${HR.lastname}`,
-                actorRole: 'HR-Admin', action: 'LOGOUT',
-                description: `HR ${HR.firstname} ${HR.lastname} logged out`,
-                organizationID: HR.organizationID, req
-            })
-        }
-        res.clearCookie("HRtoken")
-        return res.status(200).json({ success: true, message: "HR Logged Out Successfully" })
-    } catch (error) {
-        return res.status(500).json({ success: false, message: "Internal server Error", error: error })
-    }
-}
-
-export const HandleHRCheck = async (req, res) => {
+export const HandleHRcheckVerifyEmail = async (req, res) => {
     try {
         const HR = await HumanResources.findOne({ _id: req.HRid, organizationID: req.ORGID })
-        if (!HR) {
-            return res.status(404).json({ success: false, message: "HR not found", type: "checkHR" })
+
+        if (HR.isverified) {
+            return res.status(200).json({ sucess: true, message: "HR Already Verified", type: "HRcodeavailable", alreadyverified: true })
         }
-        return res.status(200).json({ success: true, message: "HR Already Logged In", type: "checkHR" })
-    } catch (error) {
-        return res.status(500).json({ success: false, error: error, message: "internal error", type: "checkHR" })
+
+        if ((HR.verificationtoken) && (HR.verificationtokenexpires > Date.now())) {
+            return res.status(200).json({ success: true, message: "Verification Code is Still Valid", type: "HRcodeavailable" })
+        }
+
+        return res.status(404).json({ success: false, message: "Invalid or Expired Verification Code", type: "HRcodeavailable" })
     }
-}
+    catch (error) {
+        return res.status(500).json({ success: false, message: "Internal Server Error", error: error, type: "HRcodeavailable" })
+    }
+} 
 
 export const HandleHRForgotPassword = async (req, res) => {
     const { email } = req.body
@@ -254,21 +178,108 @@ export const HandleHRResetverifyEmail = async (req, res) => {
     }
 }
 
-export const HandleHRcheckVerifyEmail = async (req, res) => {
+export const HandleHRSignup = async (req, res) => {
     try {
-        const HR = await HumanResources.findOne({ _id: req.HRid, organizationID: req.ORGID })
+        const { firstname, lastname, email, password, contactnumber, name, description, OrganizationURL, OrganizationMail } = req.body
 
-        if (HR.isverified) {
-            return res.status(200).json({ sucess: true, message: "HR Already Verified", type: "HRcodeavailable", alreadyverified: true })
+        if (!name || !description || !OrganizationURL || !OrganizationMail) {
+            throw new Error("All Fields are required")
         }
 
-        if ((HR.verificationtoken) && (HR.verificationtokenexpires > Date.now())) {
-            return res.status(200).json({ success: true, message: "Verification Code is Still Valid", type: "HRcodeavailable" })
+        if (!firstname || !lastname || !email || !password || !contactnumber) {
+            throw new Error("All Fields are required")
         }
 
-        return res.status(404).json({ success: false, message: "Invalid or Expired Verification Code", type: "HRcodeavailable" })
+        const organization = await Organization.findOne({ name: name, OrganizationURL: OrganizationURL, OrganizationMail: OrganizationMail })
+
+        const HR = await HumanResources.findOne({ email: email })
+
+        if (HR) {
+            return res.status(400).json({ success: false, message: "HR already exists, please go to the login page or create new HR", type: "signup" })
+        }
+
+        if (!organization && !HR) {
+
+            const newOrganization = await Organization.create({
+                name,
+                description,
+                OrganizationURL,
+                OrganizationMail
+            })
+
+            const hashedpassword = await bcrypt.hash(password, 10)
+            const verificationcode = GenerateVerificationToken(6)
+
+            const newHR = await HumanResources.create({
+                firstname,
+                lastname,
+                email,
+                password: hashedpassword,
+                contactnumber,
+                role: "HR-Admin",
+                organizationID: newOrganization._id,
+                verificationtoken: verificationcode,
+                verificationtokenexpires: Date.now() + 5 * 60 * 1000
+            })
+
+            newOrganization.HRs.push(newHR._id)
+            await newOrganization.save()
+
+            GenerateJwtTokenAndSetCookiesHR(res, newHR._id, newHR.role, newOrganization._id)
+            const VerificationEmailStatus = await SendVerificationEmail(email, verificationcode)
+            return res.status(201).json({ success: true, message: "Organization Created Successfully & HR Registered Successfully", VerificationEmailStatus: VerificationEmailStatus, type: "signup", HRid: newHR._id })
+        }
+
+        if (organization && !HR) {
+
+            const hashedpassword = await bcrypt.hash(password, 10)
+            const verificationcode = GenerateVerificationToken(6)
+
+            const newHR = await HumanResources.create({
+                firstname,
+                lastname,
+                email,
+                password: hashedpassword,
+                contactnumber,
+                role: "HR-Admin",
+                organizationID: organization._id,
+                verificationtoken: verificationcode,
+                verificationtokenexpires: Date.now() + 5 * 60 * 1000
+            })
+
+            organization.HRs.push(newHR._id)
+            await organization.save()
+
+            GenerateJwtTokenAndSetCookiesHR(res, newHR._id, newHR.role, organization._id)
+            const VerificationEmailStatus = await SendVerificationEmail(email, verificationcode)
+            return res.status(201).json({ success: true, message: "HR Registered Successfully", type: "signup", VerificationEmailStatus: VerificationEmailStatus, HRid: newHR._id })
+        }
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message, type: "signup" })
     }
-    catch (error) {
-        return res.status(500).json({ success: false, message: "Internal Server Error", error: error, type: "HRcodeavailable" })
+}
+
+export const HandleHRLogout = async (req, res) => {
+    try {
+        const HR = await HumanResources.findById(req.HRid)
+
+        if (HR) {
+            await createLog({
+                actorID: HR._id,
+                actorName: `${HR.firstname} ${HR.lastname}`,
+                action: 'LOGOUT',
+                description: `HR ${HR.firstname} ${HR.lastname} logged out`,
+                organizationID: HR.organizationID,
+                req
+            })
+        }
+
+        res.clearCookie("HRtoken")
+
+        return res.status(200).json({ success: true, message: "HR Logged Out Successfully" })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server Error" })
     }
 }
