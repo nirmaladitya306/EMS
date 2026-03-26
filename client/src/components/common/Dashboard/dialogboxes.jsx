@@ -94,7 +94,7 @@ export const AddEmployeesDialogBox = () => {
                                 </div>
                                 <div className="label-input-field flex flex-col gap-1">
                                     <label htmlFor="text-password" className="md:text-md lg:text-lg font-bold">Password</label>
-                                    <input type="text"
+                                    <input type="password"
                                         id="text-password" className="border-2 border-gray-700 rounded px-2 py-1"
                                         name="textpassword"
                                         value={formdata.textpassword}
