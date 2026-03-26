@@ -19,6 +19,7 @@ import CorporateCalendarRouter from './routes/CorporateCalendar.route.js'
 import BalanceRouter from './routes/Balance.route.js'
 import DocumentRouter from './routes/Document.route.js'
 import LeaveRecommendationRouter from './routes/LeaveRecommendation.route.js'
+import ActivityLogRouter from './routes/ActivityLog.route.js'
 import { ConnectDB } from './config/connectDB.js';
 import cookieParser from 'cookie-parser';
 import cors from "cors"
@@ -71,6 +72,8 @@ app.use("/api/v1/balance", BalanceRouter)
 app.use("/api/v1/document", DocumentRouter)
 
 app.use("/api/v1/leave-recommendation", LeaveRecommendationRouter)
+
+app.use("/api/v1/activity-log", ActivityLogRouter)
 
 app.listen(process.env.PORT, async () => {
   await ConnectDB()

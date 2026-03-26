@@ -3,6 +3,7 @@ import { Employee } from '../models/Employee.model.js'
 import { transporter } from '../mailtrap/mailtrap.config.js'
 import { DOCUMENT_EXPIRY_ALERT_TEMPLATE } from '../mailtrap/documentexpirytemplates.js'
 import dayjs from 'dayjs'
+import { createLog } from '../utils/activityLogger.js'
 
 // ─── Helper: build and send an expiry alert email ────────────────────────────
 const sendExpiryEmail = async (employeeEmail, employeeName, doc, daysLeft) => {
@@ -97,13 +98,18 @@ export const HandleCreateDocument = async (req, res) => {
             organizationID: req.ORGID
         })
 
+        await createLog({
+            actorID: req.HRid, actorName: 'HR Admin',
+            actorRole: 'HR-Admin', action: 'DOCUMENT_CREATED',
+            description: `Document "${documentname}" (${documenttype}) added for employee`,
+            targetID: document._id, targetModel: 'Document',
+            organizationID: req.ORGID, req
+        })
         return res.status(201).json({ success: true, message: 'Document created successfully', data: document })
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message })
     }
 }
-
-// ─── Get all documents for the organisation ──────────────────────────────────
 export const HandleGetAllDocuments = async (req, res) => {
     try {
         const documents = await Document.find({ organizationID: req.ORGID })
@@ -183,6 +189,13 @@ export const HandleDeleteDocument = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Document not found' })
         }
         await doc.deleteOne()
+        await createLog({
+            actorID: req.HRid, actorName: 'HR Admin',
+            actorRole: 'HR-Admin', action: 'DOCUMENT_DELETED',
+            description: `Document "${doc.documentname}" was deleted`,
+            targetID: documentID, targetModel: 'Document',
+            organizationID: req.ORGID, req
+        })
         return res.status(200).json({ success: true, message: 'Document deleted successfully', type: 'DocumentDelete' })
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message })
@@ -232,6 +245,13 @@ export const HandleRunAlertEngine = async (req, res) => {
             await doc.save()
         }
 
+        await createLog({
+            actorID: req.HRid, actorName: 'HR Admin',
+            actorRole: 'HR-Admin', action: 'DOCUMENT_ALERT_RUN',
+            description: `Document alert engine run: ${alertsSent} alert(s) sent, ${statusFixed} status(es) updated`,
+            meta: { alertsSent, statusFixed },
+            organizationID: req.ORGID, req
+        })
         return res.status(200).json({
             success: true,
             message: `Alert engine run complete. ${alertsSent} alert(s) sent, ${statusFixed} status(es) updated.`,

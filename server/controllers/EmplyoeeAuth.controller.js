@@ -5,6 +5,7 @@ import { SendVerificationEmail, SendWelcomeEmail, SendForgotPasswordEmail, SendR
 import { GenerateJwtTokenAndSetCookiesEmployee } from "../utils/generatejwttokenandsetcookies.js"
 import crypto from "crypto"
 import { Organization } from "../models/Organization.model.js"
+import { createLog } from "../utils/activityLogger.js"
 
 
 export const HandleEmplyoeeSignup = async (req, res) => {
@@ -46,9 +47,14 @@ export const HandleEmplyoeeSignup = async (req, res) => {
             organization.employees.push(newEmployee._id)
             await organization.save()
 
-            // GenerateJwtTokenAndSetCookiesEmployee(res, newEmployee._id, newEmployee.role, organization._id)
-            // const VerificationEmailStatus = await SendVerificationEmail(email, verificationcode)
-            // SendVerificationEmailStatus: VerificationEmailStatus
+            await createLog({
+                actorID: req.HRid || newEmployee._id,
+                actorName: `${newEmployee.firstname} ${newEmployee.lastname}`,
+                actorRole: 'HR-Admin', action: 'EMPLOYEE_CREATED',
+                description: `New employee ${newEmployee.firstname} ${newEmployee.lastname} (${newEmployee.email}) was registered`,
+                targetID: newEmployee._id, targetModel: 'Employee',
+                organizationID: organization._id, req
+            })
 
             return res.status(201).json({ success: true, message: "Employee Registered Successfully", newEmployee: newEmployee.email, type: "EmployeeCreate" })
 

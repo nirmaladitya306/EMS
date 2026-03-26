@@ -70,6 +70,13 @@ export function HRdashboardSidebar() {
                                 </SidebarMenuItem>
                             </NavLink>
 
+                            <NavLink to={"/HR/dashboard/activity-log"} className={({ isActive }) => { return isActive ? "bg-blue-200 rounded-lg" : "" }}>
+                                <SidebarMenuItem className="flex gap-4 hover:bg-blue-200 rounded-lg">
+                                    <img src="/../../src/assets/HR-Dashboard/settings.png" alt="" className="w-7 ms-2 my-1" />
+                                    <button className="text-[16px]">Activity Log</button>
+                                </SidebarMenuItem>
+                            </NavLink>
+
                             <SidebarMenuItem className="my-1">
                                 <SidebarMenuButton className="gap-4">
                                     <img src="/../../src/assets/HR-Dashboard/salary.png" alt="" className="w-7" />

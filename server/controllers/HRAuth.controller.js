@@ -5,6 +5,7 @@ import { GenerateJwtTokenAndSetCookiesHR } from "../utils/generatejwttokenandset
 import { SendVerificationEmail, SendWelcomeEmail, SendForgotPasswordEmail, SendResetPasswordConfimation } from "../mailtrap/emails.js"
 import { GenerateVerificationToken } from "../utils/generateverificationtoken.js"
 import { Organization } from "../models/Organization.model.js"
+import { createLog } from "../utils/activityLogger.js"
 
 export const HandleHRSignup = async (req, res) => {
     try {
@@ -128,6 +129,12 @@ export const HandleHRLogin = async (req, res) => {
         GenerateJwtTokenAndSetCookiesHR(res, HR._id, HR.role, HR.organizationID)
         HR.lastlogin = new Date()
         await HR.save()
+        await createLog({
+            actorID: HR._id, actorName: `${HR.firstname} ${HR.lastname}`,
+            actorRole: 'HR-Admin', action: 'LOGIN',
+            description: `HR ${HR.firstname} ${HR.lastname} logged in`,
+            organizationID: HR.organizationID, req
+        })
         return res.status(200).json({ success: true, message: "HR Login Successfull", type: "HRLogin" })
     }
     catch (error) {
@@ -137,6 +144,15 @@ export const HandleHRLogin = async (req, res) => {
 
 export const HandleHRLogout = async (req, res) => {
     try {
+        const HR = await HumanResources.findById(req.HRid)
+        if (HR) {
+            await createLog({
+                actorID: HR._id, actorName: `${HR.firstname} ${HR.lastname}`,
+                actorRole: 'HR-Admin', action: 'LOGOUT',
+                description: `HR ${HR.firstname} ${HR.lastname} logged out`,
+                organizationID: HR.organizationID, req
+            })
+        }
         res.clearCookie("HRtoken")
         return res.status(200).json({ success: true, message: "HR Logged Out Successfully" })
     } catch (error) {
@@ -255,4 +271,4 @@ export const HandleHRcheckVerifyEmail = async (req, res) => {
     catch (error) {
         return res.status(500).json({ success: false, message: "Internal Server Error", error: error, type: "HRcodeavailable" })
     }
-} 
+}

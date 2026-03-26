@@ -1,6 +1,7 @@
 import { Employee } from "../models/Employee.model.js"
 import { HumanResources } from "../models/HR.model.js"
 import { Leave } from "../models/Leave.model.js"
+import { createLog } from "../utils/activityLogger.js"
 
 
 export const HandleCreateLeave = async (req, res) => {
@@ -39,7 +40,14 @@ export const HandleCreateLeave = async (req, res) => {
 
         employee.leaverequest.push(leave._id)
         await employee.save()
-
+        await createLog({
+            actorID: employee._id,
+            actorName: `${employee.firstname} ${employee.lastname}`,
+            actorRole: 'Employee', action: 'LEAVE_CREATED',
+            description: `${employee.firstname} ${employee.lastname} submitted a leave request: "${title}"`,
+            targetID: leave._id, targetModel: 'Leave',
+            organizationID: req.ORGID, req
+        })
         return res.status(200).json({ success: true, message: "Leave request created successfully", data: leave })
 
     } catch (error) {
@@ -119,8 +127,16 @@ export const HandleUpdateLeavebyHR = async (req, res) => {
 
         leave.status = status
         leave.approvedby = HRID
-
         await leave.save()
+        await createLog({
+            actorID: HRID, actorName: `${HR.firstname} ${HR.lastname}`,
+            actorRole: 'HR-Admin',
+            action: status === 'Approved' ? 'LEAVE_APPROVED' : 'LEAVE_REJECTED',
+            description: `HR ${HR.firstname} ${HR.lastname} ${status.toLowerCase()} a leave request`,
+            targetID: leaveID, targetModel: 'Leave',
+            meta: { status },
+            organizationID: req.ORGID, req
+        })
         return res.status(200).json({ success: true, message: "Leave record updated successfully", data: leave })
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error" })

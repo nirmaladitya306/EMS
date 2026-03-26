@@ -1,6 +1,7 @@
 import { Department } from "../models/Department.model.js" 
 import { Employee } from "../models/Employee.model.js"
 import { Organization } from "../models/Organization.model.js"
+import { createLog } from "../utils/activityLogger.js"
 
 export const HandleAllEmployees = async (req, res) => {
     try {
@@ -62,6 +63,15 @@ export const HandleEmployeeUpdate = async (req, res) => {
         }
 
         const employee = await Employee.findByIdAndUpdate(employeeId, updatedEmployee, { new: true }).select("firstname lastname email contactnumber department")
+        await createLog({
+            actorID: req.HRid || req.EMid,
+            actorName: employee ? `${employee.firstname} ${employee.lastname}` : 'Unknown',
+            actorRole: req.Role || req.EMrole || 'Employee',
+            action: 'EMPLOYEE_UPDATED',
+            description: `Employee record updated for ${employee?.firstname} ${employee?.lastname}`,
+            targetID: employeeId, targetModel: 'Employee',
+            organizationID: req.ORGID, req
+        })
         return res.status(200).json({ success: true, data: employee })
 
     } catch (error) {
@@ -95,7 +105,13 @@ export const HandleEmployeeDelete = async (req, res) => {
 
         await organization.save()
         await employee.deleteOne()
-
+        await createLog({
+            actorID: req.HRid, actorName: 'HR Admin',
+            actorRole: 'HR-Admin', action: 'EMPLOYEE_DELETED',
+            description: `Employee ${employee.firstname} ${employee.lastname} was deleted`,
+            targetID: employeeId, targetModel: 'Employee',
+            organizationID: req.ORGID, req
+        })
         return res.status(200).json({ success: true, message: "Employee deleted successfully", type : "EmployeeDelete" })
     } catch (error) {
         return res.status(500).json({ success: false, error: error, message: "internal server error" })
