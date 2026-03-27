@@ -37,3 +37,52 @@ export const HRDepartmentPageEndPoints = {
 export const EmployeesIDsEndPoints = {
     GETALL: "/v1/employee/all-employees-ids",
 }
+export const SalaryEndPoints = {
+    GETALL:  "/v1/salary/all",
+    CREATE:  "/v1/salary/create-salary",
+    UPDATE:  "/v1/salary/update-salary",
+    DELETE:  (id) => `/v1/salary/delete-salary/${id}`,
+}
+ 
+export const NoticeEndPoints = {
+    GETALL:  "/v1/notice/all",
+    CREATE:  "v1/notice/create-notice",
+    UPDATE:  "/v1/notice/update-notice",
+    DELETE:  (id) => `/v1/notice/delete-notice/${id}`,
+}
+ 
+export const LeaveEndPoints = {
+    GETALL:      "/v1/leave/all",
+    HR_UPDATE:   "/v1/leave/HR-update-leave",
+}
+ 
+export const AttendanceEndPoints = {
+    GETALL:  "/v1/attendance/all",
+    DELETE:  (id) => `/v1/attendance/delete-attendance/${id}`,
+}
+ 
+export const RecruitmentEndPoints = {
+    GETALL:  "/v1/recruitment/all",
+    CREATE:  "/v1/recruitment/create-recruitment",
+    UPDATE:  "/v1/recruitment/update-recruitment",
+    DELETE:  (id) => `/v1/recruitment/delete-recruitment/${id}`,
+}
+ 
+export const InterviewEndPoints = {
+    GETALL:  "/v1/interview-insights/all",
+    CREATE:  "/v1/interview-insights/create-interview",
+    UPDATE:  "/v1/interview-insights/update-interview",
+    DELETE:  (id) => `/v1/interview-insights/delete-interview/${id}`,
+}
+ 
+export const RequestEndPoints = {
+    GETALL:        "/v1/generate-request/all",
+    UPDATE_STATUS: "/v1/generate-request/update-request-status",
+    DELETE:        (id) => `/v1/generate-request/delete-request/${id}`,
+}
+ 
+export const HRProfileEndPoints = {
+    GETALL:  "/v1/HR/all",
+    UPDATE:  "/v1/HR/update-HR",
+    DELETE:  (id) => `/v1/HR/delete-HR/${id}`,
+}

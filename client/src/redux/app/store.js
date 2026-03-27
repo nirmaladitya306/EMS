@@ -8,23 +8,35 @@ import EMployeesIDReducer from '../Slices/EmployeesIDsSlice.js'
 import DocumentReducer from '../Slices/DocumentSlice.js'
 import LeaveRecommendationReducer from '../Slices/LeaveRecommendationSlice.js'
 import ActivityLogReducer from '../Slices/ActivityLogSlice.js'
-import SalaryReducer from "../Slices/SalarySlice";
-import HREmployeesReducer from "../Slices/HREmployeesPageSlice";
-import NoticeReducer from "../Slices/NoticeSlice";
+import SalaryReducer from "../Slices/SalarySlice.js"
+import NoticeReducer from "../Slices/NoticeSlice.js"
+import LeaveReducer from "../Slices/LeaveSlice.js"
+import AttendanceReducer from "../Slices/AttendanceSlice.js"
+import RecruitmentReducer from "../Slices/RecruitmentSlice.js"
+import InterviewReducer from "../Slices/InterviewSlice.js"
+import RequestReducer from "../Slices/RequestSlice.js"
+import HRProfileReducer from "../Slices/HRProfileSlice.js"
 
 export const store = configureStore({
     reducer: {
-        employeereducer: EmployeeReducer,
-        HRReducer: HRReducer,
-        dashboardreducer: DashbaordReducer,
-        HREmployeesPageReducer : HREmployeesPageReducer,
-        HRDepartmentPageReducer : HRDepartmentPageReducer,
-        EMployeesIDReducer : EMployeesIDReducer,
-        DocumentReducer: DocumentReducer,
+        employeereducer:          EmployeeReducer,
+        HRReducer:                HRReducer,
+        dashboardreducer:         DashbaordReducer,
+        HREmployeesPageReducer:   HREmployeesPageReducer,
+        // salarypage.jsx uses HREmployeesReducer — alias to the same slice
+        HREmployeesReducer:       HREmployeesPageReducer,
+        HRDepartmentPageReducer:  HRDepartmentPageReducer,
+        EMployeesIDReducer:       EMployeesIDReducer,
+        DocumentReducer:          DocumentReducer,
         LeaveRecommendationReducer: LeaveRecommendationReducer,
-        ActivityLogReducer: ActivityLogReducer,
-        SalaryReducer: SalaryReducer,
-        HREmployeesReducer: HREmployeesReducer,
-        NoticeReducer: NoticeReducer
+        ActivityLogReducer:       ActivityLogReducer,
+        SalaryReducer:            SalaryReducer,
+        NoticeReducer:            NoticeReducer,
+        LeaveReducer:             LeaveReducer,
+        AttendanceReducer:        AttendanceReducer,
+        RecruitmentReducer:       RecruitmentReducer,
+        InterviewReducer:         InterviewReducer,
+        RequestReducer:           RequestReducer,
+        HRProfileReducer:         HRProfileReducer,
     }
 })

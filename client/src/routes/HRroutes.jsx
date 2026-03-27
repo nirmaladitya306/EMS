@@ -17,6 +17,12 @@ import { LeaveRecommendationPage } from "../pages/HumanResources/Dashboard Child
 import { ActivityLogPage } from "../pages/HumanResources/Dashboard Childs/activitylogpage.jsx"
 import { SalaryPage } from "../pages/HumanResources/Dashboard Childs/salarypage.jsx"
 import { NoticePage } from "../pages/HumanResources/Dashboard Childs/noticepage.jsx"
+import { LeavePage } from "../pages/HumanResources/Dashboard Childs/leavepage.jsx"
+import { AttendancePage } from "../pages/HumanResources/Dashboard Childs/attendancepage.jsx"
+import { RecruitmentPage } from "../pages/HumanResources/Dashboard Childs/recruitmentpage.jsx"
+import { InterviewPage } from "../pages/HumanResources/Dashboard Childs/interviewpage.jsx"
+import { RequestsPage } from "../pages/HumanResources/Dashboard Childs/requestspage.jsx"
+import { HRProfilePage } from "../pages/HumanResources/Dashboard Childs/hrprofilepage.jsx"
 
 
 export const HRRoutes = [
@@ -63,6 +69,30 @@ export const HRRoutes = [
         {
             path: "notices",
             element: <NoticePage />
+        },
+        {
+            path: "leaves",
+            element: <LeavePage />
+        },
+        {
+            path: "attendance",
+            element: <AttendancePage />
+        },
+        {
+            path: "recruitment",
+            element: <RecruitmentPage />
+        },
+        {
+            path: "interview-insights",
+            element: <InterviewPage />
+        },
+        {
+            path: "requests",
+            element: <RequestsPage />
+        },
+        {
+            path: "hr-profiles",
+            element: <HRProfilePage />
         },
 
     ]
