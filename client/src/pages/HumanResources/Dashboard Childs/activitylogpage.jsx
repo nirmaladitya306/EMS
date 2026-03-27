@@ -130,7 +130,9 @@ export const ActivityLogPage = () => {
         })
     }
 
-    const { logs, pagination, summary } = state
+    const logs = state?.logs || []
+    const pagination = state?.pagination || { totalPages: 0, total: 0, limit: 50 }
+    const summary = state?.summary || { total: 0, byRole: {}, byAction: [] }
 
     return (
         <div className="activity-log-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
@@ -251,17 +253,17 @@ export const ActivityLogPage = () => {
             </div>
 
             {/* ── Pagination ── */}
-            {pagination.totalPages > 1 && (
+            {pagination?.totalPages > 1 && (
                 <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                     <span className="text-sm text-gray-500">
-                        Showing {((currentPage - 1) * pagination.limit) + 1}–{Math.min(currentPage * pagination.limit, pagination.total)} of {pagination.total} events
+                        Showing {((currentPage - 1) * pagination?.limit) + 1}–{Math.min(currentPage * pagination?.limit, pagination?.total)} of {pagination.total} events
                     </span>
                     <div className="flex gap-1">
                         <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}
                             className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">
                             ← Prev
                         </button>
-                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                        {Array.from({ length: Math.min(5, pagination?.totalPages) }, (_, i) => {
                             const p = Math.max(1, currentPage - 2) + i
                             if (p > pagination.totalPages) return null
                             return (
@@ -271,7 +273,7 @@ export const ActivityLogPage = () => {
                                 </button>
                             )
                         })}
-                        <button disabled={currentPage === pagination.totalPages} onClick={() => handlePageChange(currentPage + 1)}
+                        <button disabled={currentPage === pagination?.totalPages} onClick={() => handlePageChange(currentPage + 1)}
                             className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">
                             Next →
                         </button>
