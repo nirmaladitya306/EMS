@@ -16,6 +16,7 @@ import RecruitmentReducer from "../Slices/RecruitmentSlice.js"
 import InterviewReducer from "../Slices/InterviewSlice.js"
 import RequestReducer from "../Slices/RequestSlice.js"
 import HRProfileReducer from "../Slices/HRProfileSlice.js"
+import EmployeeDashboardReducer from "../Slices/EmployeeDashboardSlice.js"
 
 export const store = configureStore({
     reducer: {
@@ -38,5 +39,6 @@ export const store = configureStore({
         InterviewReducer:         InterviewReducer,
         RequestReducer:           RequestReducer,
         HRProfileReducer:         HRProfileReducer,
+        EmployeeDashboardReducer: EmployeeDashboardReducer,
     }
 })

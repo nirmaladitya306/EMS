@@ -37,3 +37,12 @@ export const HandleDeleteSalary = createAsyncThunk('HandleDeleteSalary', async (
         return rejectWithValue(error.response?.data || { message: error.message })
     }
 })
+
+export const HandleGetMySalaries = createAsyncThunk('HandleGetMySalaries', async (_, { rejectWithValue }) => {
+    try {
+        const res = await apiService.get(SalaryEndPoints.MY_SALARIES, { withCredentials: true })
+        return res.data
+    } catch (error) {
+        return rejectWithValue(error.response?.data || { message: error.message })
+    }
+})

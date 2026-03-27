@@ -19,3 +19,30 @@ export const HandleDeleteAttendance = createAsyncThunk('HandleDeleteAttendance',
         return rejectWithValue(error.response?.data || { message: error.message })
     }
 })
+
+export const HandleGetMyAttendance = createAsyncThunk('HandleGetMyAttendance', async (_, { rejectWithValue }) => {
+    try {
+        const res = await apiService.get(AttendanceEndPoints.MY_ATTENDANCE, { withCredentials: true })
+        return res.data
+    } catch (error) {
+        return rejectWithValue(error.response?.data || { message: error.message })
+    }
+})
+
+export const HandleInitializeAttendance = createAsyncThunk('HandleInitializeAttendance', async (data, { rejectWithValue }) => {
+    try {
+        const res = await apiService.post(AttendanceEndPoints.INITIALIZE, data, { withCredentials: true })
+        return res.data
+    } catch (error) {
+        return rejectWithValue(error.response?.data || { message: error.message })
+    }
+})
+
+export const HandleUpdateAttendance = createAsyncThunk('HandleUpdateAttendance', async (data, { rejectWithValue }) => {
+    try {
+        const res = await apiService.patch(AttendanceEndPoints.UPDATE, data, { withCredentials: true })
+        return res.data
+    } catch (error) {
+        return rejectWithValue(error.response?.data || { message: error.message })
+    }
+})
