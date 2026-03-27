@@ -3,6 +3,26 @@ import { Employee } from "../models/Employee.model.js"
 import { HumanResources } from "../models/HR.model.js"
 import { Notice } from "../models/Notice.model.js"
 
+// Employee: get notices addressed to them or their department
+export const HandleEmployeeNotices = async (req, res) => {
+    try {
+        const employee = await Employee.findOne({ _id: req.EMid, organizationID: req.ORGID })
+        if (!employee) return res.status(404).json({ success: false, message: "Employee not found" })
+
+        const notices = await Notice.find({
+            organizationID: req.ORGID,
+            $or: [
+                { employee: req.EMid },
+                { department: employee.department }
+            ]
+        }).populate("createdby", "firstname lastname").sort({ createdAt: -1 })
+
+        return res.status(200).json({ success: true, data: notices })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal Server Error", error })
+    }
+}
+
 export const HandleCreateNotice = async (req, res) => {
     try {
         const { title, content, audience, departmentID, employeeID, HRID } = req.body

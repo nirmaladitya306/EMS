@@ -1,6 +1,19 @@
 import { Employee } from "../models/Employee.model.js"
 import { Salary } from "../models/Salary.model.js"
 
+// Employee: get their own salary records
+export const HandleEmployeeSalaries = async (req, res) => {
+    try {
+        const employee = await Employee.findOne({ _id: req.EMid, organizationID: req.ORGID })
+        if (!employee) return res.status(404).json({ success: false, message: "Employee not found" })
+
+        const salaries = await Salary.find({ employee: req.EMid, organizationID: req.ORGID }).sort({ createdAt: -1 })
+        return res.status(200).json({ success: true, data: salaries })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message })
+    }
+}
+
 export const HandleCreateSalary = async (req, res) => {
     try {
         const { employeeID, basicpay, bonusePT, deductionPT, duedate, currency } = req.body

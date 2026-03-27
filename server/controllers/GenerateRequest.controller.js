@@ -2,6 +2,19 @@ import { Department } from "../models/Department.model.js"
 import { Employee } from "../models/Employee.model.js"
 import { GenerateRequest } from "../models/GenerateRequest.model.js"
 
+// Employee: get their own requests
+export const HandleEmployeeRequests = async (req, res) => {
+    try {
+        const requests = await GenerateRequest.find({ employee: req.EMid, organizationID: req.ORGID })
+            .populate("department", "name")
+            .populate("approvedby", "firstname lastname")
+            .sort({ createdAt: -1 })
+        return res.status(200).json({ success: true, data: requests })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal Server Error", error })
+    }
+}
+
 export const HandleCreateGenerateRequest = async (req, res) => {
     try {
         const { requesttitle, requestconent, employeeID } = req.body

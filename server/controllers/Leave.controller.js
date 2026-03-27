@@ -3,6 +3,18 @@ import { HumanResources } from "../models/HR.model.js"
 import { Leave } from "../models/Leave.model.js"
 import { createLog } from "../utils/activityLogger.js"
 
+// Employee: get their own leaves
+export const HandleEmployeeLeaves = async (req, res) => {
+    try {
+        const leaves = await Leave.find({ employee: req.EMid, organizationID: req.ORGID })
+            .populate("approvedby", "firstname lastname")
+            .sort({ createdAt: -1 })
+        return res.status(200).json({ success: true, data: leaves })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error" })
+    }
+}
+
 
 export const HandleCreateLeave = async (req, res) => {
     try {

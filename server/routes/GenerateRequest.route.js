@@ -20,6 +20,3 @@ router.patch("/update-request-status", VerifyhHRToken, RoleAuthorization("HR-Adm
 router.delete("/delete-request/:requestID", VerifyhHRToken, RoleAuthorization("HR-Admin"), HandleDeleteRequest)
 
 export default router
-
-
-
