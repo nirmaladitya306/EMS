@@ -5,7 +5,7 @@ import { ForgotPassword } from "../pages/Employees/forgotpassword.jsx"
 import { ResetEmailConfirm } from "../pages/Employees/resetemailconfirm.jsx"
 import { ResetPassword } from "../pages/Employees/resetpassword.jsx"
 import { EntryPage } from "../pages/Employees/EntryPage.jsx"
-// import { VerifyEmailPage } from "../pages/common/verifyemailpage.jsx"
+import { VerifyEmailPage } from "../pages/common/verifyemailpage.jsx"
 
 export const EmployeeRoutes = [
     {
@@ -16,10 +16,10 @@ export const EmployeeRoutes = [
         path: "/auth/employee/login",
         element: <EmployeeLogin />
     },
-    // {
-    //     path: "/auth/employee/verify-email", 
-    //     element: <VerifyEmailPage />
-    // },
+    {
+         path: "/auth/employee/verify-email", 
+         element: <VerifyEmailPage />
+    },
     {
         path: "/auth/employee/employee-dashboard",
         element: <ProtectedRoutes> <EmployeeDashboard /> </ProtectedRoutes>
