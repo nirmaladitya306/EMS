@@ -21,10 +21,10 @@ export const DashboardEndPoints = {
 }
 
 export const HREmployeesPageEndPoints = {
-    GETALL: "/v1/employee/all",
-    ADDEMPLOYEE: "/auth/employee/signup",
-    GETONE: (EMID) => `/v1/employee/by-HR/${EMID}`,
-    DELETE: (EMID) => `/v1/employee/delete-employee/${EMID}`
+    GETALL: "v1/employee/all",
+    ADDEMPLOYEE: "/api/auth/employee/signup",
+    GETONE: (EMID) => `/api/v1/employee/by-HR/${EMID}`,
+    DELETE: (EMID) => `/api/v1/employee/delete-employee/${EMID}`
 }
 
 export const HRDepartmentPageEndPoints = {

@@ -15,7 +15,7 @@ import { HRDepartmentPage } from "../pages/HumanResources/Dashboard Childs/depar
 import { DocumentExpiryPage } from "../pages/HumanResources/Dashboard Childs/documentexpirypage.jsx"
 import { LeaveRecommendationPage } from "../pages/HumanResources/Dashboard Childs/leaverecommendationpage.jsx"
 import { ActivityLogPage } from "../pages/HumanResources/Dashboard Childs/activitylogpage.jsx"
-import { SalaryChart } from "../components/common/Dashboard/salarychart.jsx";
+import { SalaryPage } from "../pages/HumanResources/Dashboard Childs/salarypage.jsx"
 
 
 export const HRRoutes = [
@@ -54,6 +54,10 @@ export const HRRoutes = [
         {
             path: "activity-log",
             element: <ActivityLogPage />
+        },
+        {
+            path: "salary",
+            element: <SalaryPage />
         },
 
     ]
