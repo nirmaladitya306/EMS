@@ -10,6 +10,7 @@ import LeaveRecommendationReducer from '../Slices/LeaveRecommendationSlice.js'
 import ActivityLogReducer from '../Slices/ActivityLogSlice.js'
 import SalaryReducer from "../Slices/SalarySlice";
 import HREmployeesReducer from "../Slices/HREmployeesPageSlice";
+import NoticeReducer from "../Slices/NoticeSlice";
 
 export const store = configureStore({
     reducer: {
@@ -23,6 +24,7 @@ export const store = configureStore({
         LeaveRecommendationReducer: LeaveRecommendationReducer,
         ActivityLogReducer: ActivityLogReducer,
         SalaryReducer: SalaryReducer,
-        HREmployeesReducer: HREmployeesReducer
+        HREmployeesReducer: HREmployeesReducer,
+        NoticeReducer: NoticeReducer
     }
 })
