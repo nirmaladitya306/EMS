@@ -1,39 +1,39 @@
 export const APIsEndPoints = {
-    LOGIN: "/api/auth/employee/login",
-    CHECKELOGIN: "/api/auth/employee/check-login",
-    FORGOT_PASSWORD: "/api/auth/employee/forgot-password",
-    RESET_PASSWORD: (token) => `/api/auth/employee/reset-password/${token}`
+    LOGIN: "/auth/employee/login",
+    CHECKELOGIN: "/auth/employee/check-login",
+    FORGOT_PASSWORD: "/auth/employee/forgot-password",
+    RESET_PASSWORD: (token) => `/auth/employee/reset-password/${token}`
 }
 
 export const HREndPoints = {
-    SIGNUP: "/api/auth/HR/signup",
-    CHECKLOGIN: "/api/auth/HR/check-login",
-    LOGIN: "/api/auth/HR/login",
-    VERIFY_EMAIL: "/api/auth/HR/verify-email",
-    CHECK_VERIFY_EMAIL: "/api/auth/HR/check-verify-email",
-    RESEND_VERIFY_EMAIL: "/api/auth/HR/resend-verify-email",
-    FORGOT_PASSWORD: "/api/auth/HR/forgot-password",
-    RESET_PASSWORD: (token) => `/api/auth/HR/reset-password/${token}` 
+    SIGNUP: "/auth/HR/signup",
+    CHECKLOGIN: "/auth/HR/check-login",
+    LOGIN: "/auth/HR/login",
+    VERIFY_EMAIL: "/auth/HR/verify-email",
+    CHECK_VERIFY_EMAIL: "/auth/HR/check-verify-email",
+    RESEND_VERIFY_EMAIL: "/auth/HR/resend-verify-email",
+    FORGOT_PASSWORD: "/auth/HR/forgot-password",
+    RESET_PASSWORD: (token) => `/auth/HR/reset-password/${token}` 
 }
 
 export const DashboardEndPoints = {
-    GETDATA: "/api/v1/dashboard/HR-dashboard"
+    GETDATA: "/v1/dashboard/HR-dashboard"
 }
 
 export const HREmployeesPageEndPoints = {
-    GETALL: "/api/v1/employee/all",
-    ADDEMPLOYEE: "/api/auth/employee/signup",
-    GETONE: (EMID) => `/api/v1/employee/by-HR/${EMID}`,
-    DELETE: (EMID) => `/api/v1/employee/delete-employee/${EMID}`
+    GETALL: "/v1/employee/all",
+    ADDEMPLOYEE: "/auth/employee/signup",
+    GETONE: (EMID) => `/v1/employee/by-HR/${EMID}`,
+    DELETE: (EMID) => `/v1/employee/delete-employee/${EMID}`
 }
 
 export const HRDepartmentPageEndPoints = {
-    GETALL: "/api/v1/department/all",
-    CREATE: "/api/v1/department/create-department",
-    UPDATE: "/api/v1/department/update-department",
-    DELETE: "/api/v1/department/delete-department"
+    GETALL: "/v1/department/all",
+    CREATE: "/v1/department/create-department",
+    UPDATE: "/v1/department/update-department",
+    DELETE: "/v1/department/delete-department"
 }
 
 export const EmployeesIDsEndPoints = {
-    GETALL: "/api/v1/employee/all-employees-ids",
-} 
+    GETALL: "/v1/employee/all-employees-ids",
+}

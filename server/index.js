@@ -35,7 +35,7 @@ app.use(cors({
   origin: process.env.CLIENT_URL, // Adjust this to match your front-end origin exactly
   credentials: true, // This is optional and depends on whether you’re using cookies
 }));
-app.options('*', cors({ origin: process.env.CLIENT_URL, credentials: true }))
+app.options('*', cors())
 
 app.use("/api/auth/employee", EmployeeAuthRouter) 
 

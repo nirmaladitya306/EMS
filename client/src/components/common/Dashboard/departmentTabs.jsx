@@ -50,6 +50,7 @@ import { EmployeesIDSDialogBox } from "./dialogboxes.jsx"
 
 
 
+
 export const HRDepartmentTabs = () => {
     const { toast } = useToast()
     const HRDepartmentState = useSelector((state) => state.HRDepartmentPageReducer)
@@ -68,31 +69,31 @@ export const HRDepartmentTabs = () => {
     }
 
     useEffect(() => {
-        if (HRDepartmentState.fetchData) {
-            dispatch(HandleGetHRDepartments({ apiroute: "GETALL" }))
-        }
+    if (HRDepartmentState.fetchData) {
+        dispatch(HandleGetHRDepartments({ apiroute: "GETALL" }))
+    }
 
-        if (HRDepartmentState.error.status) {
-            toast({
-                variant: "destructive",
-                title: "Uh oh! Something went wrong.",
-                description: `${HRDepartmentState.error.message}`,
-            })
-        }
+    if (HRDepartmentState?.error?.status) {
+        toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: `${HRDepartmentState.error.message}`,
+        })
+    }
 
-        if (HRDepartmentState.success.status) {
-            toast({
-                title: <p className="text-xl m-1">Success!</p>,
-                description: <div className="flex justify-center items-center gap-2">
+    if (HRDepartmentState?.success?.status) {
+        toast({
+            title: <p className="text-xl m-1">Success!</p>,
+            description: (
+                <div className="flex justify-center items-center gap-2">
                     <img src="../../src/assets/HR-Dashboard/correct.png" alt="" className="w-6" />
                     <p className="font-bold">{HRDepartmentState.success.message}</p>
-                </div>,
-            })
-        }
+                </div>
+            ),
+        })
+    }
 
-        console.log("test message")
-
-    }, [HRDepartmentState.fetchData, HRDepartmentState.error, HRDepartmentState.success])
+}, [HRDepartmentState.fetchData, HRDepartmentState.error, HRDepartmentState.success])
 
 
     useEffect(() => {
@@ -203,6 +204,11 @@ export const ComboDropDown = ({ DepartmentData, CurrentDepartment, SetCurrentDep
 
 
 export const DepartmentContent = ({ CurrentDepartmentData }) => {
+    if (!CurrentDepartmentData) {
+        return <p>Loading department...</p>;
+    }
+
+
     const table_headings_employees = ["Full Name", "Email", "Contact Number", "Remove Employee"]
     const table_headings_notice = ["Title", "Audience", "Createdby", "View Notice"]
 

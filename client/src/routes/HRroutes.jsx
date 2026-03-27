@@ -15,6 +15,9 @@ import { HRDepartmentPage } from "../pages/HumanResources/Dashboard Childs/depar
 import { DocumentExpiryPage } from "../pages/HumanResources/Dashboard Childs/documentexpirypage.jsx"
 import { LeaveRecommendationPage } from "../pages/HumanResources/Dashboard Childs/leaverecommendationpage.jsx"
 import { ActivityLogPage } from "../pages/HumanResources/Dashboard Childs/activitylogpage.jsx"
+import { SalaryChart } from "../components/common/Dashboard/salarychart.jsx";
+
+
 export const HRRoutes = [
     {
         path: "/auth/HR/signup",
@@ -28,31 +31,32 @@ export const HRRoutes = [
         path: "/HR/dashboard",
         element: <HRProtectedRoutes><HRDashbaord /></HRProtectedRoutes>,
         children: [
-            {
-                path: "/HR/dashboard/dashboard-data",
-                element: <HRDashboardPage />
-            },
-            {
-                path: "/HR/dashboard/employees",
-                element: <HREmployeesPage />
-            },
-            {
-                path: "/HR/dashboard/departments",
-                element: <HRDepartmentPage />
-            },
-            {
-                path: "/HR/dashboard/documents",
-                element: <DocumentExpiryPage />
-            },
-            {
-                path: "/HR/dashboard/leave-recommendation",
-                element: <LeaveRecommendationPage />
-            },
-            {
-                path: "/HR/dashboard/activity-log",
-                element: <ActivityLogPage />
-            }
-        ]
+        {
+            path: "dashboard-data",
+            element: <HRDashboardPage />
+        },
+        {
+            path: "employees",
+            element: <HREmployeesPage />
+        },
+        {
+            path: "departments",
+            element: <HRDepartmentPage />
+        },
+        {
+            path: "documents",
+            element: <DocumentExpiryPage />
+        },
+        {
+            path: "leave-recommendation",
+            element: <LeaveRecommendationPage />
+        },
+        {
+            path: "activity-log",
+            element: <ActivityLogPage />
+        },
+
+    ]
     },
     {
         path: "/auth/HR/verify-email",
