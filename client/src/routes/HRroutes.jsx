@@ -27,15 +27,15 @@ import { HRProfilePage } from "../pages/HumanResources/Dashboard Childs/hrprofil
 
 export const HRRoutes = [
     {
-        path: "/auth/HR/signup",
+        path: "/auth/hr/signup",
         element: <HRSignupPage />
     },
     {
-        path: "/auth/HR/login",
+        path: "/auth/hr/login",
         element: <HRLogin />
     },
     {
-        path: "/HR/dashboard",
+        path: "/hr/dashboard",
         element: <HRProtectedRoutes><HRDashbaord /></HRProtectedRoutes>,
         children: [
         {
@@ -98,23 +98,23 @@ export const HRRoutes = [
     ]
     },
     {
-        path: "/auth/HR/verify-email",
+        path: "/auth/hr/verify-email",
         element: <VerifyEmailPage />
     },
     {
-        path: "/auth/HR/reset-email-validation",
+        path: "/auth/hr/reset-email-validation",
         element: <ResetHRVerifyEmailPage />
     },
     {
-        path: "/auth/HR/forgot-password",
+        path: "/auth/hr/forgot-password",
         element: <HRForgotPasswordPage />
     },
     {
-        path: "/auth/HR/reset-email-confirmation",
+        path: "/auth/hr/reset-email-confirmation",
         element: <ResetMailConfirmPage />
     },
     {
-        path: "/auth/HR/resetpassword/:token",
+        path: "/auth/hr/resetpassword/:token",
         element: <ResetHRPasswordPage />
     },
 ]

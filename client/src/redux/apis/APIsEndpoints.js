@@ -6,14 +6,14 @@ export const APIsEndPoints = {
 }
 
 export const HREndPoints = {
-    SIGNUP: "/auth/HR/signup",
-    CHECKLOGIN: "/auth/HR/check-login",
-    LOGIN: "/auth/HR/login",
-    VERIFY_EMAIL: "/auth/HR/verify-email",
-    CHECK_VERIFY_EMAIL: "/auth/HR/check-verify-email",
-    RESEND_VERIFY_EMAIL: "/auth/HR/resend-verify-email",
-    FORGOT_PASSWORD: "/auth/HR/forgot-password",
-    RESET_PASSWORD: (token) => `/auth/HR/reset-password/${token}` 
+    SIGNUP: "/auth/hr/signup",
+    CHECKLOGIN: "/auth/hr/check-login",
+    LOGIN: "/auth/hr/login",
+    VERIFY_EMAIL: "/auth/hr/verify-email",
+    CHECK_VERIFY_EMAIL: "/auth/hr/check-verify-email",
+    RESEND_VERIFY_EMAIL: "/auth/hr/resend-verify-email",
+    FORGOT_PASSWORD: "/auth/hr/forgot-password",
+    RESET_PASSWORD: (token) => `/auth/hr/reset-password/${token}` 
 }
 
 export const DashboardEndPoints = {

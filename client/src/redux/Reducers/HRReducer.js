@@ -14,7 +14,7 @@ const initialState = {
   data: null
 };
 
-const HRSlice = createSlice({
+const HRReducer = createSlice({
   name: "HRReducer",
   initialState,
   reducers: {
@@ -25,7 +25,7 @@ const HRSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // 🔹 CHECK LOGIN
+      // 🔹 GET (CHECK LOGIN)
       .addCase(HandleGetHumanResources.pending, (state) => {
         state.loading = true;
       })
@@ -43,7 +43,7 @@ const HRSlice = createSlice({
         state.isAuthenticated = false;
       })
 
-      // 🔹 LOGIN
+      // 🔹 POST (LOGIN)
       .addCase(HandlePostHumanResources.pending, (state) => {
         state.loading = true;
         state.error = { status: false, message: "" };
@@ -70,5 +70,5 @@ const HRSlice = createSlice({
   }
 });
 
-export const { HR_CLEAR_ERROR } = HRSlice.actions;
-export default HRSlice.reducer;
+export const { HR_CLEAR_ERROR } = HRReducer.actions;
+export default HRReducer.reducer;

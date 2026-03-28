@@ -23,7 +23,7 @@ export function HRdashboardSidebar() {
             <SidebarMenu className="gap-3 p-2">
 
               {/* Dashboard */}
-              <NavLink to="/HR/dashboard/dashboard-data" className={linkClass}>
+              <NavLink to="/hr/dashboard/dashboard-data" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/dashboard.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Dashboard</button>
@@ -31,7 +31,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Employees */}
-              <NavLink to="/HR/dashboard/employees" className={linkClass}>
+              <NavLink to="/hr/dashboard/employees" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/employee-2.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Employees</button>
@@ -39,7 +39,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Departments */}
-              <NavLink to="/HR/dashboard/departments" className={linkClass}>
+              <NavLink to="/hr/dashboard/departments" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/department.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Departments</button>
@@ -47,7 +47,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Document Alerts */}
-              <NavLink to="/HR/dashboard/documents" className={linkClass}>
+              <NavLink to="/hr/dashboard/documents" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/attendance.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Document Alerts</button>
@@ -55,7 +55,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Leave Engine */}
-              <NavLink to="/HR/dashboard/leave-recommendation" className={linkClass}>
+              <NavLink to="/hr/dashboard/leave-recommendation" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/leave.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Leave Engine</button>
@@ -63,7 +63,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Activity Log */}
-              <NavLink to="/HR/dashboard/activity-log" className={linkClass}>
+              <NavLink to="/hr/dashboard/activity-log" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Activity Log</button>
@@ -71,7 +71,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Salary */}
-              <NavLink to="/HR/dashboard/salary" className={linkClass}>
+              <NavLink to="/hr/dashboard/salary" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/salary4.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Salary</button>
@@ -79,7 +79,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Issue Notices */}
-              <NavLink to="/HR/dashboard/notices" className={linkClass}>
+              <NavLink to="/hr/dashboard/notices" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/notice.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Issue Notices</button>
@@ -87,7 +87,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Leaves */}
-              <NavLink to="/HR/dashboard/leaves" className={linkClass}>
+              <NavLink to="/hr/dashboard/leaves" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/leave.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Leaves</button>
@@ -95,7 +95,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Attendance */}
-              <NavLink to="/HR/dashboard/attendance" className={linkClass}>
+              <NavLink to="/hr/dashboard/attendance" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/attendance.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Attendances</button>
@@ -103,7 +103,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Recruitment */}
-              <NavLink to="/HR/dashboard/recruitment" className={linkClass}>
+              <NavLink to="/hr/dashboard/recruitment" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/recruitment.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Recruitment</button>
@@ -111,7 +111,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Interview Insights */}
-              <NavLink to="/HR/dashboard/interview-insights" className={linkClass}>
+              <NavLink to="/hr/dashboard/interview-insights" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/interview-insights.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Interview Insights</button>
@@ -119,7 +119,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* Requests */}
-              <NavLink to="/HR/dashboard/requests" className={linkClass}>
+              <NavLink to="/hr/dashboard/requests" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/request.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Requests</button>
@@ -127,7 +127,7 @@ export function HRdashboardSidebar() {
               </NavLink>
 
               {/* HR Profiles */}
-              <NavLink to="/HR/dashboard/hr-profiles" className={linkClass}>
+              <NavLink to="/hr/dashboard/hr-profiles" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
                   <img src="/../../src/assets/HR-Dashboard/HR-profiles.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">HR Profiles</button>

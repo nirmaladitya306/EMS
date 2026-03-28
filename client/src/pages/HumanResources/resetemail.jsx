@@ -31,12 +31,12 @@ export const ResetHRVerifyEmailPage = () => {
     useEffect(() => {
         if (HRState.isVerified) {
             loadingbar.current.complete()
-            navigate("/HR/dashboard/dashboard-data")
+            navigate("/hr/dashboard/dashboard-data")
         }
 
         if (HRState.isVerifiedEmailAvailable) {
             loadingbar.current.complete()
-            navigate("/auth/HR/verify-email")
+            navigate("/auth/hr/verify-email")
         }
     }, [HRState.isVerified, HRState.isVerifiedEmailAvailable])
 

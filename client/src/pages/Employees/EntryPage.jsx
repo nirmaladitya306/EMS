@@ -16,7 +16,7 @@ export const EntryPage = () => {
                     <Link to={"/auth/employee/login"}>
                         <Button className="bg-purple-600 text-white font-bold text-lg">Employee</Button>
                     </Link>
-                    <Link to={"/auth/HR/signup"}>
+                    <Link to={"/auth/hr/signup"}>
                         <Button className="bg-purple-600 text-white font-bold text-lg">HR-Admin</Button>
                     </Link>
                 </div>

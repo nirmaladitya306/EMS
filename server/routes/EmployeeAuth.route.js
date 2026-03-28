@@ -1,12 +1,12 @@
 import express from 'express'
 import { HandleEmplyoeeSignup, HandleEmplyoeeVerifyEmail, HandleEmplyoeeLogout, HandleEmplyoeeLogin, HandleEmplyoeeForgotPassword, HandleEmplyoeeSetPassword, HandleResetEmplyoeeVerifyEmail, HandleEmployeeCheck, HandleEmployeeCheckVerifyEmail } from '../controllers/EmplyoeeAuth.controller.js'
 import { VerifyEmployeeToken } from '../middlewares/Auth.middleware.js'
-import { VerifyhHRToken } from '../middlewares/Auth.middleware.js'
+import { VerifyHRToken } from '../middlewares/Auth.middleware.js'
 import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
 
 const router = express.Router()
 
-router.post("/signup", VerifyhHRToken, RoleAuthorization("HR-Admin"), HandleEmplyoeeSignup)
+router.post("/signup", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleEmplyoeeSignup)
 
 router.post("/verify-email", VerifyEmployeeToken, HandleEmplyoeeVerifyEmail)
 

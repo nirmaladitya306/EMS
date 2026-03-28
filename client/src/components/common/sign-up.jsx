@@ -147,7 +147,7 @@ export const SignUP = ({ handlesignupform, handlesubmitform, stateformdata, erro
                                 <h1 className="text-blue-600 font-bold min-[250px]:text-right min-[250px]:text-xs sm:text-sm md:text-md">
                                     Already Have An Account?
                                 </h1>
-                                <Link to={"/auth/HR/login"}>
+                                <Link to={"/auth/hr/login"}>
                                     <Button className="min-[250px]:text-xs min-[250px]:px-2 min-[250px]:py-1 sm:px-4 sm:py-2 sm:text-sm md:text-md px-4 py-2 bg-purple-700 border-2 border-purple-700 text-white font-bold rounded-lg hover:bg-white hover:text-purple-700 hover:cursor-pointer">Sign In</Button>
                                 </Link>
                             </div>
@@ -312,7 +312,7 @@ export const SignUP = ({ handlesignupform, handlesubmitform, stateformdata, erro
                         <Button className="min-[250px]:text-xs min-[250px]:px-2 min-[250px]:py-1 sm:px-4 sm:py-2 sm:text-sm md:text-md  px-4 py-2 bg-purple-700 border-2 border-purple-700 text-white font-bold rounded-lg hover:bg-white hover:text-purple-700 hover:cursor-pointer" onClick={handlesubmitform}>Sign Up</Button>
                         <div className="sing-in flex justify-center items-center gap-2">
                             <p className="min-[250px]:text-xs sm:text-sm">Already Have an Account?</p>
-                            <Link to={"/auth/HR/login"}>
+                            <Link to={"/auth/hr/login"}>
                                 <Button className="min-[250px]:text-xs min-[250px]:px-2 min-[250px]:py-1 sm:px-4 sm:py-2 sm:text-sm md:text-md px-4 py-2 bg-purple-700 border-2 border-purple-700 text-white font-bold rounded-lg hover:bg-white hover:text-purple-700 hover:cursor-pointer">Sign In</Button>
                             </Link>
                         </div>

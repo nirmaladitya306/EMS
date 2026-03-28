@@ -12,8 +12,8 @@ export const HRDashbaord = () => {
 
 
     useEffect(() => {
-        if (location.pathname === "/HR/dashboard" || location.pathname === "/HR/dashboard/") {
-            navigate("/HR/dashboard/dashboard-data", { replace: true })
+        if (location.pathname === "/hr/dashboard" || location.pathname === "/hr/dashboard/") {
+            navigate("/hr/dashboard/dashboard-data", { replace: true })
         }
     }, [location.pathname])
 

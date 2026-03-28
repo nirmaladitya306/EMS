@@ -45,7 +45,7 @@ export const ResetHRPasswordPage = () => {
     useEffect(() => {
         if (HRState.isResetPassword) {
             loadingbar.current.complete()
-            navigate("/auth/HR/login")
+            navigate("/auth/hr/login")
         }
     }, [HRState.isResetPassword])
 

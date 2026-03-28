@@ -1,54 +1,68 @@
-import { Verify_Email_Component } from "../../components/common/verify-email.jsx"
-import { useState, useEffect, useRef } from "react"
-// import { SignIn } from "../../components/common/sign-in.jsx"
-import { useDispatch, useSelector } from "react-redux"
-import { HandlePostHumanResources, HandleGetHumanResources } from "../../redux/Thunks/HRThunk.js"
-import LoadingBar from 'react-top-loading-bar'
-import { useNavigate } from 'react-router-dom'
-// import { CommonStateHandler } from "../../utils/commonhandler.js"
+import { Verify_Email_Component } from "../../components/common/verify-email.jsx";
+import { useState, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { HandlePostHumanResources } from "../../redux/Thunks/HRThunk.js";
+import LoadingBar from "react-top-loading-bar";
+import { useNavigate } from "react-router-dom";
 
 export const VerifyEmailPage = () => {
-    const HRState = useSelector((state) => state.HRReducer)
-    // const [errorpopup, seterrorpopup] = useState(false)
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
-    const [checkHREmail, setcheckHREmail] = useState(false)
-    const loadingbar = useRef(null)
-    const [verificationcode, setverificationcode] = useState("")
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const loadingbar = useRef(null);
+
+    const [verificationcode, setverificationcode] =
+        useState("");
 
     const handleCodeValue = (value) => {
-        setverificationcode(value)
+        setverificationcode(value);
+    };
 
-    }
-
-    const handleOTPsubmit = () => {
-        loadingbar.current.continuousStart();
-        dispatch(HandlePostHumanResources({ apiroute: "VERIFY_EMAIL", data: { verificationcode: verificationcode } }))
-    }
-
-    useEffect(() => {
-        if (!HRState.isVerified) {
-            dispatch(HandleGetHumanResources({ apiroute: "CHECK_VERIFY_EMAIL" }))
+    const handleOTPsubmit = async () => {
+        if (loadingbar.current) {
+            loadingbar.current.continuousStart();
         }
 
-        if ((!HRState.isVerified) && (!HRState.isVerifiedEmailAvailable) && (HRState.error.content)) {
-            navigate("/auth/HR/reset-email-validation")
+        const result = await dispatch(
+            HandlePostHumanResources({
+                apiroute: "VERIFY_EMAIL",
+                data: { verificationcode }
+            })
+        );
+        console.log("VERIFY RESULT FULL:", result);
+        console.log("VERIFY PAYLOAD:", result?.payload);
+        console.log("VERIFY SUCCESS:", result?.payload?.success);
+        console.log("VERIFY RESPONSE:", result);
+
+        // ✅ SUCCESS → DIRECT NAVIGATION
+        if (result?.payload?.success) {
+            if (loadingbar.current) {
+                loadingbar.current.complete();
+            }
+
+            navigate(
+                "/hr/dashboard/dashboard-data",
+                { replace: true }
+            );
+
+            return;
         }
 
-        if (HRState.isVerified) {
-            loadingbar.current.complete()
-            navigate("/HR/dashboard/dashboard-data") 
+        // ❌ FAILURE → STOP LOADING
+        if (loadingbar.current) {
+            loadingbar.current.complete();
         }
-    }, [HRState.isVerified, HRState.isVerifiedEmailAvailable, HRState.error.content])
-
-    // console.log(HRState)
-    // console.log(HRState.isVerified)
-    // console.log(checkHREmail) 
+    };
 
     return (
         <>
             <LoadingBar ref={loadingbar} />
-            <Verify_Email_Component handleCodeValue={handleCodeValue} value={verificationcode} handleOTPsubmit={handleOTPsubmit} />
+
+            <Verify_Email_Component
+                handleCodeValue={handleCodeValue}
+                value={verificationcode}
+                handleOTPsubmit={handleOTPsubmit}
+            />
         </>
-    )
-}
+    );
+};

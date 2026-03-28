@@ -30,7 +30,7 @@ export const HRForgotPasswordPage = () => {
     useEffect(() => {
         if (HRstate.data) {
             loadingbar.current.complete()
-            navigate("/auth/HR/reset-email-confirmation")
+            navigate("/auth/hr/reset-email-confirmation")
         }
     }, [HRstate.data])
 
@@ -40,7 +40,7 @@ export const HRForgotPasswordPage = () => {
         <div className="employee-login-container">
             <LoadingBar ref={loadingbar} />
             <div className="employee-login-content flex justify-center items-center h-[100vh]">
-                <ForgotPassowrd handleforgotpasswordsubmit={handleforgotpasswordsubmit} handlesforgotpasswordform={handlesforgotpasswordform} targetState={HRstate} redirectpath={"/auth/HR/login"} />
+                <ForgotPassowrd handleforgotpasswordsubmit={handleforgotpasswordsubmit} handlesforgotpasswordform={handlesforgotpasswordform} targetState={HRstate} redirectpath={"/auth/hr/login"} />
             </div>
         </div>
 
