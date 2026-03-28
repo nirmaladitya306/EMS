@@ -20,7 +20,7 @@ const StatusBadge = ({ status }) => {
 
 const LeaveDialog = ({ open, onClose, onSubmit, initialData }) => {
     const isEdit = !!initialData
-    const empty = { title: '', reason: '', startdate: '', enddate: '' }
+    const empty  = { title: '', reason: '', startdate: '', enddate: '' }
     const [form, setForm] = useState(empty)
 
     useEffect(() => {
@@ -48,11 +48,13 @@ const LeaveDialog = ({ open, onClose, onSubmit, initialData }) => {
                 <form onSubmit={submit} className="flex flex-col gap-4">
                     <div>
                         <label className={lc}>Title</label>
-                        <input name="title" value={form.title} onChange={handle} required placeholder="e.g. Annual Leave" className={fc} />
+                        <input name="title" value={form.title} onChange={handle} required
+                            placeholder="e.g. Annual Leave" className={fc} />
                     </div>
                     <div>
                         <label className={lc}>Reason</label>
-                        <textarea name="reason" value={form.reason} onChange={handle} required rows={3} placeholder="Describe your reason..." className={fc} />
+                        <textarea name="reason" value={form.reason} onChange={handle} required
+                            rows={3} placeholder="Describe your reason..." className={fc} />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
@@ -65,8 +67,10 @@ const LeaveDialog = ({ open, onClose, onSubmit, initialData }) => {
                         </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700">
+                        <button type="button" onClick={onClose}
+                            className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
+                        <button type="submit"
+                            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700">
                             {isEdit ? 'Save Changes' : 'Submit'}
                         </button>
                     </div>
@@ -81,29 +85,21 @@ export const MyLeavesPage = () => {
     const state      = useSelector(s => s.EmployeeDashboardReducer)
     const profile    = state.profile
     const employeeID = profile?._id
+    const leaves     = state.leaves || []
 
     const [applyOpen,  setApplyOpen]  = useState(false)
     const [editTarget, setEditTarget] = useState(null)
 
-    useEffect(() => {
-        if (!profile) dispatch(HandleGetEmployeeProfile())
-    }, [])
+    useEffect(() => { if (!profile) dispatch(HandleGetEmployeeProfile()) }, [])
     useEffect(() => { dispatch(HandleGetMyLeaves()) }, [])
     useEffect(() => { if (state.fetchLeaves) dispatch(HandleGetMyLeaves()) }, [state.fetchLeaves])
 
-    const handleApply = (form) => {
-        dispatch(HandleApplyLeave({ ...form, employeeID }))
-        setApplyOpen(false)
-    }
-    const handleUpdate = (form) => {
-        dispatch(HandleUpdateMyLeave(form))
-        setEditTarget(null)
-    }
+    const handleApply  = (form) => { dispatch(HandleApplyLeave({ ...form, employeeID })); setApplyOpen(false) }
+    const handleUpdate = (form) => { dispatch(HandleUpdateMyLeave(form)); setEditTarget(null) }
     const handleDelete = (leaveID) => {
         if (window.confirm('Delete this leave request?')) dispatch(HandleDeleteMyLeave({ leaveID }))
     }
 
-    const leaves  = state.leaves || []
     const pending  = leaves.filter(l => l.status === 'Pending').length
     const approved = leaves.filter(l => l.status === 'Approved').length
     const rejected = leaves.filter(l => l.status === 'Rejected').length
@@ -158,15 +154,11 @@ export const MyLeavesPage = () => {
                             <span className="text-gray-600 text-xs">{fmtDate(l.enddate)}</span>
                             <StatusBadge status={l.status} />
                             <div className="flex gap-2">
-                                <button
-                                    disabled={l.status !== 'Pending'}
-                                    onClick={() => setEditTarget(l)}
+                                <button disabled={l.status !== 'Pending'} onClick={() => setEditTarget(l)}
                                     className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed">
                                     Edit
                                 </button>
-                                <button
-                                    disabled={l.status !== 'Pending'}
-                                    onClick={() => handleDelete(l._id)}
+                                <button disabled={l.status !== 'Pending'} onClick={() => handleDelete(l._id)}
                                     className="px-3 py-1 rounded-md text-xs border border-red-400 text-red-600 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed">
                                     Delete
                                 </button>
@@ -176,8 +168,8 @@ export const MyLeavesPage = () => {
                 }
             </div>
 
-            <LeaveDialog open={applyOpen}   onClose={() => setApplyOpen(false)}  onSubmit={handleApply} />
-            <LeaveDialog open={!!editTarget} onClose={() => setEditTarget(null)} onSubmit={handleUpdate} initialData={editTarget} />
+            <LeaveDialog open={applyOpen}    onClose={() => setApplyOpen(false)}  onSubmit={handleApply} />
+            <LeaveDialog open={!!editTarget} onClose={() => setEditTarget(null)}  onSubmit={handleUpdate} initialData={editTarget} />
         </div>
     )
 }

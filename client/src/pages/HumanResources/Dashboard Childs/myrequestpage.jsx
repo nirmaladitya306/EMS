@@ -6,8 +6,6 @@ import {
 } from '../../../redux/Thunks/EmployeeDashboardThunk'
 import { Loading } from '../../../components/common/loading'
 
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
-
 const StatusBadge = ({ status }) => {
     const map = {
         Pending:  'bg-yellow-100 text-yellow-800 border-yellow-300',
@@ -54,8 +52,10 @@ const RequestDialog = ({ open, onClose, onSubmit, initialData }) => {
                             rows={4} placeholder="Describe your request in detail..." className={fc} />
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700">
+                        <button type="button" onClick={onClose}
+                            className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
+                        <button type="submit"
+                            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700">
                             {isEdit ? 'Save Changes' : 'Submit'}
                         </button>
                     </div>
@@ -75,20 +75,12 @@ export const MyRequestsPage = () => {
     const [createOpen, setCreateOpen] = useState(false)
     const [editTarget, setEditTarget] = useState(null)
 
-    useEffect(() => {
-        if (!profile) dispatch(HandleGetEmployeeProfile())
-    }, [])
+    useEffect(() => { if (!profile) dispatch(HandleGetEmployeeProfile()) }, [])
     useEffect(() => { dispatch(HandleGetMyRequests()) }, [])
     useEffect(() => { if (state.fetchRequests) dispatch(HandleGetMyRequests()) }, [state.fetchRequests])
 
-    const handleSubmit = (form) => {
-        dispatch(HandleSubmitRequest({ ...form, employeeID }))
-        setCreateOpen(false)
-    }
-    const handleUpdate = (form) => {
-        dispatch(HandleUpdateMyRequest(form))
-        setEditTarget(null)
-    }
+    const handleSubmit = (form) => { dispatch(HandleSubmitRequest({ ...form, employeeID })); setCreateOpen(false) }
+    const handleUpdate = (form) => { dispatch(HandleUpdateMyRequest(form)); setEditTarget(null) }
 
     const pending  = requests.filter(r => r.status === 'Pending').length
     const approved = requests.filter(r => r.status === 'Approved').length
@@ -141,9 +133,7 @@ export const MyRequestsPage = () => {
                             </div>
                             <span className="text-gray-500 text-xs">{r.department?.name || '—'}</span>
                             <StatusBadge status={r.status} />
-                            <button
-                                disabled={r.status !== 'Pending'}
-                                onClick={() => setEditTarget(r)}
+                            <button disabled={r.status !== 'Pending'} onClick={() => setEditTarget(r)}
                                 className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed w-fit">
                                 Edit
                             </button>

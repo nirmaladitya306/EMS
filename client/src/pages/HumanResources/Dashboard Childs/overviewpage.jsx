@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetEmployeeProfile } from '../../../redux/Thunks/EmployeeDashboardThunk'
 import { Loading } from '../../../components/common/loading'
 
-const InfoCard = ({ label, value, color }) => (
-    <div className={`rounded-xl border p-4 flex flex-col gap-1 ${color}`}>
+const InfoCard = ({ label, value }) => (
+    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 flex flex-col gap-1">
         <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</span>
-        <span className="text-lg font-bold text-gray-800">{value || '—'}</span>
+        <span className="text-base font-semibold text-gray-800">{value || '—'}</span>
     </div>
 )
 
@@ -46,12 +46,12 @@ export const EmployeeOverviewPage = () => {
             <div>
                 <h2 className="text-lg font-semibold mb-3 text-gray-700">Profile Details</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <InfoCard label="First Name"     value={profile?.firstname}             color="border-gray-200 bg-gray-50" />
-                    <InfoCard label="Last Name"      value={profile?.lastname}              color="border-gray-200 bg-gray-50" />
-                    <InfoCard label="Email"          value={profile?.email}                 color="border-gray-200 bg-gray-50" />
-                    <InfoCard label="Contact"        value={profile?.contactnumber}         color="border-gray-200 bg-gray-50" />
-                    <InfoCard label="Department"     value={profile?.department?.name}      color="border-purple-100 bg-purple-50" />
-                    <InfoCard label="Role"           value={profile?.role}                  color="border-purple-100 bg-purple-50" />
+                    <InfoCard label="First Name"  value={profile?.firstname}        />
+                    <InfoCard label="Last Name"   value={profile?.lastname}         />
+                    <InfoCard label="Email"       value={profile?.email}            />
+                    <InfoCard label="Contact"     value={profile?.contactnumber}    />
+                    <InfoCard label="Department"  value={profile?.department?.name} />
+                    <InfoCard label="Role"        value={profile?.role}             />
                 </div>
             </div>
 
@@ -59,10 +59,10 @@ export const EmployeeOverviewPage = () => {
             <div>
                 <h2 className="text-lg font-semibold mb-3 text-gray-700">Quick Stats</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <StatCard label="Salary Records"   count={profile?.salary?.length        || 0} color="border-blue-200   bg-blue-50"   />
-                    <StatCard label="Leave Requests"   count={profile?.leaverequest?.length  || 0} color="border-yellow-200 bg-yellow-50" />
-                    <StatCard label="Notices"          count={profile?.notice?.length        || 0} color="border-orange-200 bg-orange-50" />
-                    <StatCard label="Requests"         count={profile?.generaterequest?.length || 0} color="border-green-200  bg-green-50"  />
+                    <StatCard label="Salary Records"   count={profile?.salary?.length          || 0} color="border-blue-200   bg-blue-50"   />
+                    <StatCard label="Leave Requests"   count={profile?.leaverequest?.length    || 0} color="border-yellow-200 bg-yellow-50" />
+                    <StatCard label="Notices"          count={profile?.notice?.length          || 0} color="border-orange-200 bg-orange-50" />
+                    <StatCard label="My Requests"      count={profile?.generaterequest?.length || 0} color="border-green-200  bg-green-50"  />
                 </div>
             </div>
 

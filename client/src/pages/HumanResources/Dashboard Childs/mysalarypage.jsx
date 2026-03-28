@@ -4,7 +4,6 @@ import { HandleGetMySalaries } from '../../../redux/Thunks/EmployeeDashboardThun
 import { Loading } from '../../../components/common/loading'
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
-
 const fmt = (amount, currency) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(amount)
 
@@ -18,17 +17,17 @@ const StatusBadge = ({ status }) => {
 }
 
 export const MySalaryPage = () => {
-    const dispatch  = useDispatch()
-    const state     = useSelector(s => s.EmployeeDashboardReducer)
-    const salaries  = state.salaries || []
+    const dispatch = useDispatch()
+    const state    = useSelector(s => s.EmployeeDashboardReducer)
+    const salaries = state.salaries || []
 
     useEffect(() => { dispatch(HandleGetMySalaries()) }, [])
     useEffect(() => { if (state.fetchSalaries) dispatch(HandleGetMySalaries()) }, [state.fetchSalaries])
 
-    const totalNet  = salaries.reduce((sum, s) => sum + (s.netpay || 0), 0)
-    const paid      = salaries.filter(s => s.status === 'Paid').length
-    const pending   = salaries.filter(s => s.status === 'Pending').length
-    const delayed   = salaries.filter(s => s.status === 'Delayed').length
+    const totalNet = salaries.reduce((sum, s) => sum + (s.netpay || 0), 0)
+    const paid     = salaries.filter(s => s.status === 'Paid').length
+    const pending  = salaries.filter(s => s.status === 'Pending').length
+    const delayed  = salaries.filter(s => s.status === 'Delayed').length
 
     if (state.isLoading && !salaries.length) return <Loading />
 
@@ -42,10 +41,10 @@ export const MySalaryPage = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
-                    { label: 'Total Records', value: salaries.length, color: 'border-gray-200   bg-gray-50'    },
-                    { label: 'Paid',          value: paid,            color: 'border-green-200  bg-green-50'   },
-                    { label: 'Pending',       value: pending,         color: 'border-yellow-200 bg-yellow-50'  },
-                    { label: 'Delayed',       value: delayed,         color: 'border-red-200    bg-red-50'     },
+                    { label: 'Total Records', value: salaries.length, color: 'border-gray-200   bg-gray-50'   },
+                    { label: 'Paid',          value: paid,            color: 'border-green-200  bg-green-50'  },
+                    { label: 'Pending',       value: pending,         color: 'border-yellow-200 bg-yellow-50' },
+                    { label: 'Delayed',       value: delayed,         color: 'border-red-200    bg-red-50'    },
                 ].map(c => (
                     <div key={c.label} className={`rounded-xl border p-4 flex flex-col gap-1 ${c.color}`}>
                         <span className="text-2xl font-bold">{c.value}</span>
