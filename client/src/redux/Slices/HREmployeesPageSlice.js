@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { HREmployeesPageAsyncReducer } from "../AsyncReducers/asyncreducer.js";
-import { HandleDeleteHREmployees, HandlePostHREmployees, HandleGetHREmployees } from "../Thunks/HREmployeesThunk.js";
+import { HandleDeleteHREmployees, HandlePostHREmployees, HandleGetHREmployees, HandleSearchEmployeesBySkills } from "../Thunks/HREmployeesThunk.js";
 
 const HREmployeesSlice = createSlice({
     name: "HREmployees",
@@ -10,6 +10,8 @@ const HREmployeesSlice = createSlice({
         success: false,
         fetchData : false, 
         employeeData : null,
+        skillSearchResults: null,
+        skillSearchLoading: false,
         error: {
             status: false,
             message: null,
@@ -20,6 +22,20 @@ const HREmployeesSlice = createSlice({
         HREmployeesPageAsyncReducer(builder, HandleGetHREmployees) 
         HREmployeesPageAsyncReducer(builder, HandlePostHREmployees)
         HREmployeesPageAsyncReducer(builder, HandleDeleteHREmployees)
+
+        builder
+            .addCase(HandleSearchEmployeesBySkills.pending, (state) => {
+                state.skillSearchLoading = true
+                state.skillSearchResults = null
+            })
+            .addCase(HandleSearchEmployeesBySkills.fulfilled, (state, action) => {
+                state.skillSearchLoading = false
+                state.skillSearchResults = action.payload.data
+            })
+            .addCase(HandleSearchEmployeesBySkills.rejected, (state) => {
+                state.skillSearchLoading = false
+                state.skillSearchResults = []
+            })
     }
 })
 

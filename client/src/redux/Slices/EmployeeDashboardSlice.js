@@ -44,7 +44,11 @@ const EmployeeDashboardSlice = createSlice({
 
         builder
             .addCase(HandleUpdateMyProfile.pending,   pending)
-            .addCase(HandleUpdateMyProfile.fulfilled, (state) => { state.isLoading = false })
+            .addCase(HandleUpdateMyProfile.fulfilled, (state, action) => {
+                state.isLoading = false
+                // Refresh profile data if server returns the updated employee
+                if (action.payload?.data) state.profile = action.payload.data
+            })
             .addCase(HandleUpdateMyProfile.rejected,  rejected)
 
         // Leaves

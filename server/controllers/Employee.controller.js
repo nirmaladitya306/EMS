@@ -86,7 +86,7 @@ export const HandleEmployeeDelete = async (req, res) => {
 
 export const HandleAllEmployees = async (req, res) => {
     try {
-        const employees = await Employee.find({ organizationID: req.ORGID }).populate("department", "name").select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest isverified")
+        const employees = await Employee.find({ organizationID: req.ORGID }).populate("department", "name").select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest isverified skills")
         return res.status(200).json({ success: true, data: employees, type: "AllEmployees" })
     } catch (error) {
         return res.status(500).json({ success: false, error: error, message: "internal server error" })
@@ -104,7 +104,7 @@ export const HandleAllEmployeesIDS = async (req, res) => {
 
 export const HandleEmployeeByEmployee = async (req, res) => {
     try {
-        const employee = await Employee.findOne({ _id: req.EMid, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest")
+        const employee = await Employee.findOne({ _id: req.EMid, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest skills")
 
         if (!employee) {
             return res.status(404).json({ success: false, message: "employee not found" })
@@ -117,10 +117,29 @@ export const HandleEmployeeByEmployee = async (req, res) => {
     }
 }
 
-export const HandleEmployeeByHR = async (req, res) => {
+export const HandleSearchBySkills = async (req, res) => {
+    try {
+        const { skills } = req.query
+        // skills is comma-separated: ?skills=React,Node
+        if (!skills) {
+            return res.status(400).json({ success: false, message: "skills query param is required" })
+        }
+        const skillArray = skills.split(',').map(s => s.trim()).filter(Boolean)
+        const employees = await Employee.find({
+            organizationID: req.ORGID,
+            skills: { $in: skillArray.map(s => new RegExp(`^${s}$`, 'i')) }
+        })
+        .populate("department", "name")
+        .select("firstname lastname email contactnumber department skills")
+
+        return res.status(200).json({ success: true, data: employees, type: "SkillSearch" })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message })
+    }
+}
     try {
         const { employeeId } = req.params
-        const employee = await Employee.findOne({ _id: employeeId, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest")
+        const employee = await Employee.findOne({ _id: employeeId, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest skills")
 
         if (!employee) {
             return res.status(404).json({ success: false, message: "employee not found" })

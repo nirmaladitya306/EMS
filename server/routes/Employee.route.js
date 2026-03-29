@@ -1,5 +1,5 @@
 import express from "express"
-import { HandleAllEmployees, HandleEmployeeUpdate, HandleEmployeeDelete, HandleEmployeeByHR, HandleEmployeeByEmployee, HandleAllEmployeesIDS } from "../controllers/Employee.controller.js"
+import { HandleAllEmployees, HandleEmployeeUpdate, HandleEmployeeDelete, HandleEmployeeByHR, HandleEmployeeByEmployee, HandleAllEmployeesIDS, HandleSearchBySkills } from "../controllers/Employee.controller.js"
 import { VerifyHRToken } from "../middlewares/Auth.middleware.js"
 import { RoleAuthorization } from "../middlewares/RoleAuth.middleware.js"
 import { VerifyEmployeeToken } from "../middlewares/Auth.middleware.js"
@@ -10,6 +10,8 @@ const router = express.Router()
 router.get("/all", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleAllEmployees)
 
 router.get("/all-employees-ids", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleAllEmployeesIDS)
+
+router.get("/search-by-skills", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleSearchBySkills)
 
 router.patch("/update-employee", VerifyEmployeeToken, HandleEmployeeUpdate)
 

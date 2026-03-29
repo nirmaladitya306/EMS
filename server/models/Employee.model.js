@@ -86,6 +86,12 @@ const EmployeeSchema = new Schema({
             ref: "GenerateRequest"
         }
     ],
+    skills: [
+        {
+            type: String,
+            trim: true
+        }
+    ],
     organizationID: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Organization"
