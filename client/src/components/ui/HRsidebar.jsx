@@ -157,6 +157,13 @@ export function HRdashboardSidebar() {
                 </SidebarMenuItem>
               </NavLink>
 
+              <NavLink to="/hr/dashboard/exit-clearance" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/exit-clearance.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Exit Clearance</button>
+                </SidebarMenuItem>
+              </NavLink>
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
