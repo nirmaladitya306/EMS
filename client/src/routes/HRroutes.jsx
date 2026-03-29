@@ -27,6 +27,7 @@ import { AccessDriftPage } from "../pages/HumanResources/Dashboard Childs/access
 import { PayrollCompliancePage } from '../pages/HumanResources/Dashboard Childs/payrollcompliancepage.jsx'
 import { EmployeeTimelinePage } from '../pages/HumanResources/Dashboard Childs/employeetimeline.jsx'
 import { ExitClearancePage } from '../pages/HumanResources/Dashboard Childs/exitclearancepage.jsx'
+import { HRAnalyticsPage }   from '../pages/HumanResources/Dashboard Childs/hranalyticspage.jsx'
 
 export const HRRoutes = [
     {
@@ -112,6 +113,10 @@ export const HRRoutes = [
         {
             path: 'exit-clearance',
             element: <ExitClearancePage />
+        },
+        {
+            path: 'analytics',
+            element: <HRAnalyticsPage />
         },
 
     ]

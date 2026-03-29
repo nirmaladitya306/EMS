@@ -16,6 +16,7 @@ import { MyDocumentsPage }      from "../pages/HumanResources/Dashboard Childs/m
 import { MyActivityPage }       from "../pages/HumanResources/Dashboard Childs/myactivitypage.jsx"
 import { MyLeaveRecommendationPage } from "../pages/HumanResources/Dashboard Childs/myleaverecpage.jsx"
 import { MyTimelinePage }       from "../pages/HumanResources/Dashboard Childs/mytimelinepage.jsx"
+import { MyAnalyticsPage }      from "../pages/HumanResources/Dashboard Childs/myanalyticspage.jsx"
 
 export const EmployeeRoutes = [
     {
@@ -69,6 +70,10 @@ export const EmployeeRoutes = [
             {
                 path: "my-timeline",
                 element: <MyTimelinePage />
+            },
+            {
+                path: "my-analytics",
+                element: <MyAnalyticsPage />
             },
         ]
     },

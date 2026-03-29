@@ -164,6 +164,14 @@ export function HRdashboardSidebar() {
                 </SidebarMenuItem>
               </NavLink>
 
+              {/* Analytics */}
+              <NavLink to="/hr/dashboard/analytics" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Analytics</button>
+                </SidebarMenuItem>
+              </NavLink>
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
