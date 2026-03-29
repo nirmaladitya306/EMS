@@ -57,3 +57,15 @@ export const HandleSearchEmployeesBySkills = createAsyncThunk("HandleSearchEmplo
         return rejectWithValue({ success: false, message: error.message || "Network error" });
     }
 })
+
+export const HandleGetEmployeeTimelineByHR = createAsyncThunk("HandleGetEmployeeTimelineByHR", async (employeeId, { rejectWithValue }) => {
+    try {
+        const response = await apiService.get(HREmployeesPageEndPoints.TIMELINE_BY_HR(employeeId), {
+            withCredentials: true
+        })
+        return response.data
+    } catch (error) {
+        if (error.response?.data) return rejectWithValue(error.response.data);
+        return rejectWithValue({ success: false, message: error.message || "Network error" });
+    }
+})

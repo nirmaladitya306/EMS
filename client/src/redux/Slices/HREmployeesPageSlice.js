@@ -12,6 +12,8 @@ const HREmployeesSlice = createSlice({
         employeeData : null,
         skillSearchResults: null,
         skillSearchLoading: false,
+        employeeTimeline: null,
+        timelineLoading: false,
         error: {
             status: false,
             message: null,
@@ -35,6 +37,20 @@ const HREmployeesSlice = createSlice({
             .addCase(HandleSearchEmployeesBySkills.rejected, (state) => {
                 state.skillSearchLoading = false
                 state.skillSearchResults = []
+            })
+
+        builder
+            .addCase(HandleGetEmployeeTimelineByHR.pending, (state) => {
+                state.timelineLoading = true
+                state.employeeTimeline = null
+            })
+            .addCase(HandleGetEmployeeTimelineByHR.fulfilled, (state, action) => {
+                state.timelineLoading = false
+                state.employeeTimeline = action.payload.data
+            })
+            .addCase(HandleGetEmployeeTimelineByHR.rejected, (state) => {
+                state.timelineLoading = false
+                state.employeeTimeline = null
             })
     }
 })

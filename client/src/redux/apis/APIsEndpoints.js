@@ -26,6 +26,7 @@ export const HREmployeesPageEndPoints = {
     GETONE:          (EMID) => `/v1/employee/by-HR/${EMID}`,
     DELETE:          (EMID) => `/v1/employee/delete-employee/${EMID}`,
     SEARCH_SKILLS:   (skills) => `/v1/employee/search-by-skills?skills=${encodeURIComponent(skills)}`,
+    TIMELINE_BY_HR:  (EMID) => `/v1/employee/timeline-by-HR/${EMID}`,
 }
 
 export const HRDepartmentPageEndPoints = {

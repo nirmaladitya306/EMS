@@ -82,6 +82,13 @@ export function EmployeeSidebar() {
                                 </SidebarMenuItem>
                             </NavLink>
 
+                            <NavLink to="/auth/employee/employee-dashboard/my-timeline" className={linkClass}>
+                                <SidebarMenuItem className={itemClass}>
+                                    <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" alt="" />
+                                    <button className="text-[16px]">My Timeline</button>
+                                </SidebarMenuItem>
+                            </NavLink>
+
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
