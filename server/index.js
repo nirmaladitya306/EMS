@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from 'cookie-parser';
 import helmet from "helmet";
 import morgan from "morgan";
+import AccessDriftRouter from './routes/AccessDrift.route.js'
 
 import { ConnectDB } from './config/connectDB.js';
 
@@ -54,6 +55,7 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+app.use('/v1/access-drift', AccessDriftRouter)
 app.use("/auth/employee", EmployeeAuthRouter);
 app.use("/auth/hr", HRAuthrouter);
 app.use("/v1/dashboard", DashboardRouter);
