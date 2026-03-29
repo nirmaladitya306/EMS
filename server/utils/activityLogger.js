@@ -35,6 +35,11 @@ export const createLog = async ({
             meta,
             organizationID
         });
+        await runDriftDetection({
+    employeeID: actorID,
+    organizationID,
+    req
+})
 
     } catch (err) {
         console.error('[ActivityLog] Failed:', err.message)

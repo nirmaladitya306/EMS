@@ -23,7 +23,7 @@ import { RecruitmentPage } from "../pages/HumanResources/Dashboard Childs/recrui
 import { InterviewPage } from "../pages/HumanResources/Dashboard Childs/interviewpage.jsx"
 import { RequestsPage } from "../pages/HumanResources/Dashboard Childs/requestspage.jsx"
 import { HRProfilePage } from "../pages/HumanResources/Dashboard Childs/hrprofilepage.jsx"
-
+import { AccessDriftPage } from "../pages/HumanResources/Dashboard Childs/accessdriftpage.jsx"
 
 export const HRRoutes = [
     {
@@ -41,6 +41,10 @@ export const HRRoutes = [
         {
             path: "dashboard-data",
             element: <HRDashboardPage />
+        },
+        {
+            path: "access-drift",
+            element: <AccessDriftPage />
         },
         {
             path: "employees",

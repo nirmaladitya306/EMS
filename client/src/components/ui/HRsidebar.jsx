@@ -78,6 +78,14 @@ export function HRdashboardSidebar() {
                 </SidebarMenuItem>
               </NavLink>
 
+              {/* Access Drift */}
+<NavLink to="/hr/dashboard/access-drift" className={linkClass}>
+  <SidebarMenuItem className={itemClass}>
+    <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" />
+    <button className="text-[16px]">Access Drift</button>
+  </SidebarMenuItem>
+</NavLink>
+
               {/* Issue Notices */}
               <NavLink to="/hr/dashboard/notices" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>

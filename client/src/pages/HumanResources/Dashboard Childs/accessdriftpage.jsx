@@ -174,7 +174,7 @@ const EvidencePanel = ({ drift, onClose }) => (
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export const AccessDriftPage = () => {
     const dispatch = useDispatch()
-    const state    = useSelector(s => s.AccessDriftReducer)
+const state = useSelector(s => s.AccessDriftReducer)
 
     const [filterStatus,   setFilterStatus]   = useState('ALL')
     const [filterSeverity, setFilterSeverity] = useState('ALL')
@@ -188,16 +188,16 @@ export const AccessDriftPage = () => {
         dispatch(HandleGetAllDriftEvents({
             page,
             limit: 20,
-            status:    filterStatus,
-            severity:  filterSeverity,
-            driftType: filterType,
+            status: filterStatus === 'ALL' ? undefined : filterStatus,
+            severity: filterSeverity === 'ALL' ? undefined : filterSeverity,
+            driftType: filterType === 'ALL' ? undefined : filterType,
         }))
     }
 
     useEffect(() => {
         dispatch(HandleGetDriftSummary())
         fetchDrifts(1)
-    }, [])
+    }, [dispatch])
 
     const handleApply = () => { setCurrentPage(1); fetchDrifts(1) }
     const handleClear = () => {

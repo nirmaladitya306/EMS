@@ -21,22 +21,22 @@ export const HRDashboardPage = () => {
     const DataArray = [
         {
             image: employeeImg,
-            dataname: "employees",
+            dataname: "Employees",
             path: "/hr/dashboard/employees"
         },
         {
             image: departmentImg,
-            dataname: "departments",
+            dataname: "Departments",
             path: "/hr/dashboard/departments"
         },
         {
             image: leaveImg,
-            dataname: "leaves",
+            dataname: "Leaves",
             path: "/hr/dashboard/leaves"
         },
         {
             image: requestImg,
-            dataname: "requests",
+            dataname: "Requests",
             path: "/hr/dashboard/requests"
         }
     ];

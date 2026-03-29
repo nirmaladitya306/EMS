@@ -32,8 +32,8 @@ const DRIFT_TYPE_ICONS = {
 }
 
 const DRIFT_TYPE_TIPS = {
-    UNUSUAL_LOGIN_TIME:        'Your account was accessed at an unusual time. If this wasn't you, please reset your password.',
-    HIGH_FREQUENCY_ACTIONS:    'An unusually high number of actions were recorded from your account. Please verify you weren't impersonated.',
+    UNUSUAL_LOGIN_TIME:        'Your account was accessed at an unusual time. If this was not you, please reset your password.',
+    HIGH_FREQUENCY_ACTIONS:    'An unusually high number of actions were recorded from your account. Please verify you were not impersonated.',
     SENSITIVE_ENDPOINT_ACCESS: 'Your session attempted to access a restricted area. Contact HR if this was unexpected.',
     BULK_OPERATION:            'Multiple bulk operations were performed from your account in a short window.',
     OFF_HOURS_ACTIVITY:        'System activity was recorded from your account on a weekend. This may be routine — no action needed if expected.',
