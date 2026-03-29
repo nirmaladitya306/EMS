@@ -29,6 +29,7 @@ import DocumentRouter from './routes/Document.route.js';
 import LeaveRecommendationRouter from './routes/LeaveRecommendation.route.js';
 import ActivityLogRouter from './routes/ActivityLog.route.js';
 import PayrollComplianceRouter from './routes/PayrollCompliance.route.js';
+import ExitClearanceRouter from './routes/ExitClearance.route.js';
 
 dotenv.config();
 
@@ -77,6 +78,7 @@ app.use("/v1/balance", BalanceRouter);
 app.use("/v1/document", DocumentRouter);
 app.use("/v1/leave-recommendation", LeaveRecommendationRouter);
 app.use("/v1/activity-log", ActivityLogRouter);
+app.use("/v1/exit-clearance", ExitClearanceRouter);
 
 // global error handler
 app.use((err, req, res, next) => {
