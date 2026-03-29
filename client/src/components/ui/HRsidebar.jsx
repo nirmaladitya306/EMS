@@ -77,6 +77,12 @@ export function HRdashboardSidebar() {
                   <button className="text-[16px]">Salary</button>
                 </SidebarMenuItem>
               </NavLink>
+<NavLink to="/hr/dashboard/payroll-compliance" className={linkClass}>
+  <SidebarMenuItem className={itemClass}>
+    <img src="/../../src/assets/HR-Dashboard/Salary.png" className="w-7 ms-2 my-1" />
+    <button className="text-[16px]">Payroll Compliance</button>
+  </SidebarMenuItem>
+</NavLink>
 
               {/* Access Drift */}
 <NavLink to="/hr/dashboard/access-drift" className={linkClass}>

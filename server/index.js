@@ -28,6 +28,7 @@ import BalanceRouter from './routes/Balance.route.js';
 import DocumentRouter from './routes/Document.route.js';
 import LeaveRecommendationRouter from './routes/LeaveRecommendation.route.js';
 import ActivityLogRouter from './routes/ActivityLog.route.js';
+import PayrollComplianceRouter from './routes/PayrollCompliance.route.js';
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ app.use("/v1/employee", EmployeeRouter);
 app.use("/v1/hr", HRRouter);
 app.use("/v1/department", DepartmentRouter);
 app.use("/v1/salary", SalaryRouter);
+app.use('/v1/payroll-compliance', PayrollComplianceRouter);
 app.use("/v1/notice", NoticeRouter);
 app.use("/v1/leave", LeaveRouter);
 app.use("/v1/attendance", AttendanceRouter);

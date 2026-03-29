@@ -18,6 +18,7 @@ import RequestReducer from "../Slices/RequestSlice.js"
 import HRProfileReducer from "../Slices/HRProfileSlice.js"
 import EmployeeDashboardReducer from "../Slices/EmployeeDashboardSlice.js"
 import AccessDriftReducer from "../Slices/AccessDriftSlice.js"
+import PayrollComplianceReducer from '../Slices/PayrollComplianceSlice.js'
 
 export const store = configureStore({
     reducer: {
@@ -42,5 +43,6 @@ export const store = configureStore({
         HRProfileReducer:           HRProfileReducer,
         EmployeeDashboardReducer:   EmployeeDashboardReducer,
         AccessDriftReducer:         AccessDriftReducer,
+        PayrollComplianceReducer: PayrollComplianceReducer,
     }
 })
