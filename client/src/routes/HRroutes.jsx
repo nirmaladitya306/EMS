@@ -25,6 +25,7 @@ import { RequestsPage } from "../pages/HumanResources/Dashboard Childs/requestsp
 import { HRProfilePage } from "../pages/HumanResources/Dashboard Childs/hrprofilepage.jsx"
 import { AccessDriftPage } from "../pages/HumanResources/Dashboard Childs/accessdriftpage.jsx"
 import { PayrollCompliancePage } from '../pages/HumanResources/Dashboard Childs/payrollcompliancepage.jsx'
+import { EmployeeTimelinePage } from '../pages/HumanResources/Dashboard Childs/employeetimelinepage.jsx'
 
 export const HRRoutes = [
     {
@@ -102,6 +103,10 @@ export const HRRoutes = [
         {
             path: 'payroll-compliance',
             element: <PayrollCompliancePage />
+        },
+        {
+            path: 'employee-timeline',
+            element: <EmployeeTimelinePage />
         },
 
     ]
