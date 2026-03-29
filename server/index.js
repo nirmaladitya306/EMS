@@ -31,7 +31,7 @@ import ActivityLogRouter from './routes/ActivityLog.route.js';
 import PayrollComplianceRouter from './routes/PayrollCompliance.route.js';
 import ExitClearanceRouter from './routes/ExitClearance.route.js';
 import AnalyticsRouter     from './routes/Analytics.routes.js';
-import AnalyticsRouter from './routes/Analytics.route.js';
+
 
 dotenv.config();
 
