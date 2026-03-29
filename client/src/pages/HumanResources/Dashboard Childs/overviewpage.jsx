@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { HandleGetEmployeeProfile } from '../../../redux/Thunks/EmployeeDashboardThunk'
+import { HandleGetEmployeeProfile, HandleUpdateMyProfile } from '../../../redux/Thunks/EmployeeDashboardThunk'
 import { Loading } from '../../../components/common/loading'
 
 const InfoCard = ({ label, value }) => (
@@ -17,6 +17,167 @@ const StatCard = ({ label, count, color }) => (
     </div>
 )
 
+// ─── Skill tag pill ───────────────────────────────────────────────────────────
+const SkillTag = ({ skill, onRemove, editable }) => (
+    <span className="inline-flex items-center gap-1.5 bg-purple-100 text-purple-800 border border-purple-200 rounded-full px-3 py-1 text-sm font-medium">
+        {skill}
+        {editable && (
+            <button
+                onClick={() => onRemove(skill)}
+                className="text-purple-400 hover:text-purple-700 text-base leading-none ml-0.5 transition-colors"
+                title="Remove skill"
+            >
+                ×
+            </button>
+        )}
+    </span>
+)
+
+// ─── Skills editor section ───────────────────────────────────────────────────
+const SkillsEditor = ({ profile, employeeId }) => {
+    const dispatch = useDispatch()
+    const state    = useSelector(s => s.EmployeeDashboardReducer)
+
+    const [skills,    setSkills]    = useState(profile?.skills || [])
+    const [inputVal,  setInputVal]  = useState('')
+    const [editing,   setEditing]   = useState(false)
+    const [saving,    setSaving]    = useState(false)
+    const [saved,     setSaved]     = useState(false)
+    const inputRef = useRef(null)
+
+    // Sync skills when profile reloads
+    useEffect(() => {
+        setSkills(profile?.skills || [])
+    }, [profile])
+
+    const addSkill = () => {
+        const trimmed = inputVal.trim()
+        if (!trimmed) return
+        if (skills.map(s => s.toLowerCase()).includes(trimmed.toLowerCase())) {
+            setInputVal('')
+            return
+        }
+        setSkills(prev => [...prev, trimmed])
+        setInputVal('')
+    }
+
+    const removeSkill = (skill) => {
+        setSkills(prev => prev.filter(s => s !== skill))
+    }
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault()
+            addSkill()
+        }
+        if (e.key === 'Escape') {
+            cancelEdit()
+        }
+    }
+
+    const saveSkills = async () => {
+        // flush any pending input
+        const trimmed = inputVal.trim()
+        const finalSkills = trimmed && !skills.map(s => s.toLowerCase()).includes(trimmed.toLowerCase())
+            ? [...skills, trimmed]
+            : skills
+
+        setSaving(true)
+        await dispatch(HandleUpdateMyProfile({
+            employeeId,
+            updatedEmployee: { skills: finalSkills }
+        }))
+        setSkills(finalSkills)
+        setInputVal('')
+        setSaving(false)
+        setSaved(true)
+        setEditing(false)
+        setTimeout(() => setSaved(false), 2000)
+        dispatch(HandleGetEmployeeProfile())
+    }
+
+    const cancelEdit = () => {
+        setSkills(profile?.skills || [])
+        setInputVal('')
+        setEditing(false)
+    }
+
+    return (
+        <div>
+            <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold text-gray-700">My Skills</h2>
+                <div className="flex items-center gap-2">
+                    {saved && (
+                        <span className="text-xs text-green-600 font-medium">✓ Saved</span>
+                    )}
+                    {!editing ? (
+                        <button
+                            onClick={() => { setEditing(true); setTimeout(() => inputRef.current?.focus(), 50) }}
+                            className="px-3 py-1 text-xs border border-purple-400 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
+                        >
+                            Edit Skills
+                        </button>
+                    ) : (
+                        <div className="flex gap-2">
+                            <button
+                                onClick={saveSkills}
+                                disabled={saving}
+                                className="px-3 py-1 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 transition-colors"
+                            >
+                                {saving ? 'Saving…' : 'Save'}
+                            </button>
+                            <button
+                                onClick={cancelEdit}
+                                className="px-3 py-1 text-xs border border-gray-300 text-gray-500 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Tag cloud */}
+            <div className="flex flex-wrap gap-2 min-h-[40px]">
+                {skills.length === 0 && !editing && (
+                    <span className="text-sm text-gray-400 italic">No skills added yet. Click Edit Skills to add some.</span>
+                )}
+                {skills.map(skill => (
+                    <SkillTag key={skill} skill={skill} onRemove={removeSkill} editable={editing} />
+                ))}
+
+                {/* Inline input appears inside the tag cloud */}
+                {editing && (
+                    <div className="flex items-center gap-1.5">
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={inputVal}
+                            onChange={e => setInputVal(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Type skill + Enter"
+                            className="border border-purple-300 rounded-full px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 w-40"
+                        />
+                        <button
+                            onClick={addSkill}
+                            className="w-6 h-6 rounded-full bg-purple-600 text-white text-sm flex items-center justify-center hover:bg-purple-700 shrink-0"
+                            title="Add skill"
+                        >
+                            +
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {editing && (
+                <p className="text-xs text-gray-400 mt-2">
+                    Press <kbd className="bg-gray-100 border border-gray-300 rounded px-1">Enter</kbd> or <kbd className="bg-gray-100 border border-gray-300 rounded px-1">,</kbd> to add a skill · click × to remove
+                </p>
+            )}
+        </div>
+    )
+}
+
 export const EmployeeOverviewPage = () => {
     const dispatch = useDispatch()
     const state    = useSelector(s => s.EmployeeDashboardReducer)
@@ -27,7 +188,7 @@ export const EmployeeOverviewPage = () => {
     if (state.isLoading && !profile) return <Loading />
 
     return (
-        <div className="overview-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <div className="overview-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5 overflow-auto">
 
             {/* Header */}
             <div className="flex items-center gap-4">
@@ -53,6 +214,11 @@ export const EmployeeOverviewPage = () => {
                     <InfoCard label="Department"  value={profile?.department?.name} />
                     <InfoCard label="Role"        value={profile?.role}             />
                 </div>
+            </div>
+
+            {/* Skills */}
+            <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <SkillsEditor profile={profile} employeeId={profile?._id} />
             </div>
 
             {/* Quick stats */}

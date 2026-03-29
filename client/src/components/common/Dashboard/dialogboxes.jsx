@@ -189,6 +189,25 @@ export const EmployeeDetailsDialogBox = ({ EmployeeID }) => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Skills tags */}
+                        <div className="skills-section border-t border-gray-100 pt-4 mt-1">
+                            <label className="font-bold md:text-sm xl:text-lg block mb-2">Skills :</label>
+                            {employeeData.skills && employeeData.skills.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {employeeData.skills.map((skill, i) => (
+                                        <span
+                                            key={i}
+                                            className="inline-flex items-center bg-blue-100 text-blue-800 border border-blue-200 rounded-full px-3 py-1 text-sm font-medium"
+                                        >
+                                            {skill}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-400 italic">No skills added yet.</p>
+                            )}
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>

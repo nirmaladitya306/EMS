@@ -137,6 +137,8 @@ export const HandleSearchBySkills = async (req, res) => {
         return res.status(500).json({ success: false, message: error.message })
     }
 }
+
+export const HandleEmployeeByHR = async (req, res) => {
     try {
         const { employeeId } = req.params
         const employee = await Employee.findOne({ _id: employeeId, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest skills")
