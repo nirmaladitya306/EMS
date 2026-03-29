@@ -12,6 +12,8 @@ import { MySalaryPage }         from "../pages/HumanResources/Dashboard Childs/m
 import { MyNoticesPage }        from "../pages/HumanResources/Dashboard Childs/mynoticespage.jsx"
 import { MyAttendancePage }     from "../pages/HumanResources/Dashboard Childs/myattendancepage.jsx"
 import { MyRequestsPage }       from "../pages/HumanResources/Dashboard Childs/myrequestpage.jsx"
+import { MyDocumentsPage }      from "../pages/HumanResources/Dashboard Childs/mydocumentpage.jsx"
+import { MyActivityPage }       from "../pages/HumanResources/Dashboard Childs/myactivitypage.jsx"
 
 export const EmployeeRoutes = [
     {
@@ -49,6 +51,14 @@ export const EmployeeRoutes = [
             {
                 path: "my-requests",
                 element: <MyRequestsPage />
+            },
+            {
+                path: "my-documents",
+                element: <MyDocumentsPage />
+            },
+            {
+                path: "my-activity",
+                element: <MyActivityPage />
             },
         ]
     },
