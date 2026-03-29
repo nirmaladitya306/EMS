@@ -61,6 +61,20 @@ export function EmployeeSidebar() {
                                 </SidebarMenuItem>
                             </NavLink>
 
+                            <NavLink to="/auth/employee/employee-dashboard/my-documents" className={linkClass}>
+                                <SidebarMenuItem className={itemClass}>
+                                    <img src="/../../src/assets/HR-Dashboard/attendance.png" className="w-7 ms-2 my-1" alt="" />
+                                    <button className="text-[16px]">My Documents</button>
+                                </SidebarMenuItem>
+                            </NavLink>
+
+                            <NavLink to="/auth/employee/employee-dashboard/my-activity" className={linkClass}>
+                                <SidebarMenuItem className={itemClass}>
+                                    <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" alt="" />
+                                    <button className="text-[16px]">My Activity</button>
+                                </SidebarMenuItem>
+                            </NavLink>
+
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>

@@ -58,6 +58,20 @@ export const HandleGetActorLogs = async (req, res) => {
     }
 }
 
+// ─── Get logs for the currently logged-in employee ───────────────────────────
+export const HandleGetMyActivityLogs = async (req, res) => {
+    try {
+        const logs = await ActivityLog.find({
+            organizationID: req.ORGID,
+            actorID: req.EMid
+        }).sort({ createdAt: -1 }).limit(100)
+
+        return res.status(200).json({ success: true, data: logs, type: 'MyActivityLogs' })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message })
+    }
+}
+
 export const HandleGetLogSummary = async (req, res) => {
     try {
         const since = dayjs().subtract(30, 'day').toDate()

@@ -4,7 +4,8 @@ import {
     HandleGetMyNotices, HandleGetMyAttendance, HandleGetMyRequests,
     HandleApplyLeave, HandleUpdateMyLeave, HandleDeleteMyLeave,
     HandleSubmitRequest, HandleUpdateMyRequest,
-    HandleInitializeMyAttendance, HandleMarkAttendance, HandleUpdateMyProfile
+    HandleInitializeMyAttendance, HandleMarkAttendance, HandleUpdateMyProfile,
+    HandleGetMyDocuments, HandleGetMyActivity
 } from '../Thunks/EmployeeDashboardThunk'
 
 const pending  = (state) => { state.isLoading = true;  state.error = { status: false, message: null } }
@@ -19,12 +20,16 @@ const EmployeeDashboardSlice = createSlice({
         notices:    [],
         attendance: null,
         requests:   [],
+        documents:  [],
+        activitylogs: [],
         isLoading:  false,
         fetchLeaves:    true,
         fetchSalaries:  true,
         fetchNotices:   true,
         fetchAttendance:true,
         fetchRequests:  true,
+        fetchDocuments: true,
+        fetchActivity:  true,
         error: { status: false, message: null }
     },
     extraReducers: (builder) => {
@@ -126,6 +131,26 @@ const EmployeeDashboardSlice = createSlice({
             .addCase(HandleUpdateMyRequest.pending,   pending)
             .addCase(HandleUpdateMyRequest.fulfilled, (state) => { state.isLoading = false; state.fetchRequests = true })
             .addCase(HandleUpdateMyRequest.rejected,  rejected)
+
+        // Documents
+        builder
+            .addCase(HandleGetMyDocuments.pending,   pending)
+            .addCase(HandleGetMyDocuments.fulfilled, (state, action) => {
+                state.isLoading      = false
+                state.documents      = action.payload.data || []
+                state.fetchDocuments = false
+            })
+            .addCase(HandleGetMyDocuments.rejected, rejected)
+
+        // Activity Logs
+        builder
+            .addCase(HandleGetMyActivity.pending,   pending)
+            .addCase(HandleGetMyActivity.fulfilled, (state, action) => {
+                state.isLoading      = false
+                state.activitylogs   = action.payload.data || []
+                state.fetchActivity  = false
+            })
+            .addCase(HandleGetMyActivity.rejected, rejected)
     }
 })
 

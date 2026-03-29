@@ -137,7 +137,30 @@ export const HandleGetAllDocuments = async (req, res) => {
     }
 }
 
-// ─── Get documents for a single employee ────────────────────────────────────
+// ─── Get documents for a single employee (employee self-view) ────────────────
+export const HandleGetMyDocuments = async (req, res) => {
+    try {
+        const documents = await Document.find({ employee: req.EMid, organizationID: req.ORGID })
+            .sort({ expirydate: 1 })
+
+        // Refresh status on each doc before returning
+        const today = new Date()
+        for (const doc of documents) {
+            const daysLeft = Math.ceil((new Date(doc.expirydate) - today) / (1000 * 60 * 60 * 24))
+            const newStatus = daysLeft < 0 ? 'Expired' : daysLeft <= 30 ? 'Expiring Soon' : 'Valid'
+            if (doc.status !== newStatus) {
+                doc.status = newStatus
+                await doc.save()
+            }
+        }
+
+        return res.status(200).json({ success: true, data: documents, type: 'MyDocuments' })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message })
+    }
+}
+
+// ─── Get documents for a single employee (HR view) ────────────────────────────
 export const HandleGetEmployeeDocuments = async (req, res) => {
     try {
         const { employeeID } = req.params

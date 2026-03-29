@@ -2,18 +2,22 @@ import express from 'express'
 import {
     HandleCreateDocument,
     HandleGetAllDocuments,
+    HandleGetMyDocuments,
     HandleGetEmployeeDocuments,
     HandleUpdateDocument,
     HandleDeleteDocument,
     HandleRunAlertEngine,
     HandleGetDocumentSummary
 } from '../controllers/Document.controller.js'
-import { VerifyHRToken } from '../middlewares/Auth.middleware.js'
+import { VerifyHRToken, VerifyEmployeeToken } from '../middlewares/Auth.middleware.js'
 import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
 
 const router = express.Router()
 
-// All routes are HR-only
+// Employee routes
+router.get('/my-documents',             VerifyEmployeeToken, HandleGetMyDocuments)
+
+// HR-only routes
 router.post('/create',                  VerifyHRToken, RoleAuthorization('HR-Admin'), HandleCreateDocument)
 router.get('/all',                      VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetAllDocuments)
 router.get('/summary',                  VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetDocumentSummary)

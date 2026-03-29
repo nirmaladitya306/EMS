@@ -8,6 +8,8 @@ const EmployeeEndPoints = {
     MY_NOTICES:     '/v1/notice/my-notices',
     MY_ATTENDANCE:  '/v1/attendance/my-attendance',
     MY_REQUESTS:    '/v1/generate-request/my-requests',
+    MY_DOCUMENTS:   '/v1/document/my-documents',
+    MY_ACTIVITY:    '/v1/activity-log/my-activity',
     INITIALIZE_ATT: '/v1/attendance/initialize',
     CREATE_LEAVE:   '/v1/leave/create-leave',
     UPDATE_LEAVE:   '/v1/leave/employee-update-leave',
@@ -138,6 +140,24 @@ export const HandleUpdateMyRequest = createAsyncThunk('HandleUpdateMyRequest', a
 export const HandleUpdateMyProfile = createAsyncThunk('HandleUpdateMyProfile', async (data, { rejectWithValue }) => {
     try {
         const res = await apiService.patch(EmployeeEndPoints.UPDATE_PROFILE, data, { withCredentials: true })
+        return res.data
+    } catch (error) {
+        return rejectWithValue(error.response?.data || { message: error.message })
+    }
+})
+
+export const HandleGetMyDocuments = createAsyncThunk('HandleGetMyDocuments', async (_, { rejectWithValue }) => {
+    try {
+        const res = await apiService.get(EmployeeEndPoints.MY_DOCUMENTS, { withCredentials: true })
+        return res.data
+    } catch (error) {
+        return rejectWithValue(error.response?.data || { message: error.message })
+    }
+})
+
+export const HandleGetMyActivity = createAsyncThunk('HandleGetMyActivity', async (_, { rejectWithValue }) => {
+    try {
+        const res = await apiService.get(EmployeeEndPoints.MY_ACTIVITY, { withCredentials: true })
         return res.data
     } catch (error) {
         return rejectWithValue(error.response?.data || { message: error.message })

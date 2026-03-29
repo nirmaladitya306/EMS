@@ -23,7 +23,10 @@ export const HandleHRLogin = async (req, res) => {
             });
         }
 
-        const isMatch = await bcrypt.compare(password, HR.password);
+        const isMatch = await bcrypt.compare(
+            password,
+            HR.password
+        );
 
         if (!isMatch) {
             return res.status(400).json({
@@ -33,7 +36,7 @@ export const HandleHRLogin = async (req, res) => {
             });
         }
 
-        // ✅ Set login cookie
+        // ✅ set auth cookie
         GenerateJwtTokenAndSetCookiesHR(
             res,
             HR._id,
@@ -41,23 +44,12 @@ export const HandleHRLogin = async (req, res) => {
             HR.organizationID
         );
 
-        // ✅ TEMP DEV FIX:
-        // If no OTP exists for old HR accounts, create one
-        if (!HR.verificationtoken) {
-            HR.verificationtoken = "123456";
-            HR.verificationtokenexpires =
-                Date.now() + 10 * 60 * 1000; // 10 mins
-
-            console.log("TEMP OTP:", HR.verificationtoken);
-        }
-
-        // ✅ Update login time
+        // ✅ update login time
         HR.lastlogin = new Date();
 
-        // ✅ Save DB changes
         await HR.save();
 
-        // ✅ Create activity log
+        // ✅ create activity log
         await createLog({
             actorID: HR._id,
             actorName: `${HR.firstname} ${HR.lastname}`,
