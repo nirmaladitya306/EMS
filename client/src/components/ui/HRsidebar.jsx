@@ -77,7 +77,7 @@ export function HRdashboardSidebar() {
                   <button className="text-[16px]">Salary</button>
                 </SidebarMenuItem>
               </NavLink>
-              
+
 <NavLink to="/hr/dashboard/payroll-compliance" className={linkClass}>
   <SidebarMenuItem className={itemClass}>
     <img src="/../../src/assets/HR-Dashboard/Salary.png" className="w-7 ms-2 my-1" />
@@ -152,7 +152,7 @@ export function HRdashboardSidebar() {
               {/* Employee Timeline */}
               <NavLink to="/hr/dashboard/employee-timeline" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" />
+                  <img src="/../../src/assets/HR-Dashboard/emptimeline.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Employee Timeline</button>
                 </SidebarMenuItem>
               </NavLink>

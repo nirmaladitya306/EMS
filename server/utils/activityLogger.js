@@ -1,4 +1,5 @@
 import { ActivityLog } from '../models/ActivityLog.model.js'
+import { runDriftDetection } from './accessDriftDetector.js'
 
 export const createLog = async ({
     actorID,
@@ -16,7 +17,7 @@ export const createLog = async ({
         let role = "Employee";
 
         if (req?.HRid) {
-            role = "HR";
+            role = "HR-Admin";
         } else if (req?.EMid) {
             role = "Employee";
         }
