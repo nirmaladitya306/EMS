@@ -10,6 +10,7 @@ const EmployeeEndPoints = {
     MY_REQUESTS:    '/v1/generate-request/my-requests',
     MY_DOCUMENTS:   '/v1/document/my-documents',
     MY_ACTIVITY:    '/v1/activity-log/my-activity',
+    MY_TIMELINE:    '/v1/employee/my-timeline',
     INITIALIZE_ATT: '/v1/attendance/initialize',
     CREATE_LEAVE:   '/v1/leave/create-leave',
     UPDATE_LEAVE:   '/v1/leave/employee-update-leave',
@@ -158,6 +159,14 @@ export const HandleGetMyDocuments = createAsyncThunk('HandleGetMyDocuments', asy
 export const HandleGetMyActivity = createAsyncThunk('HandleGetMyActivity', async (_, { rejectWithValue }) => {
     try {
         const res = await apiService.get(EmployeeEndPoints.MY_ACTIVITY, { withCredentials: true })
+        return res.data
+    } catch (error) {
+        return rejectWithValue(error.response?.data || { message: error.message })
+    }
+})
+export const HandleGetMyTimeline = createAsyncThunk('HandleGetMyTimeline', async (_, { rejectWithValue }) => {
+    try {
+        const res = await apiService.get(EmployeeEndPoints.MY_TIMELINE, { withCredentials: true })
         return res.data
     } catch (error) {
         return rejectWithValue(error.response?.data || { message: error.message })

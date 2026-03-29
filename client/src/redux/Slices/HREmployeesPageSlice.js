@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { HREmployeesPageAsyncReducer } from "../AsyncReducers/asyncreducer.js";
-import { HandleDeleteHREmployees, HandlePostHREmployees, HandleGetHREmployees, HandleSearchEmployeesBySkills } from "../Thunks/HREmployeesThunk.js";
+import { HandleDeleteHREmployees, HandlePostHREmployees, HandleGetHREmployees, HandleSearchEmployeesBySkills, HandleGetEmployeeTimelineByHR } from "../Thunks/HREmployeesThunk.js";
 
 const HREmployeesSlice = createSlice({
     name: "HREmployees",

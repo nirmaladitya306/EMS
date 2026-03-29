@@ -5,7 +5,7 @@ import {
     HandleApplyLeave, HandleUpdateMyLeave, HandleDeleteMyLeave,
     HandleSubmitRequest, HandleUpdateMyRequest,
     HandleInitializeMyAttendance, HandleMarkAttendance, HandleUpdateMyProfile,
-    HandleGetMyDocuments, HandleGetMyActivity
+    HandleGetMyDocuments, HandleGetMyActivity, HandleGetMyTimeline
 } from '../Thunks/EmployeeDashboardThunk'
 
 const pending  = (state) => { state.isLoading = true;  state.error = { status: false, message: null } }
@@ -22,6 +22,7 @@ const EmployeeDashboardSlice = createSlice({
         requests:   [],
         documents:  [],
         activitylogs: [],
+        timeline:   null,
         isLoading:  false,
         fetchLeaves:    true,
         fetchSalaries:  true,
@@ -30,6 +31,7 @@ const EmployeeDashboardSlice = createSlice({
         fetchRequests:  true,
         fetchDocuments: true,
         fetchActivity:  true,
+        fetchTimeline:  true,
         error: { status: false, message: null }
     },
     extraReducers: (builder) => {
@@ -155,6 +157,16 @@ const EmployeeDashboardSlice = createSlice({
                 state.fetchActivity  = false
             })
             .addCase(HandleGetMyActivity.rejected, rejected)
+
+        // Timeline
+        builder
+            .addCase(HandleGetMyTimeline.pending,   pending)
+            .addCase(HandleGetMyTimeline.fulfilled, (state, action) => {
+                state.isLoading     = false
+                state.timeline      = action.payload.data
+                state.fetchTimeline = false
+            })
+            .addCase(HandleGetMyTimeline.rejected, rejected)
     }
 })
 

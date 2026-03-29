@@ -1,5 +1,5 @@
 import express from "express"
-import { HandleAllEmployees, HandleEmployeeUpdate, HandleEmployeeDelete, HandleEmployeeByHR, HandleEmployeeByEmployee, HandleAllEmployeesIDS, HandleSearchBySkills } from "../controllers/Employee.controller.js"
+import { HandleAllEmployees, HandleEmployeeUpdate, HandleEmployeeDelete, HandleEmployeeByHR, HandleEmployeeByEmployee, HandleAllEmployeesIDS, HandleSearchBySkills, HandleGetEmployeeTimeline, HandleGetEmployeeTimelineByHR } from "../controllers/Employee.controller.js"
 import { VerifyHRToken } from "../middlewares/Auth.middleware.js"
 import { RoleAuthorization } from "../middlewares/RoleAuth.middleware.js"
 import { VerifyEmployeeToken } from "../middlewares/Auth.middleware.js"
@@ -20,6 +20,10 @@ router.delete("/delete-employee/:employeeId", VerifyHRToken, RoleAuthorization("
 router.get("/by-HR/:employeeId", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleEmployeeByHR)
 
 router.get("/by-employee", VerifyEmployeeToken, HandleEmployeeByEmployee)
+
+router.get("/my-timeline", VerifyEmployeeToken, HandleGetEmployeeTimeline)
+
+router.get("/timeline/:employeeId", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleGetEmployeeTimelineByHR)
 
 
 
