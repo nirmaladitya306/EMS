@@ -63,7 +63,7 @@ export function EmployeeSidebar() {
 
                             <NavLink to="/auth/employee/employee-dashboard/my-documents" className={linkClass}>
                                 <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/attendance.png" className="w-7 ms-2 my-1" alt="" />
+                                    <img src="/../../src/assets/HR-Dashboard/docalert.png" className="w-7 ms-2 my-1" alt="" />
                                     <button className="text-[16px]">My Documents</button>
                                 </SidebarMenuItem>
                             </NavLink>
@@ -72,6 +72,13 @@ export function EmployeeSidebar() {
                                 <SidebarMenuItem className={itemClass}>
                                     <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" alt="" />
                                     <button className="text-[16px]">My Activity</button>
+                                </SidebarMenuItem>
+                            </NavLink>
+
+                            <NavLink to="/auth/employee/employee-dashboard/leave-recommendation" className={linkClass}>
+                                <SidebarMenuItem className={itemClass}>
+                                    <img src="/../../src/assets/HR-Dashboard/leaverec.png" className="w-7 ms-2 my-1" alt="" />
+                                    <button className="text-[16px]">Leave Recommendation</button>
                                 </SidebarMenuItem>
                             </NavLink>
 

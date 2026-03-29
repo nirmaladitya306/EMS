@@ -49,7 +49,7 @@ export function HRdashboardSidebar() {
               {/* Document Alerts */}
               <NavLink to="/hr/dashboard/documents" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/attendance.png" className="w-7 ms-2 my-1" />
+                  <img src="/../../src/assets/HR-Dashboard/docalert.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Document Alerts</button>
                 </SidebarMenuItem>
               </NavLink>
@@ -57,7 +57,7 @@ export function HRdashboardSidebar() {
               {/* Leave Engine */}
               <NavLink to="/hr/dashboard/leave-recommendation" className={linkClass}>
                 <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/leave.png" className="w-7 ms-2 my-1" />
+                  <img src="/../../src/assets/HR-Dashboard/leaverec.png" className="w-7 ms-2 my-1" />
                   <button className="text-[16px]">Leave Engine</button>
                 </SidebarMenuItem>
               </NavLink>

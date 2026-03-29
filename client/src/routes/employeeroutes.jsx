@@ -14,6 +14,7 @@ import { MyAttendancePage }     from "../pages/HumanResources/Dashboard Childs/m
 import { MyRequestsPage }       from "../pages/HumanResources/Dashboard Childs/myrequestpage.jsx"
 import { MyDocumentsPage }      from "../pages/HumanResources/Dashboard Childs/mydocumentpage.jsx"
 import { MyActivityPage }       from "../pages/HumanResources/Dashboard Childs/myactivitypage.jsx"
+import { MyLeaveRecommendationPage } from "../pages/HumanResources/Dashboard Childs/myleaverecpage.jsx"
 
 export const EmployeeRoutes = [
     {
@@ -59,6 +60,10 @@ export const EmployeeRoutes = [
             {
                 path: "my-activity",
                 element: <MyActivityPage />
+            },
+            {
+                path: "leave-recommendation",
+                element: <MyLeaveRecommendationPage />
             },
         ]
     },
