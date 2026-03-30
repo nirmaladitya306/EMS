@@ -92,6 +92,18 @@ const EmployeeSchema = new Schema({
             trim: true
         }
     ],
+    // ─── Org structure ────────────────────────────────────────────────────────
+    position: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Position',
+        default: null
+    },
+    // Direct manager (another Employee)
+    manager: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Employee',
+        default: null
+    },
     organizationID: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Organization"
