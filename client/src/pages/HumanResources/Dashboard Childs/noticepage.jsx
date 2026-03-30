@@ -212,7 +212,9 @@ export const NoticePage = () => {
     const departmentList = deptState.data || []
 
     const handleCreate = (form) => {
-        dispatch(HandleCreateNotice(form))
+        // HRID is no longer sent from the client — the server reads it from the HR auth token
+        const { HRID: _ignored, ...payload } = form
+        dispatch(HandleCreateNotice(payload))
         setDialogOpen(false)
     }
 

@@ -32,9 +32,9 @@ export const HandleUpdateNotice = createAsyncThunk("HandleUpdateNotice", async (
     }
 })
 
-export const HandleDeleteNotice = createAsyncThunk("HandleDeleteNotice", async (id, { rejectWithValue }) => {
+export const HandleDeleteNotice = createAsyncThunk("HandleDeleteNotice", async ({ noticeID }, { rejectWithValue }) => {
     try {
-        const response = await apiService.delete(NoticeEndPoints.DELETE(id), { withCredentials: true });
+        const response = await apiService.delete(NoticeEndPoints.DELETE(noticeID), { withCredentials: true });
         return { ...response.data, refetch: true };
     } catch (error) {
         if (error.response?.data) return rejectWithValue(error.response.data);

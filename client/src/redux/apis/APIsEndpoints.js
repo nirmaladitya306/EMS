@@ -48,7 +48,7 @@ export const SalaryEndPoints = {
  
 export const NoticeEndPoints = {
     GETALL:      '/v1/notice/all',
-    CREATE:      'v1/notice/create-notice',
+    CREATE:      '/v1/notice/create-notice',
     UPDATE:      '/v1/notice/update-notice',
     DELETE:      (id) => `/v1/notice/delete-notice/${id}`,
     MY_NOTICES:  '/v1/notice/my-notices',
