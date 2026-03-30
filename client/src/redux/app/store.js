@@ -23,6 +23,7 @@ import ExitClearanceReducer from '../Slices/ExitClearanceSlice.js'
 import RBACReducer from '../Slices/RBACSlice.js'
 import PermissionReducer from "../Slices/PermissionSlice.js"
 import OrgStructureReducer from '../Slices/OrgStructureSlices.js'
+import AnalyticsReducer from '../Slices/AnalyticsSlice.js'
 
 export const store = configureStore({
     reducer: {
@@ -52,5 +53,6 @@ export const store = configureStore({
         RBACReducer:                RBACReducer,
         permissions:                PermissionReducer,
         OrgStructureReducer:        OrgStructureReducer,
+        AnalyticsReducer:           AnalyticsReducer,
     }
 })
