@@ -17,6 +17,7 @@ import { MyActivityPage }       from "../pages/HumanResources/Dashboard Childs/m
 import { MyLeaveRecommendationPage } from "../pages/HumanResources/Dashboard Childs/myleaverecpage.jsx"
 import { MyTimelinePage }       from "../pages/HumanResources/Dashboard Childs/mytimelinepage.jsx"
 import { MyAnalyticsPage }      from "../pages/HumanResources/Dashboard Childs/myanalyticspage.jsx"
+import { MyAccessDriftPage }    from "../pages/HumanResources/Dashboard Childs/myaccessdriftpage.jsx"
 
 export const EmployeeRoutes = [
     {
@@ -74,6 +75,10 @@ export const EmployeeRoutes = [
             {
                 path: "my-analytics",
                 element: <MyAnalyticsPage />
+            },
+            {
+                path: "my-security-flags",
+                element: <MyAccessDriftPage />
             },
         ]
     },

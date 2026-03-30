@@ -1,6 +1,7 @@
 import { Department } from "../models/Department.model.js"
 import { Employee } from "../models/Employee.model.js"
 import { GenerateRequest } from "../models/GenerateRequest.model.js"
+import { createLog } from "../utils/activityLogger.js"
 
 // Employee: get their own requests
 export const HandleEmployeeRequests = async (req, res) => {
@@ -57,6 +58,17 @@ export const HandleCreateGenerateRequest = async (req, res) => {
         employee.generaterequest.push(newGenerateRequest._id)
         await employee.save()
 
+        await createLog({
+            actorID:      employee._id,
+            actorName:    `${employee.firstname} ${employee.lastname}`,
+            action:       'OTHER',
+            description:  `${employee.firstname} ${employee.lastname} submitted a new request: "${requesttitle}"`,
+            targetID:     newGenerateRequest._id,
+            targetModel:  'GenerateRequest',
+            organizationID: req.ORGID,
+            req
+        })
+
         return res.status(200).json({ success: true, message: "Request Generated Successfully", data: newGenerateRequest })
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal Server Error", error: error })
@@ -93,6 +105,21 @@ export const HandleUpdateRequestByEmployee = async (req, res) => {
 
         if (!request) {
             return res.status(404).json({ success: false, message: "Request not found" })
+        }
+
+        // Log so drift detection sees this employee action
+        const emp = await Employee.findById(request.employee).select('firstname lastname')
+        if (emp) {
+            await createLog({
+                actorID:      emp._id,
+                actorName:    `${emp.firstname} ${emp.lastname}`,
+                action:       'OTHER',
+                description:  `${emp.firstname} ${emp.lastname} updated their request: "${requesttitle}"`,
+                targetID:     request._id,
+                targetModel:  'GenerateRequest',
+                organizationID: req.ORGID,
+                req
+            })
         }
 
         return res.status(200).json({ success: true, message: "Request updated successfully", data: request })

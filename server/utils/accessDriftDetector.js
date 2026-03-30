@@ -57,7 +57,7 @@ export const runDriftDetection = async ({ employeeID, organizationID, req = null
         if (!employee) return
 
         const empName = `${employee.firstname} ${employee.lastname}`
-        const deptName = employee.department?.departmentname || 'Unknown'
+        const deptName = employee.department?.name || 'Unknown'
 
         const since1h  = new Date(Date.now() - 1 * 60 * 60 * 1000)
         const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000)

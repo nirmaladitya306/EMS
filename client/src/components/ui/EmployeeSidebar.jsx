@@ -96,6 +96,13 @@ export function EmployeeSidebar() {
                                 </SidebarMenuItem>
                             </NavLink>
 
+                            <NavLink to="/auth/employee/employee-dashboard/my-security-flags" className={linkClass}>
+                                <SidebarMenuItem className={itemClass}>
+                                    <img src="/../../src/assets/HR-Dashboard/accessdrift.png" className="w-7 ms-2 my-1" alt="" />
+                                    <button className="text-[16px]">Security Flags</button>
+                                </SidebarMenuItem>
+                            </NavLink>
+
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>

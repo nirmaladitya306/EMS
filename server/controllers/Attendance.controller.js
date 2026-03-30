@@ -1,5 +1,6 @@
 import { Attendance } from "../models/Attendance.model.js"
 import { Employee } from "../models/Employee.model.js"
+import { createLog } from "../utils/activityLogger.js"
 
 // Employee: get their own attendance record
 export const HandleEmployeeAttendance = async (req, res) => {
@@ -50,6 +51,17 @@ export const HandleInitializeAttendance = async (req, res) => {
 
         await employee.save()
         await newAttendance.save()
+
+        await createLog({
+            actorID:      employee._id,
+            actorName:    `${employee.firstname} ${employee.lastname}`,
+            action:       'ATTENDANCE_UPDATED',
+            description:  `${employee.firstname} ${employee.lastname} initialized their attendance record`,
+            targetID:     newAttendance._id,
+            targetModel:  'Attendance',
+            organizationID: req.ORGID,
+            req
+        })
 
         return res.status(200).json({ success: true, message: "Attendance Log Initialized Successfully", data: newAttendance })
 
@@ -112,6 +124,22 @@ export const HandleUpdateAttendance = async (req, res) => {
         }
 
         await attendance.save()
+
+        // Log the attendance mark so drift detection sees daily activity
+        const empDoc = await Employee.findById(attendance.employee).select('firstname lastname')
+        if (empDoc) {
+            await createLog({
+                actorID:      empDoc._id,
+                actorName:    `${empDoc.firstname} ${empDoc.lastname}`,
+                action:       'ATTENDANCE_UPDATED',
+                description:  `${empDoc.firstname} ${empDoc.lastname} marked attendance as ${status} for ${currentdate}`,
+                targetID:     attendance._id,
+                targetModel:  'Attendance',
+                organizationID: req.ORGID,
+                req
+            })
+        }
+
         return res.status(200).json({ success: true, message: "Attendance status updated successfully", data: attendance })
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal Server Error", error: error })

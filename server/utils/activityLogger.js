@@ -36,11 +36,12 @@ export const createLog = async ({
             meta,
             organizationID
         });
-        await runDriftDetection({
-    employeeID: actorID,
-    organizationID,
-    req
-})
+
+        // Only run drift detection for employee actors — HR actions are not employee drift
+        const isEmployeeActor = req?.EMid || (!req?.HRid && role === 'Employee')
+        if (isEmployeeActor) {
+            await runDriftDetection({ employeeID: actorID, organizationID, req })
+        }
 
     } catch (err) {
         console.error('[ActivityLog] Failed:', err.message)
