@@ -56,7 +56,7 @@ const PermissionPicker = ({ groups = {}, selected = [], onChange, disabled }) =>
     }
 
     return (
-        <div style={{ color: "black" }} className="flex flex-col gap-4 max-h-[420px] overflow-y-auto pr-1">
+        <div style={{ color: "black" }} className="flex flex-col gap-4">
 
             {groupNames.length === 0 && (
                 <div style={{ color: "gray" }}>
@@ -200,7 +200,7 @@ const RoleForm = ({ initial, groups, onSave, onCancel, saving, error }) => {
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 
-            <div className="flex gap-3 justify-end pt-2 border-t border-gray-100">
+            <div className="flex gap-3 justify-end pt-2 border-t border-gray-100 sticky bottom-0 bg-white pb-1">
                 <button type="button" onClick={onCancel}
                     className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
                     Cancel
@@ -452,18 +452,22 @@ export const RBACPage = () => {
                 <>
                     {/* Form panel */}
                     {formMode && (
-                        <div className="bg-white border border-indigo-200 rounded-2xl p-6 shadow-sm">
-                            <h2 className="text-lg font-bold mb-4 text-gray-800">
-                                {formMode === 'create' ? 'Create New Role' : `Edit: ${formMode.name}`}
-                            </h2>
-                            <RoleForm
-                                initial={formMode === 'create' ? null : formMode}
-                                groups={groups}
-                                onSave={handleSaveRole}
-                                onCancel={() => setFormMode(null)}
-                                saving={saving}
-                                error={formError}
-                            />
+                        <div className="bg-white border border-indigo-200 rounded-2xl shadow-sm flex flex-col overflow-hidden" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+                            <div className="px-6 pt-6 pb-3 border-b border-gray-100 shrink-0">
+                                <h2 className="text-lg font-bold text-gray-800">
+                                    {formMode === 'create' ? 'Create New Role' : `Edit: ${formMode.name}`}
+                                </h2>
+                            </div>
+                            <div className="overflow-y-auto flex-1 px-6 py-4">
+                                <RoleForm
+                                    initial={formMode === 'create' ? null : formMode}
+                                    groups={groups}
+                                    onSave={handleSaveRole}
+                                    onCancel={() => setFormMode(null)}
+                                    saving={saving}
+                                    error={formError}
+                                />
+                            </div>
                         </div>
                     )}
 
