@@ -20,6 +20,7 @@ import EmployeeDashboardReducer from "../Slices/EmployeeDashboardSlice.js"
 import AccessDriftReducer from "../Slices/AccessDriftSlice.js"
 import PayrollComplianceReducer from '../Slices/PayrollComplianceSlice.js'
 import ExitClearanceReducer from '../Slices/ExitClearanceSlice.js'
+import RBACReducer from '../Slices/RBACSlice.js'
 
 export const store = configureStore({
     reducer: {
@@ -46,5 +47,6 @@ export const store = configureStore({
         AccessDriftReducer:         AccessDriftReducer,
         PayrollComplianceReducer:   PayrollComplianceReducer,
         ExitClearanceReducer:       ExitClearanceReducer,
+        RBACReducer:                RBACReducer,
     }
 })

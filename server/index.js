@@ -30,8 +30,8 @@ import LeaveRecommendationRouter from './routes/LeaveRecommendation.route.js';
 import ActivityLogRouter from './routes/ActivityLog.route.js';
 import PayrollComplianceRouter from './routes/PayrollCompliance.route.js';
 import ExitClearanceRouter from './routes/ExitClearance.route.js';
-import AnalyticsRouter     from './routes/Analytics.routes.js';
-
+import AnalyticsRouter from './routes/Analytics.routes.js';
+import RBACRouter from './routes/RBAC.route.js';
 
 dotenv.config();
 
@@ -59,30 +59,30 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-app.use('/v1/access-drift', AccessDriftRouter)
-app.use("/auth/employee", EmployeeAuthRouter);
-app.use("/auth/hr", HRAuthrouter);
-app.use("/v1/dashboard", DashboardRouter);
-app.use("/v1/employee", EmployeeRouter);
-app.use("/v1/hr", HRRouter);
-app.use("/v1/department", DepartmentRouter);
-app.use("/v1/salary", SalaryRouter);
-app.use('/v1/payroll-compliance', PayrollComplianceRouter);
-app.use("/v1/notice", NoticeRouter);
-app.use("/v1/leave", LeaveRouter);
-app.use("/v1/attendance", AttendanceRouter);
-app.use("/v1/recruitment", RecruitmentRouter);
-app.use("/v1/applicant", ApplicantRouter);
-app.use("/v1/interview-insights", InterviewInsightRouter);
-app.use("/v1/generate-request", GenerateRequestRouter);
-app.use("/v1/corporate-calendar", CorporateCalendarRouter);
-app.use("/v1/balance", BalanceRouter);
-app.use("/v1/document", DocumentRouter);
+app.use('/v1/access-drift',        AccessDriftRouter)
+app.use("/auth/employee",           EmployeeAuthRouter);
+app.use("/auth/hr",                 HRAuthrouter);
+app.use("/v1/dashboard",            DashboardRouter);
+app.use("/v1/employee",             EmployeeRouter);
+app.use("/v1/hr",                   HRRouter);
+app.use("/v1/department",           DepartmentRouter);
+app.use("/v1/salary",               SalaryRouter);
+app.use('/v1/payroll-compliance',   PayrollComplianceRouter);
+app.use("/v1/notice",               NoticeRouter);
+app.use("/v1/leave",                LeaveRouter);
+app.use("/v1/attendance",           AttendanceRouter);
+app.use("/v1/recruitment",          RecruitmentRouter);
+app.use("/v1/applicant",            ApplicantRouter);
+app.use("/v1/interview-insights",   InterviewInsightRouter);
+app.use("/v1/generate-request",     GenerateRequestRouter);
+app.use("/v1/corporate-calendar",   CorporateCalendarRouter);
+app.use("/v1/balance",              BalanceRouter);
+app.use("/v1/document",             DocumentRouter);
 app.use("/v1/leave-recommendation", LeaveRecommendationRouter);
-app.use("/v1/activity-log", ActivityLogRouter);
-app.use("/v1/exit-clearance", ExitClearanceRouter);
-app.use('/v1/analytics',     AnalyticsRouter);
-
+app.use("/v1/activity-log",         ActivityLogRouter);
+app.use("/v1/exit-clearance",       ExitClearanceRouter);
+app.use('/v1/analytics',            AnalyticsRouter);
+app.use('/v1/rbac',                 RBACRouter);
 
 // global error handler
 app.use((err, req, res, next) => {

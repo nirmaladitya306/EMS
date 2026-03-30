@@ -28,6 +28,7 @@ import { PayrollCompliancePage } from '../pages/HumanResources/Dashboard Childs/
 import { EmployeeTimelinePage } from '../pages/HumanResources/Dashboard Childs/employeetimeline.jsx'
 import { ExitClearancePage } from '../pages/HumanResources/Dashboard Childs/exitclearancepage.jsx'
 import { HRAnalyticsPage }   from '../pages/HumanResources/Dashboard Childs/hranalyticspage.jsx'
+import { RBACPage }          from '../pages/HumanResources/Dashboard Childs/rbacpage.jsx'
 
 export const HRRoutes = [
     {
@@ -117,6 +118,10 @@ export const HRRoutes = [
         {
             path: 'analytics',
             element: <HRAnalyticsPage />
+        },
+        {
+            path: 'access-control',
+            element: <RBACPage />
         },
 
     ]

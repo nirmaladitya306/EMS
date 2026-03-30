@@ -172,6 +172,14 @@ export function HRdashboardSidebar() {
                 </SidebarMenuItem>
               </NavLink>
 
+              {/* Access Control */}
+              <NavLink to="/hr/dashboard/access-control" className={linkClass}>
+                <SidebarMenuItem className={itemClass}>
+                  <img src="/../../src/assets/HR-Dashboard/rbac.png" className="w-7 ms-2 my-1" />
+                  <button className="text-[16px]">Access Control</button>
+                </SidebarMenuItem>
+              </NavLink>
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
