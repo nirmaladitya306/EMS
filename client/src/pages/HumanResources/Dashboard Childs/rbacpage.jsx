@@ -11,6 +11,7 @@ import {
 } from '../../../redux/Thunks/RBACThunk'
 import { Loading } from '../../../components/common/loading'
 
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const label = (p) => p.split('.').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' › ')
 
@@ -32,66 +33,106 @@ const ErrorBanner = ({ message, onDismiss }) =>
     ) : null
 
 // ─── Permission picker (grouped checkboxes) ───────────────────────────────────
-const PermissionPicker = ({ groups, selected, onChange, disabled }) => {
+const PermissionPicker = ({ groups = {}, selected = [], onChange, disabled }) => {
+
     const groupNames = Object.keys(groups)
 
     const toggleAll = (perms) => {
         const allIn = perms.every(p => selected.includes(p))
-        if (allIn) onChange(selected.filter(s => !perms.includes(s)))
-        else onChange([...new Set([...selected, ...perms])])
+
+        if (allIn) {
+            onChange(selected.filter(s => !perms.includes(s)))
+        } else {
+            onChange([...new Set([...selected, ...perms])])
+        }
     }
 
     const toggle = (perm) => {
-        onChange(selected.includes(perm)
-            ? selected.filter(p => p !== perm)
-            : [...selected, perm]
-        )
+        if (selected.includes(perm)) {
+            onChange(selected.filter(p => p !== perm))
+        } else {
+            onChange([...selected, perm])
+        }
     }
 
     return (
-        <div className="flex flex-col gap-4 max-h-[420px] overflow-y-auto pr-1">
+        <div style={{ color: "black" }} className="flex flex-col gap-4 max-h-[420px] overflow-y-auto pr-1">
+
+            {groupNames.length === 0 && (
+                <div style={{ color: "gray" }}>
+                    No permissions available
+                </div>
+            )}
+
             {groupNames.map(groupName => {
-                const perms   = groups[groupName]
-                const allIn   = perms.every(p => selected.includes(p))
-                const someIn  = perms.some(p => selected.includes(p))
+
+                const perms = groups[groupName] || []
+
+                const allIn = perms.length > 0 && perms.every(p => selected.includes(p))
+                const someIn = perms.some(p => selected.includes(p))
+
                 return (
-                    <div key={groupName} className="border border-gray-200 rounded-xl overflow-hidden">
-                        {/* Group header */}
+                    <div key={groupName} style={{ background: "#fff" }} className="border rounded-xl overflow-hidden">
+
+                        {/* Group Header */}
                         <button
                             type="button"
                             disabled={disabled}
                             onClick={() => toggleAll(perms)}
-                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold transition-colors
-                                ${allIn ? 'bg-indigo-50 text-indigo-800' : someIn ? 'bg-indigo-50/50 text-indigo-700' : 'bg-gray-50 text-gray-700'}
-                                ${disabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-indigo-50 cursor-pointer'}`}
+                            style={{ color: "black" }}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold
+                                ${allIn ? 'bg-indigo-50'
+                                    : someIn ? 'bg-indigo-50/50'
+                                    : 'bg-gray-50'}
+                                ${disabled ? 'opacity-60 cursor-not-allowed'
+                                    : 'hover:bg-indigo-50 cursor-pointer'}`}
                         >
                             <span>{groupName}</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full border font-medium
-                                ${allIn ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
-                                    : someIn ? 'bg-amber-100 border-amber-300 text-amber-700'
-                                    : 'bg-gray-100 border-gray-300 text-gray-500'}`}>
+
+                            <span>
                                 {perms.filter(p => selected.includes(p)).length}/{perms.length}
                             </span>
                         </button>
-                        {/* Individual permissions */}
-                        <div className="grid grid-cols-2 gap-0 divide-y divide-gray-100">
-                            {perms.map(perm => (
+
+                        {/* Permissions */}
+                        <div className="flex flex-col gap-2 p-2">
+
+                            {perms.map((perm) => (
                                 <label
                                     key={perm}
-                                    className={`flex items-center gap-2.5 px-4 py-2 text-xs cursor-pointer transition-colors
-                                        ${selected.includes(perm) ? 'bg-indigo-50/40 text-indigo-800' : 'text-gray-600 hover:bg-gray-50'}
-                                        ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+                                    style={{
+                                        backgroundColor: "white",
+                                        color: "black",
+                                        minHeight: "36px",
+                                        display: "flex",
+                                        alignItems: "center"
+                                    }}
+                                    className={`gap-3 px-3 py-2 text-sm rounded-md
+                                        ${selected.includes(perm)
+                                            ? 'bg-indigo-100'
+                                            : 'hover:bg-gray-100'}
+                                        ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                                 >
                                     <input
                                         type="checkbox"
                                         disabled={disabled}
                                         checked={selected.includes(perm)}
                                         onChange={() => toggle(perm)}
-                                        className="accent-indigo-600 w-3.5 h-3.5 shrink-0"
+                                        className="accent-indigo-600 w-4 h-4"
                                     />
-                                    <span className="capitalize">{perm.split('.')[1]}</span>
+
+                                    <span
+                                        style={{
+                                            color: "black",
+                                            fontSize: "14px",
+                                            fontWeight: 500
+                                        }}
+                                    >
+                                        {perm.split('.').join(' → ')}
+                                    </span>
                                 </label>
                             ))}
+
                         </div>
                     </div>
                 )
@@ -99,7 +140,6 @@ const PermissionPicker = ({ groups, selected, onChange, disabled }) => {
         </div>
     )
 }
-
 // ─── Role Form (create / edit) ────────────────────────────────────────────────
 const RoleForm = ({ initial, groups, onSave, onCancel, saving, error }) => {
     const [name,        setName]        = useState(initial?.name        || '')
@@ -144,10 +184,18 @@ const RoleForm = ({ initial, groups, onSave, onCancel, saving, error }) => {
                 <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
                     Permissions — {permissions.length} selected
                 </label>
-                {Object.keys(groups).length > 0
-                    ? <PermissionPicker groups={groups} selected={permissions} onChange={setPermissions} disabled={isSystem} />
-                    : <p className="text-sm text-gray-400">Loading permissions…</p>
-                }
+                {Object.keys(groups).length > 0 ? (
+                    <PermissionPicker
+                    groups={groups}
+                    selected={permissions}
+                    onChange={setPermissions}
+                    disabled={isSystem}
+    />
+                ) : (
+                <div className="text-sm text-red-400">
+                        No permissions loaded (check backend / API)
+                </div>
+            )}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -288,7 +336,12 @@ const AssignmentTable = ({ hrList, roles, onAssign, assigning }) => {
 // ─── Main RBAC page ───────────────────────────────────────────────────────────
 export const RBACPage = () => {
     const dispatch = useDispatch()
-    const state    = useSelector(s => s.RBACReducer)
+    const state = useSelector(s => s.RBACReducer) || {
+    roles: [],
+    catalogue: {},
+    hrAssignments: [],
+    error: {}
+}
 
     const [tab,           setTab]           = useState('roles')    // 'roles' | 'assign'
     const [formMode,      setFormMode]      = useState(null)       // null | 'create' | role object
@@ -301,13 +354,13 @@ export const RBACPage = () => {
 
     // Load everything on mount
     useEffect(() => {
-        dispatch(HandleGetAllRoles())
-        dispatch(HandleGetHRAssignments())
-        dispatch(HandleGetPermissionCatalogue())
-    }, [])
+    dispatch(HandleGetAllRoles())
+    dispatch(HandleGetHRAssignments())
+    dispatch(HandleGetPermissionCatalogue())
+}, [dispatch])
 
     useEffect(() => {
-        if (state.error.status) setGlobalError(state.error.message)
+        if (state.error?.status) setGlobalError(state.error.message)
     }, [state.error])
 
     // ── Handlers ──────────────────────────────────────────────────────────────
@@ -350,7 +403,8 @@ export const RBACPage = () => {
     // ── Loading state ─────────────────────────────────────────────────────────
     if (state.isLoading && state.roles.length === 0) return <Loading />
 
-    const groups = state.catalogue.groups || {}
+    const groups = state.catalogue?.groups || {}
+    const allPermissions = state.catalogue?.all || []
     const roles  = state.roles || []
 
     return (
@@ -460,8 +514,13 @@ export const RBACPage = () => {
 
                                         {/* Permission list grouped */}
                                         <div className="flex flex-col gap-3 overflow-auto max-h-[500px] pr-1">
-                                            {Object.entries(groups).map(([groupName, perms]) => {
-                                                const granted = perms.filter(p => selectedRole.permissions.includes(p))
+                                            {Object.entries(groups).map(([groupName, rawPerms]) => {
+
+    const perms = Array.isArray(rawPerms)
+        ? rawPerms
+        : Object.values(rawPerms || {})
+
+    const granted = perms.filter(p => selectedRole.permissions.includes(p))
                                                 if (granted.length === 0) return null
                                                 return (
                                                     <div key={groupName}>
@@ -470,7 +529,7 @@ export const RBACPage = () => {
                                                             {granted.map(p => (
                                                                 <span key={p}
                                                                     className="px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                                                    {label(p)}
+                                                                    {typeof p === "string" ? label(p) : ""}
                                                                 </span>
                                                             ))}
                                                         </div>

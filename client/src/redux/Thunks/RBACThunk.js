@@ -19,8 +19,38 @@ export const HandleGetPermissionCatalogue = createAsyncThunk(
     'HandleGetPermissionCatalogue',
     async (_, { rejectWithValue }) => {
         try {
-            const res = await apiService.get('/v1/rbac/permissions', { withCredentials: true })
-            return res.data
+            const res = await apiService.get('/v1/permissions', { withCredentials: true })
+
+            let permissions = res.data.data
+
+// 🔥 HANDLE ALL POSSIBLE BACKEND SHAPES
+if (Array.isArray(permissions)) {
+    // already correct
+} else if (Array.isArray(permissions?.all)) {
+    permissions = permissions.all
+} else if (Array.isArray(permissions?.permissions)) {
+    permissions = permissions.permissions
+} else {
+    permissions = []
+}
+
+            // 🔥 GROUP PERMISSIONS (CRITICAL FIX)
+            const groups = {}
+
+            permissions.forEach(p => {
+                const group = p.split('.')[0]
+                if (!groups[group]) groups[group] = []
+                groups[group].push(p)
+            })
+
+            return {
+                success: true,
+                data: {
+                    groups,
+                    all: permissions
+                }
+            }
+
         } catch (error) {
             return rejectWithValue(error.response?.data || { message: error.message })
         }

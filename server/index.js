@@ -32,6 +32,7 @@ import PayrollComplianceRouter from './routes/PayrollCompliance.route.js';
 import ExitClearanceRouter from './routes/ExitClearance.route.js';
 import AnalyticsRouter from './routes/Analytics.routes.js';
 import RBACRouter from './routes/RBAC.route.js';
+import PermissionRouter from './routes/Permission.route.js'
 
 dotenv.config();
 
@@ -59,6 +60,7 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+app.use('/v1/permissions', PermissionRouter)
 app.use('/v1/access-drift',        AccessDriftRouter)
 app.use("/auth/employee",           EmployeeAuthRouter);
 app.use("/auth/hr",                 HRAuthrouter);
