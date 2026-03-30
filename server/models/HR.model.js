@@ -35,6 +35,12 @@ const HumanResourcesSchema = new Schema({
         required: true,
         default: "HR-Admin"
     },
+    // ─── RBAC: which Role document this HR user is assigned ──────────────────
+    rbacRole: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Role',
+        default: null
+    },
     lastlogin: {
         type: Date,
         default: new Date()

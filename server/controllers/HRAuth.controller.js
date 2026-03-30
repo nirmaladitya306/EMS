@@ -6,6 +6,7 @@ import { SendVerificationEmail, SendWelcomeEmail, SendForgotPasswordEmail, SendR
 import { GenerateVerificationToken } from "../utils/generateverificationtoken.js"
 import { Organization } from "../models/Organization.model.js"
 import { createLog } from "../utils/activityLogger.js"
+import { seedDefaultRoles } from "../controllers/RBAC.controller.js"
 
 
 
@@ -342,6 +343,9 @@ export const HandleHRSignup = async (req, res) => {
 
             newOrganization.HRs.push(newHR._id);
             await newOrganization.save();
+
+            // ─── Seed the default HR_ADMIN role for this new organisation ─────
+            await seedDefaultRoles(newOrganization._id)
 
             // ❌ REMOVED: GenerateJwtTokenAndSetCookiesHR
 
