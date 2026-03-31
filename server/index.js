@@ -49,7 +49,32 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    // 🔥 normalize origin (remove trailing slash)
+    const normalizedOrigin = origin.replace(/\/$/, "");
+
+    const normalizedAllowed = allowedOrigins.map(o =>
+      o.replace(/\/$/, "")
+    );
+
+    // ✅ allow localhost + env
+    if (normalizedAllowed.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    // ✅ allow Codespaces / DevTunnels
+    if (
+      normalizedOrigin.includes(".app.github.dev") ||
+      normalizedOrigin.includes(".devtunnels.ms")
+    ) {
+      return callback(null, true);
+    }
+
+    console.log("Blocked by CORS:", origin);
+    return callback(new Error("CORS not allowed"));
+  },
   credentials: true
 }));
 

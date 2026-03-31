@@ -50,11 +50,9 @@ export const ResetHRPasswordPage = () => {
     }, [HRState.isResetPassword])
 
     return (
-        <div className="reset-password-container">
-            <LoadingBar ref={loadingbar} />
-            <div className="reset-password-content flex justify-center items-center h-[100vh]">
-                <Reset_Password handlepasswordsubmit={handlepasswordsubmit} handlepasswordform={handlepasswordform} passworderror={passworderror} targetstate={HRState} />
-            </div>
-        </div>
-    )
+    <>
+        <LoadingBar ref={loadingbar} color="#6366f1" />
+        <Reset_Password handlepasswordsubmit={handlepasswordsubmit} handlepasswordform={handlepasswordform} passworderror={passworderror} targetstate={HRState} />
+    </>
+)
 }
