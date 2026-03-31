@@ -68,16 +68,16 @@ const BalanceBar = ({ used, total }) => {
 
 // ─── Suggested window card ────────────────────────────────────────────────────
 const WindowCard = ({ win, onApply }) => (
-    <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2 hover:border-purple-300 hover:bg-purple-50 transition-all">
+    <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2 hover:border-indigo-200 hover:bg-indigo-50 transition-all">
         <span className="text-sm font-semibold text-gray-800">{win.label}</span>
         <span className="text-xs text-gray-500">{win.workingDays} working day{win.workingDays !== 1 ? 's' : ''}</span>
         <div className="flex gap-1 flex-wrap">
-            {win.hasHoliday    && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Includes holiday</span>}
+            {win.hasHoliday    && <span className="text-xs bg-purple-100 text-indigo-700 px-2 py-0.5 rounded-full">Includes holiday</span>}
             {win.isLongWeekend && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">Long weekend</span>}
         </div>
         <button
             onClick={() => onApply(win.startdate, win.enddate)}
-            className="mt-1 text-xs text-purple-600 hover:text-purple-800 font-medium underline text-left">
+            className="mt-1 text-xs text-indigo-600 hover:text-purple-800 font-medium underline text-left">
             Check this period →
         </button>
     </div>
@@ -145,12 +145,12 @@ export const MyLeaveRecommendationPage = () => {
                     <label className="text-xs font-medium text-gray-600">Check a specific leave period (optional)</label>
                     <div className="flex flex-wrap gap-2 items-center">
                         <input type="date" value={startdate} onChange={e => setStartdate(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                         <span className="text-gray-400 text-sm">to</span>
                         <input type="date" value={enddate} onChange={e => setEnddate(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                         <button onClick={handleAnalyse}
-                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium">
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium">
                             Analyse
                         </button>
                         {(startdate || enddate) && (

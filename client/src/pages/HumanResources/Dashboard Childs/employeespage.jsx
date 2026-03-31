@@ -10,9 +10,9 @@ import { AddEmployeesDialogBox } from "../../../components/common/Dashboard/dial
 
 // ─── Skill tag pill (read-only, removable from search bar) ────────────────────
 const SkillChip = ({ skill, onRemove }) => (
-    <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 border border-blue-200 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap">
+    <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap">
         {skill}
-        <button onClick={() => onRemove(skill)} className="text-blue-400 hover:text-blue-700 text-sm leading-none">×</button>
+        <button onClick={() => onRemove(skill)} className="text-indigo-300 hover:text-indigo-600 text-sm leading-none">×</button>
     </span>
 )
 
@@ -33,7 +33,7 @@ const SkillResultRow = ({ emp }) => (
         </div>
         <div className="flex flex-wrap gap-1 p-2 col-span-1">
             {emp.skills?.map((s, i) => (
-                <span key={i} className="bg-blue-100 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5 text-xs font-medium">
+                <span key={i} className="bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-full px-2 py-0.5 text-xs font-medium">
                     {s}
                 </span>
             ))}
@@ -123,7 +123,7 @@ export const HREmployeesPage = () => {
 
             {/* ── Skill search bar ── */}
             <div className="skill-search-bar md:pe-5">
-                <div className={`flex flex-wrap items-center gap-2 border-2 rounded-xl px-3 py-2 transition-colors ${activeSkills.length > 0 ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}`}>
+                <div className={`flex flex-wrap items-center gap-2 border-2 rounded-xl px-3 py-2 transition-colors ${activeSkills.length > 0 ? 'border-indigo-300 bg-indigo-50' : 'border-gray-300 bg-white'}`}>
                     {/* Active skill chips */}
                     {activeSkills.map(skill => (
                         <SkillChip key={skill} skill={skill} onRemove={removeSkillChip} />
@@ -145,7 +145,7 @@ export const HREmployeesPage = () => {
                         {searchInput.trim() && (
                             <button
                                 onClick={addSkillChip}
-                                className="px-2.5 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                                className="px-2.5 py-1 text-white text-xs rounded-lg hover:opacity-90 transition-colors" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
                             >
                                 Add
                             </button>
@@ -186,8 +186,8 @@ export const HREmployeesPage = () => {
                             No employees found with {activeSkills.length === 1 ? 'this skill' : 'these skills'}.
                         </div>
                     ) : (
-                        <div className="border-2 border-blue-700 rounded-lg px-2 py-1">
-                            <div className="grid grid-cols-5 gap-2 bg-blue-800 rounded-lg px-2 py-1.5 text-white text-xs font-bold mb-1">
+                        <div className="border border-gray-200 rounded-lg px-2 py-1">
+                            <div className="grid grid-cols-5 gap-2 rounded-lg px-2 py-1.5 text-white text-xs font-bold mb-1" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                                 <span>Name</span>
                                 <span className="min-[250px]:hidden sm:block">Email</span>
                                 <span className="text-center min-[250px]:hidden sm:block">Department</span>

@@ -57,7 +57,7 @@ const NoticeDialog = ({ open, onClose, onSubmit, employeeList, departmentList, H
         }
     }
 
-    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
     const lc = "block text-xs font-medium text-gray-600 mb-1"
 
     return (
@@ -77,8 +77,8 @@ const NoticeDialog = ({ open, onClose, onSubmit, employeeList, departmentList, H
                                         onClick={() => setForm(f => ({ ...f, audience: a, departmentID: '', employeeID: '' }))}
                                         className={`flex-1 py-2 rounded-lg text-sm border transition-all ${
                                             form.audience === a
-                                                ? 'bg-blue-600 text-white border-blue-600'
-                                                : 'border-gray-300 text-gray-600 hover:border-blue-400'
+                                                ? 'bg-indigo-600 text-white border-indigo-600'
+                                                : 'border-gray-300 text-gray-600 hover:border-indigo-300'
                                         }`}
                                     >
                                         {a === 'Department-Specific' ? 'Department' : 'Employee'}
@@ -133,7 +133,7 @@ const NoticeDialog = ({ open, onClose, onSubmit, employeeList, departmentList, H
                             Cancel
                         </button>
                         <button type="submit"
-                            className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                            className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                             {isEdit ? 'Save Changes' : 'Issue Notice'}
                         </button>
                     </div>
@@ -257,7 +257,7 @@ export const NoticePage = () => {
                 </div>
                 <button
                     onClick={() => setDialogOpen(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg"
+                    className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
                 >
                     + Issue Notice
                 </button>
@@ -286,7 +286,7 @@ export const NoticePage = () => {
                     placeholder="Search notices..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
                 <div className="flex gap-1 ml-auto">
                     {[
@@ -298,8 +298,8 @@ export const NoticePage = () => {
                             onClick={() => setActiveTab(tab.key)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                                 activeTab === tab.key
-                                    ? 'bg-blue-600 text-white border-blue-600'
-                                    : 'border-gray-300 text-gray-600 hover:border-blue-400'
+                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                    : 'border-gray-300 text-gray-600 hover:border-indigo-300'
                             }`}
                         >
                             {tab.label}

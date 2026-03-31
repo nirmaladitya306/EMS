@@ -24,7 +24,7 @@ const SkillTag = ({ skill, onRemove, editable }) => (
         {editable && (
             <button
                 onClick={() => onRemove(skill)}
-                className="text-purple-400 hover:text-purple-700 text-base leading-none ml-0.5 transition-colors"
+                className="text-purple-400 hover:text-indigo-700 text-base leading-none ml-0.5 transition-colors"
                 title="Remove skill"
             >
                 ×
@@ -113,7 +113,7 @@ const SkillsEditor = ({ profile, employeeId }) => {
                     {!editing ? (
                         <button
                             onClick={() => { setEditing(true); setTimeout(() => inputRef.current?.focus(), 50) }}
-                            className="px-3 py-1 text-xs border border-purple-400 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
+                            className="px-3 py-1 text-xs border border-indigo-300 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"
                         >
                             Edit Skills
                         </button>
@@ -122,7 +122,7 @@ const SkillsEditor = ({ profile, employeeId }) => {
                             <button
                                 onClick={saveSkills}
                                 disabled={saving}
-                                className="px-3 py-1 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 transition-colors"
+                                className="px-3 py-1 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-colors"
                             >
                                 {saving ? 'Saving…' : 'Save'}
                             </button>
@@ -156,11 +156,11 @@ const SkillsEditor = ({ profile, employeeId }) => {
                             onChange={e => setInputVal(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Type skill + Enter"
-                            className="border border-purple-300 rounded-full px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 w-40"
+                            className="border border-indigo-200 rounded-full px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 w-40"
                         />
                         <button
                             onClick={addSkill}
-                            className="w-6 h-6 rounded-full bg-purple-600 text-white text-sm flex items-center justify-center hover:bg-purple-700 shrink-0"
+                            className="w-6 h-6 rounded-full bg-indigo-600 text-white text-sm flex items-center justify-center hover:bg-indigo-700 shrink-0"
                             title="Add skill"
                         >
                             +
@@ -192,7 +192,7 @@ export const EmployeeOverviewPage = () => {
 
             {/* Header */}
             <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-purple-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+                <div className="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
                     {profile?.firstname?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div>

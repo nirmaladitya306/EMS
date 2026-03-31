@@ -17,7 +17,7 @@ const label = (p) => p.split('.').map(w => w.charAt(0).toUpperCase() + w.slice(1
 
 // ─── Small shared components ──────────────────────────────────────────────────
 const SystemBadge = () => (
-    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">System</span>
+    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-100">System</span>
 )
 
 const PermCount = ({ role }) => (

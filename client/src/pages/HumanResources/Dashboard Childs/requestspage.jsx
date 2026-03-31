@@ -36,7 +36,7 @@ const ReviewDialog = ({ open, request, onClose, onSubmit, HRID }) => {
                 <div className="mb-5">
                     <label className="block text-xs font-medium text-gray-600 mb-1">Decision</label>
                     <select value={status} onChange={e => setStatus(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200">
                         <option value="Approved">Approve</option>
                         <option value="Denied">Deny</option>
                     </select>
@@ -44,7 +44,7 @@ const ReviewDialog = ({ open, request, onClose, onSubmit, HRID }) => {
                 <div className="flex justify-end gap-3">
                     <button onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
                     <button onClick={() => onSubmit({ requestID: request._id, status, HRID })}
-                        className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                        className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                         Confirm
                     </button>
                 </div>
@@ -101,10 +101,10 @@ export const RequestsPage = () => {
             <div className="flex flex-wrap gap-3 items-center">
                 <input type="text" placeholder="Search by employee name..."
                     value={search} onChange={e => setSearch(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                 {['All', 'Pending', 'Approved', 'Denied'].map(s => (
                     <button key={s} onClick={() => setFilterStatus(s)}
-                        className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:border-blue-400'}`}>
+                        className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:border-indigo-300'}`}>
                         {s}
                     </button>
                 ))}
@@ -135,7 +135,7 @@ export const RequestsPage = () => {
                                 <button
                                     disabled={r.status !== 'Pending'}
                                     onClick={() => setSelected(r)}
-                                    className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                                    className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50 disabled:opacity-40 disabled:cursor-not-allowed">
                                     Review
                                 </button>
                                 <button onClick={() => handleDelete(r._id)}

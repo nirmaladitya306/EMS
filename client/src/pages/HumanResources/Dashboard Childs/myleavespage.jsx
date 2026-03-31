@@ -36,7 +36,7 @@ const LeaveDialog = ({ open, onClose, onSubmit, initialData }) => {
     }, [open, initialData])
 
     if (!open) return null
-    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
     const lc = "block text-xs font-medium text-gray-600 mb-1"
     const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
     const submit = (e) => { e.preventDefault(); onSubmit(form) }
@@ -70,7 +70,7 @@ const LeaveDialog = ({ open, onClose, onSubmit, initialData }) => {
                         <button type="button" onClick={onClose}
                             className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
                         <button type="submit"
-                            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700">
+                            className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">
                             {isEdit ? 'Save Changes' : 'Submit'}
                         </button>
                     </div>
@@ -115,7 +115,7 @@ export const MyLeavesPage = () => {
                     <p className="text-sm text-gray-500 mt-1">Apply for and manage your leave requests</p>
                 </div>
                 <button onClick={() => setApplyOpen(true)}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg">
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">
                     + Apply for Leave
                 </button>
             </div>
@@ -155,7 +155,7 @@ export const MyLeavesPage = () => {
                             <StatusBadge status={l.status} />
                             <div className="flex gap-2">
                                 <button disabled={l.status !== 'Pending'} onClick={() => setEditTarget(l)}
-                                    className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                                    className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50 disabled:opacity-40 disabled:cursor-not-allowed">
                                     Edit
                                 </button>
                                 <button disabled={l.status !== 'Pending'} onClick={() => handleDelete(l._id)}

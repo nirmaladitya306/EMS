@@ -135,7 +135,7 @@ export const MyAnalyticsPage = () => {
 
             {/* ── Overview KPIs ── */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                <KPI label="Attendance"    value={`${d.overview.attendanceRate}%`}  color="border-purple-200 bg-purple-50" />
+                <KPI label="Attendance"    value={`${d.overview.attendanceRate}%`}  color="border-purple-200 bg-indigo-50" />
                 <KPI label="Leaves"        value={d.overview.totalLeaves}           color="border-yellow-200 bg-yellow-50" />
                 <KPI label="Salaries"      value={d.overview.totalSalaries}         color="border-green-200  bg-green-50"  />
                 <KPI label="Requests"      value={d.overview.totalRequests}         color="border-blue-200   bg-blue-50"   />
@@ -270,7 +270,7 @@ export const MyAnalyticsPage = () => {
                                     <div key={i} className="flex items-center gap-3">
                                         <span className="text-xs text-gray-500 w-36 truncate capitalize">{a.action.toLowerCase()}</span>
                                         <div className="flex-1 bg-gray-100 rounded-full h-2">
-                                            <div className="h-2 rounded-full bg-purple-500 transition-all" style={{ width: `${pct}%` }} />
+                                            <div className="h-2 rounded-full bg-indigo-500 transition-all" style={{ width: `${pct}%` }} />
                                         </div>
                                         <span className="text-xs font-semibold text-gray-600 w-8 text-right">{a.count}</span>
                                     </div>

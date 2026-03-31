@@ -14,7 +14,7 @@ import { Loading } from '../../../components/common/loading'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const LEVEL_COLORS = {
     1: { bg: 'bg-purple-100', border: 'border-purple-300', text: 'text-purple-800', badge: 'bg-purple-200' },
-    2: { bg: 'bg-blue-100',   border: 'border-blue-300',   text: 'text-blue-800',   badge: 'bg-blue-200'   },
+    2: { bg: 'bg-sky-100',    border: 'border-sky-300',    text: 'text-sky-800',    badge: 'bg-sky-200'    },
     3: { bg: 'bg-teal-100',   border: 'border-teal-300',   text: 'text-teal-800',   badge: 'bg-teal-200'   },
     4: { bg: 'bg-green-100',  border: 'border-green-300',  text: 'text-green-800',  badge: 'bg-green-200'  },
     5: { bg: 'bg-yellow-100', border: 'border-yellow-300', text: 'text-yellow-800', badge: 'bg-yellow-200' },

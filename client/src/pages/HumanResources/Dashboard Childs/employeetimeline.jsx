@@ -129,8 +129,8 @@ export const EmployeeTimelinePage = () => {
                     </p>
                 </div>
                 {selectedId && !timelineLoading && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 text-center">
-                        <span className="text-2xl font-bold text-blue-700">{events.length}</span>
+                    <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2 text-center">
+                        <span className="text-2xl font-bold text-indigo-600">{events.length}</span>
                         <p className="text-xs text-gray-500">Total Events</p>
                     </div>
                 )}
@@ -149,7 +149,7 @@ export const EmployeeTimelinePage = () => {
                         placeholder="Type a name or email..."
                         value={searchFilter}
                         onChange={e => setSearchFilter(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
                     />
                 </div>
 
@@ -161,7 +161,7 @@ export const EmployeeTimelinePage = () => {
                     <select
                         value={selectedId}
                         onChange={handleEmployeeChange}
-                        className="border-2 border-blue-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                        className="border border-indigo-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
                     >
                         <option value="">— Choose an employee —</option>
                         {filteredEmployees.map(emp => (
@@ -185,18 +185,18 @@ export const EmployeeTimelinePage = () => {
 
             {/* Selected employee summary strip */}
             {selectedEmployee && !timelineLoading && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 flex flex-wrap gap-4 items-center">
+                <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-5 py-3 flex flex-wrap gap-4 items-center">
                     <div>
                         <p className="font-semibold text-blue-800 text-sm">{selectedName}</p>
                         <p className="text-xs text-gray-500">{selectedEmployee.email}</p>
                     </div>
                     {selectedEmployee.department?.name && (
-                        <span className="text-xs bg-white border border-blue-200 text-blue-700 rounded-full px-3 py-1">
+                        <span className="text-xs bg-white border border-blue-200 text-indigo-600 rounded-full px-3 py-1">
                             🏢 {selectedEmployee.department.name}
                         </span>
                     )}
                     {selectedEmployee.role && (
-                        <span className="text-xs bg-white border border-blue-200 text-blue-700 rounded-full px-3 py-1">
+                        <span className="text-xs bg-white border border-blue-200 text-indigo-600 rounded-full px-3 py-1">
                             👤 {selectedEmployee.role}
                         </span>
                     )}

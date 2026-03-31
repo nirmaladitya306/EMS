@@ -71,7 +71,7 @@ export const MyAttendancePage = () => {
                 <div className="flex flex-col items-center justify-center gap-4 py-16 border-2 border-dashed border-gray-200 rounded-2xl">
                     <p className="text-gray-400 text-sm">Your attendance record hasn't been initialized yet.</p>
                     <button onClick={handleInitialize}
-                        className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg">
+                        className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">
                         Initialize Attendance
                     </button>
                 </div>
@@ -83,7 +83,7 @@ export const MyAttendancePage = () => {
                             { label: 'Total Days',        value: totalDays,    color: 'border-gray-200   bg-gray-50'   },
                             { label: 'Present',           value: presentCt,    color: 'border-green-200  bg-green-50'  },
                             { label: 'Absent',            value: absentCt,     color: 'border-red-200    bg-red-50'    },
-                            { label: 'Attendance Rate',   value: `${rate}%`,   color: 'border-purple-200 bg-purple-50' },
+                            { label: 'Attendance Rate',   value: `${rate}%`,   color: 'border-purple-200 bg-indigo-50' },
                         ].map(c => (
                             <div key={c.label} className={`rounded-xl border p-4 flex flex-col gap-1 ${c.color}`}>
                                 <span className="text-2xl font-bold">{c.value}</span>
@@ -98,19 +98,19 @@ export const MyAttendancePage = () => {
                             <p className="text-sm font-medium text-gray-700">Mark Today's Attendance</p>
                             <p className="text-xs text-gray-400">{fmtDate(today)}</p>
                             {todayLog && (
-                                <p className="text-xs text-purple-600 mt-1">
+                                <p className="text-xs text-indigo-600 mt-1">
                                     Already marked as <strong>{todayLog.logstatus}</strong> — you can update it
                                 </p>
                             )}
                         </div>
                         <select value={markStatus} onChange={e => setMarkStatus(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200">
                             <option value="Present">Present</option>
                             <option value="Absent">Absent</option>
                             <option value="Not Specified">Not Specified</option>
                         </select>
                         <button onClick={handleMark}
-                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg">
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">
                             {todayLog ? 'Update' : 'Mark'}
                         </button>
                     </div>

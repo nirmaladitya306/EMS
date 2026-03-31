@@ -49,15 +49,15 @@ export const MyNoticesPage = () => {
                     <h1 className="text-3xl font-bold">My Notices</h1>
                     <p className="text-sm text-gray-500 mt-1">Notices issued to you or your department</p>
                 </div>
-                <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-2 text-center">
-                    <span className="text-2xl font-bold text-purple-700">{notices.length}</span>
+                <div className="bg-indigo-50 border border-purple-200 rounded-xl px-4 py-2 text-center">
+                    <span className="text-2xl font-bold text-indigo-700">{notices.length}</span>
                     <p className="text-xs text-gray-500">Total Notices</p>
                 </div>
             </div>
 
             <input type="text" placeholder="Search notices..."
                 value={search} onChange={e => setSearch(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
 
             <div className="flex flex-col gap-3 overflow-auto flex-1">
                 {filtered.length === 0
@@ -65,7 +65,7 @@ export const MyNoticesPage = () => {
                     : filtered.map(n => (
                         <div key={n._id}
                             onClick={() => setDetail(n)}
-                            className="bg-white border border-gray-200 rounded-xl px-5 py-4 hover:bg-purple-50 hover:border-purple-200 cursor-pointer transition-all">
+                            className="bg-white border border-gray-200 rounded-xl px-5 py-4 hover:bg-indigo-50 hover:border-purple-200 cursor-pointer transition-all">
                             <div className="flex justify-between items-start gap-4">
                                 <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-gray-800">{n.title}</p>
@@ -73,7 +73,7 @@ export const MyNoticesPage = () => {
                                 </div>
                                 <div className="text-right flex-shrink-0">
                                     <p className="text-xs text-gray-400">{fmtDate(n.createdAt)}</p>
-                                    <p className="text-xs text-purple-600 mt-1">
+                                    <p className="text-xs text-indigo-600 mt-1">
                                         {n.createdby?.firstname} {n.createdby?.lastname}
                                     </p>
                                 </div>

@@ -54,9 +54,9 @@ export const MySalaryPage = () => {
             </div>
 
             {salaries.length > 0 && (
-                <div className="bg-purple-50 border border-purple-200 rounded-xl px-5 py-4">
+                <div className="bg-indigo-50 border border-purple-200 rounded-xl px-5 py-4">
                     <p className="text-sm text-gray-500">Total Net Pay (all time)</p>
-                    <p className="text-2xl font-bold text-purple-700 mt-1">
+                    <p className="text-2xl font-bold text-indigo-700 mt-1">
                         {fmt(totalNet, salaries[0]?.currency)}
                     </p>
                 </div>
@@ -79,7 +79,7 @@ export const MySalaryPage = () => {
                             <span className="font-medium">{fmt(s.basicpay, s.currency)}</span>
                             <span className="text-green-600">+{fmt(s.bonuses, s.currency)}</span>
                             <span className="text-red-500">-{fmt(s.deductions, s.currency)}</span>
-                            <span className="font-bold text-purple-700">{fmt(s.netpay, s.currency)}</span>
+                            <span className="font-bold text-indigo-700">{fmt(s.netpay, s.currency)}</span>
                             <span className="text-gray-500 text-xs">{fmtDate(s.duedate)}</span>
                             <StatusBadge status={s.status} />
                         </div>

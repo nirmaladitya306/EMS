@@ -19,7 +19,7 @@ const ELIGIBILITY_STYLES = {
 const SEVERITY_STYLES = {
     critical: { pill: 'bg-red-100 text-red-700 border-red-300',     icon: '🔴' },
     warning:  { pill: 'bg-yellow-100 text-yellow-700 border-yellow-300', icon: '🟡' },
-    info:     { pill: 'bg-blue-100 text-blue-700 border-blue-300',   icon: '🔵' },
+    info:     { pill: 'bg-indigo-100 text-indigo-700 border-indigo-200', icon: '🔵' },
 }
 
 // ─── Score ring ────────────────────────────────────────────────────────────────
@@ -224,7 +224,7 @@ export const PayrollCompliancePage = () => {
                         📋 View Rules
                     </button>
                     <button onClick={handleRun}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
+                        className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                         {hasRun ? '🔄 Re-run Check' : '▶ Run Compliance Check'}
                     </button>
                 </div>
@@ -252,7 +252,7 @@ export const PayrollCompliancePage = () => {
                         </p>
                     </div>
                     <button onClick={handleRun}
-                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
+                        className="px-6 py-2.5 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                         ▶ Run Compliance Check
                     </button>
                 </div>
@@ -275,10 +275,10 @@ export const PayrollCompliancePage = () => {
                     <div className="flex flex-wrap gap-3 items-center">
                         <input type="text" placeholder="Search by name..."
                             value={search} onChange={e => setSearch(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                         {['All', 'Eligible', 'Review Required', 'Ineligible'].map(s => (
                             <button key={s} onClick={() => setFilterStatus(s)}
-                                className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:border-blue-400'}`}>
+                                className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:border-indigo-300'}`}>
                                 {s}
                             </button>
                         ))}
@@ -352,7 +352,7 @@ export const PayrollCompliancePage = () => {
                                     {/* View button */}
                                     <div className="col-span-1">
                                         <button onClick={() => setSelectedRecord(r)}
-                                            className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50">
+                                            className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50">
                                             View
                                         </button>
                                     </div>

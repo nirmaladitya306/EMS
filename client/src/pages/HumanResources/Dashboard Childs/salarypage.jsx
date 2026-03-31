@@ -71,7 +71,7 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
     const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
     const submit = (e) => { e.preventDefault(); onSubmit({ ...form, ...preview }) }
 
-    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
     const lc = "block text-xs font-medium text-gray-600 mb-1"
 
     return (
@@ -118,7 +118,7 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
 
                     {/* Live preview */}
                     {form.basicpay > 0 && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 grid grid-cols-3 gap-2 text-center">
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 grid grid-cols-3 gap-2 text-center">
                             <div>
                                 <p className="text-xs text-gray-500">Bonuses</p>
                                 <p className="text-sm font-semibold text-green-700">+{fmt(preview.bonuses, form.currency)}</p>
@@ -151,7 +151,7 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
 
                     <div className="flex justify-end gap-3 pt-2">
                         <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                        <button type="submit" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                             {isEdit ? 'Save Changes' : 'Add Record'}
                         </button>
                     </div>
@@ -238,7 +238,7 @@ export const SalaryPage = () => {
                     <p className="text-sm text-gray-500 mt-1">Manage salary records, bonuses, deductions and payment status</p>
                 </div>
                 <button onClick={() => setDialogOpen(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
+                    className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                     + Add Salary Record
                 </button>
             </div>
@@ -256,10 +256,10 @@ export const SalaryPage = () => {
             <div className="flex flex-wrap gap-3 items-center">
                 <input type="text" placeholder="Search by employee name..."
                     value={search} onChange={e => setSearch(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                 {['All', 'Pending', 'Paid', 'Delayed'].map(s => (
                     <button key={s} onClick={() => setFilterStatus(s)}
-                        className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:border-blue-400'}`}>
+                        className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:border-indigo-300'}`}>
                         {s}
                     </button>
                 ))}
@@ -292,7 +292,7 @@ export const SalaryPage = () => {
                         <StatusBadge status={s.status} />
                         <div className="flex gap-2">
                             <button onClick={() => setEditTarget(s)}
-                                className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50">Edit</button>
+                                className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50">Edit</button>
                             <button onClick={() => handleDelete(s._id)}
                                 className="px-3 py-1 rounded-md text-xs border border-red-400 text-red-600 hover:bg-red-50">Delete</button>
                         </div>

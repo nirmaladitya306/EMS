@@ -88,7 +88,7 @@ export const HRProfilePage = () => {
 
             <input type="text" placeholder="Search by name or email..."
                 value={search} onChange={e => setSearch(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
 
             <div className="flex flex-col gap-2 overflow-auto flex-1">
                 <div className="grid grid-cols-6 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
@@ -112,7 +112,7 @@ export const HRProfilePage = () => {
                             <Badge verified={h.isverified} />
                             <div className="flex gap-2">
                                 <button onClick={() => setDetail(h)}
-                                    className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50">View</button>
+                                    className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50">View</button>
                                 <button
                                     disabled={h._id === currentID}
                                     onClick={() => handleDelete(h._id)}

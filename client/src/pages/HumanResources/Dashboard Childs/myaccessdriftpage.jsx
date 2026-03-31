@@ -117,7 +117,7 @@ export const MyAccessDriftPage = () => {
             </div>
 
             {/* ── Info banner ── */}
-            <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 text-sm text-purple-800 flex gap-3 items-start">
+            <div className="bg-indigo-50 border border-purple-200 rounded-xl px-4 py-3 text-sm text-purple-800 flex gap-3 items-start">
                 <span className="text-lg mt-0.5">ℹ️</span>
                 <p>
                     These flags are automatically generated when our security system detects unusual patterns in your account activity.
@@ -131,7 +131,7 @@ export const MyAccessDriftPage = () => {
                     <button
                         key={s}
                         onClick={() => setFilterStatus(s)}
-                        className={`px-3 py-1.5 text-sm rounded-lg border transition-all ${filterStatus === s ? 'bg-purple-600 text-white border-purple-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+                        className={`px-3 py-1.5 text-sm rounded-lg border transition-all ${filterStatus === s ? 'bg-indigo-600 text-white border-purple-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}
                     >
                         {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
                     </button>

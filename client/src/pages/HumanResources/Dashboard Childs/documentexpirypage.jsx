@@ -59,7 +59,7 @@ const DocumentDialog = ({ open, onClose, onSubmit, employeeList, initialData }) 
     const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
     const submit = (e) => { e.preventDefault(); onSubmit(form) }
 
-    const fieldClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+    const fieldClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
     const labelClass = "block text-sm font-medium text-gray-700 mb-1"
 
     return (
@@ -114,7 +114,7 @@ const DocumentDialog = ({ open, onClose, onSubmit, employeeList, initialData }) 
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
                         <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                        <button type="submit" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                             {isEdit ? 'Save Changes' : 'Add Document'}
                         </button>
                     </div>
@@ -222,7 +222,7 @@ export const DocumentExpiryPage = () => {
                     </button>
                     <button
                         onClick={() => setDialogOpen(true)}
-                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
+                        className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
                     >
                         + Add Document
                     </button>
@@ -244,7 +244,7 @@ export const DocumentExpiryPage = () => {
                     placeholder="Search by employee or document..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
                 {['All', 'Valid', 'Expiring Soon', 'Expired'].map(s => (
                     <button
@@ -252,8 +252,8 @@ export const DocumentExpiryPage = () => {
                         onClick={() => setFilterStatus(s)}
                         className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
                             filterStatus === s
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'border-gray-300 text-gray-600 hover:border-blue-400'
+                                ? 'bg-indigo-600 text-white border-indigo-600'
+                                : 'border-gray-300 text-gray-600 hover:border-indigo-300'
                         }`}
                     >
                         {s}
@@ -296,7 +296,7 @@ export const DocumentExpiryPage = () => {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setEditTarget(doc)}
-                                        className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50"
+                                        className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50"
                                     >Edit</button>
                                     <button
                                         onClick={() => handleDelete(doc._id)}

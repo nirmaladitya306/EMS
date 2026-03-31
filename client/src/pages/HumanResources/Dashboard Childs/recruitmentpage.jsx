@@ -13,7 +13,7 @@ const SummaryCard = ({ label, value, color }) => (
 const CreateDialog = ({ open, onClose, onSubmit }) => {
     const [form, setForm] = useState({ jobtitle: '', description: '' })
     if (!open) return null
-    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
     const lc = "block text-xs font-medium text-gray-600 mb-1"
     const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
     const submit = (e) => { e.preventDefault(); onSubmit(form); setForm({ jobtitle: '', description: '' }) }
@@ -34,7 +34,7 @@ const CreateDialog = ({ open, onClose, onSubmit }) => {
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
                         <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Create</button>
+                        <button type="submit" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">Create</button>
                     </div>
                 </form>
             </div>
@@ -92,7 +92,7 @@ export const RecruitmentPage = () => {
                     <p className="text-sm text-gray-500 mt-1">Manage job postings and track applicants</p>
                 </div>
                 <button onClick={() => setCreateOpen(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
+                    className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                     + New Job Posting
                 </button>
             </div>
@@ -104,7 +104,7 @@ export const RecruitmentPage = () => {
 
             <input type="text" placeholder="Search by job title..."
                 value={search} onChange={e => setSearch(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
 
             <div className="flex flex-col gap-2 overflow-auto flex-1">
                 <div className="grid grid-cols-5 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
@@ -124,7 +124,7 @@ export const RecruitmentPage = () => {
                             <p className="col-span-2 text-gray-600 text-xs truncate pe-4">{r.description}</p>
                             <div className="flex gap-2">
                                 <button onClick={() => setDetailRec(r)}
-                                    className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50">View</button>
+                                    className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50">View</button>
                                 <button onClick={() => handleDelete(r._id)}
                                     className="px-3 py-1 rounded-md text-xs border border-red-400 text-red-600 hover:bg-red-50">Delete</button>
                             </div>

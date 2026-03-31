@@ -74,8 +74,8 @@ export const MyActivityPage = () => {
                         A history of all actions you've performed in the system
                     </p>
                 </div>
-                <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-2 text-center">
-                    <span className="text-2xl font-bold text-purple-700">{activitylogs.length}</span>
+                <div className="bg-indigo-50 border border-purple-200 rounded-xl px-4 py-2 text-center">
+                    <span className="text-2xl font-bold text-indigo-700">{activitylogs.length}</span>
                     <p className="text-xs text-gray-500">Total Actions</p>
                 </div>
             </div>
@@ -87,12 +87,12 @@ export const MyActivityPage = () => {
                     placeholder="Search activity..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
                 <select
                     value={filterAction}
                     onChange={e => setFilterAction(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white"
                 >
                     <option value="">All actions</option>
                     {uniqueActions.map(a => (
@@ -130,7 +130,7 @@ export const MyActivityPage = () => {
                     filtered.map(log => (
                         <div
                             key={log._id}
-                            className="grid grid-cols-12 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-purple-50 hover:border-purple-200 transition-all"
+                            className="grid grid-cols-12 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-indigo-50 hover:border-purple-200 transition-all"
                         >
                             <span className="col-span-3">
                                 <ActionBadge action={log.action} />

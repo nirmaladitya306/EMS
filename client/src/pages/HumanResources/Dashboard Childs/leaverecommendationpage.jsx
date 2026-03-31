@@ -71,7 +71,7 @@ const BalanceBar = ({ used, total }) => {
 
 // ─── Suggested window card ────────────────────────────────────────────────────
 const WindowCard = ({ win }) => (
-    <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-1 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-default">
+    <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-1 hover:border-indigo-200 hover:bg-indigo-50 transition-all cursor-default">
         <span className="text-sm font-semibold text-gray-800">{win.label}</span>
         <span className="text-xs text-gray-500">{win.workingDays} working day{win.workingDays !== 1 ? 's' : ''}</span>
         <div className="flex gap-1 flex-wrap mt-1">
@@ -146,11 +146,11 @@ export const LeaveRecommendationPage = () => {
                 </div>
                 <div className="flex gap-2">
                     <button onClick={() => setActiveTab('org')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${activeTab === 'org' ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:border-blue-400'}`}>
+                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${activeTab === 'org' ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:border-indigo-300'}`}>
                         Org Overview
                     </button>
                     <button onClick={() => setActiveTab('detail')} disabled={!selectedEmpID}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all disabled:opacity-40 ${activeTab === 'detail' ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:border-blue-400'}`}>
+                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all disabled:opacity-40 ${activeTab === 'detail' ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:border-indigo-300'}`}>
                         Employee Detail
                     </button>
                 </div>
@@ -194,12 +194,12 @@ export const LeaveRecommendationPage = () => {
                             <label className="text-xs font-medium text-gray-600">Check specific leave period (optional)</label>
                             <div className="flex gap-2 items-center">
                                 <input type="date" value={startdate} onChange={e => setStartdate(e.target.value)}
-                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                                 <span className="text-gray-400 text-sm">to</span>
                                 <input type="date" value={enddate} onChange={e => setEnddate(e.target.value)}
-                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                                 <button onClick={handleRecheck}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+                                    className="px-4 py-2 text-white rounded-lg text-sm hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                                     Analyse
                                 </button>
                             </div>

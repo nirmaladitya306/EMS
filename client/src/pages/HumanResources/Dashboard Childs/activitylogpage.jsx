@@ -171,7 +171,7 @@ export const ActivityLogPage = () => {
                     <select
                         value={filterAction}
                         onChange={e => setFilterAction(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white"
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white"
                     >
                         <option value="">All actions</option>
                         {ALL_ACTIONS.map(a => <option key={a} value={a}>{a.replace(/_/g, ' ')}</option>)}
@@ -182,7 +182,7 @@ export const ActivityLogPage = () => {
                     <select
                         value={filterRole}
                         onChange={e => setFilterRole(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white"
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white"
                     >
                         <option value="">All roles</option>
                         <option value="HR-Admin">HR Admin</option>
@@ -192,16 +192,16 @@ export const ActivityLogPage = () => {
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-500">From</label>
                     <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                 </div>
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-500">To</label>
                     <input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                 </div>
                 <div className="flex gap-2 pb-0.5">
                     <button onClick={handleApplyFilters}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+                        className="px-4 py-2 text-white rounded-lg text-sm hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                         Apply
                     </button>
                     <button onClick={handleClearFilters}
@@ -268,7 +268,7 @@ export const ActivityLogPage = () => {
                             if (p > pagination.totalPages) return null
                             return (
                                 <button key={p} onClick={() => handlePageChange(p)}
-                                    className={`px-3 py-1.5 text-sm border rounded-lg ${p === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 hover:bg-gray-50'}`}>
+                                    className={`px-3 py-1.5 text-sm border rounded-lg ${p === currentPage ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 hover:bg-gray-50'}`}>
                                     {p}
                                 </button>
                             )

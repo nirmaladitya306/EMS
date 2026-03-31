@@ -9,7 +9,7 @@ const EVENT_STYLES = {
     PROMOTED:           { bg: 'bg-blue-100',   border: 'border-blue-400',   dot: 'bg-blue-500',   text: 'text-blue-800',   icon: '🚀' },
     DEPARTMENT_CHANGE:  { bg: 'bg-yellow-100', border: 'border-yellow-400', dot: 'bg-yellow-500', text: 'text-yellow-800', icon: '🏢' },
     SALARY_UPDATED:     { bg: 'bg-emerald-100',border: 'border-emerald-400',dot: 'bg-emerald-500',text: 'text-emerald-800',icon: '💰' },
-    ROLE_CHANGED:       { bg: 'bg-purple-100', border: 'border-purple-400', dot: 'bg-purple-500', text: 'text-purple-800', icon: '🔄' },
+    ROLE_CHANGED:       { bg: 'bg-purple-100', border: 'border-indigo-300', dot: 'bg-indigo-500', text: 'text-purple-800', icon: '🔄' },
     LEAVE_APPROVED:     { bg: 'bg-teal-100',   border: 'border-teal-400',   dot: 'bg-teal-500',   text: 'text-teal-800',   icon: '✅' },
     DOCUMENT_ADDED:     { bg: 'bg-orange-100', border: 'border-orange-400', dot: 'bg-orange-500', text: 'text-orange-800', icon: '📄' },
     NOTICE_ISSUED:      { bg: 'bg-red-100',    border: 'border-red-400',    dot: 'bg-red-500',    text: 'text-red-800',    icon: '📢' },
@@ -18,7 +18,7 @@ const EVENT_STYLES = {
 }
 
 const getStyle = (type) =>
-    EVENT_STYLES[type] || { bg: 'bg-purple-100', border: 'border-purple-400', dot: 'bg-purple-500', text: 'text-purple-800', icon: '📌' }
+    EVENT_STYLES[type] || { bg: 'bg-purple-100', border: 'border-indigo-300', dot: 'bg-indigo-500', text: 'text-purple-800', icon: '📌' }
 
 // ─── Format date ──────────────────────────────────────────────────────────────
 const formatDate = (dateStr) =>
@@ -101,15 +101,15 @@ export const MyTimelinePage = () => {
                         A chronological record of your career journey
                     </p>
                 </div>
-                <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-2 text-center">
-                    <span className="text-2xl font-bold text-purple-700">{events.length}</span>
+                <div className="bg-indigo-50 border border-purple-200 rounded-xl px-4 py-2 text-center">
+                    <span className="text-2xl font-bold text-indigo-700">{events.length}</span>
                     <p className="text-xs text-gray-500">Total Events</p>
                 </div>
             </div>
 
             {/* Profile summary strip */}
             {timeline?.employee && (
-                <div className="bg-purple-50 border border-purple-200 rounded-xl px-5 py-3 flex flex-wrap gap-4 items-center">
+                <div className="bg-indigo-50 border border-purple-200 rounded-xl px-5 py-3 flex flex-wrap gap-4 items-center">
                     <div>
                         <p className="font-semibold text-purple-800 text-sm">
                             {timeline.employee.firstname} {timeline.employee.lastname}
@@ -117,7 +117,7 @@ export const MyTimelinePage = () => {
                         <p className="text-xs text-gray-500">{timeline.employee.email}</p>
                     </div>
                     {timeline.employee.department?.name && (
-                        <span className="text-xs bg-white border border-purple-200 text-purple-700 rounded-full px-3 py-1">
+                        <span className="text-xs bg-white border border-purple-200 text-indigo-700 rounded-full px-3 py-1">
                             🏢 {timeline.employee.department.name}
                         </span>
                     )}
