@@ -1,112 +1,52 @@
 import {
     Sidebar,
     SidebarContent,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarMenu,
-    SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { NavLink } from "react-router-dom"
+import { NavLink, Link } from "react-router-dom"
+
+const styles = `
+  .em-sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #ffffff;
+  }
+
+  .em-nav-link {
+    padding: 8px 12px;
+    border-radius: 10px;
+  }
+
+  .em-nav-link.active {
+    background: rgba(139,92,246,0.1);
+  }
+`
+
+const NavItem = ({ to, icon, label }) => (
+    <NavLink
+        to={to}
+        className={({ isActive }) => `em-nav-link${isActive ? ' active' : ''}`}
+    >
+        <img src={icon} width={18} />
+        {label}
+    </NavLink>
+)
 
 export function EmployeeSidebar() {
-    const linkClass = ({ isActive }) => isActive ? "bg-purple-200 rounded-lg" : ""
-    const itemClass = "flex gap-4 hover:bg-purple-200 rounded-lg"
-
     return (
-        <Sidebar>
-            <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupContent>
-                        <SidebarMenu className="gap-3 p-2">
+        <>
+            <style>{styles}</style>
+            <Sidebar>
+                <SidebarContent>
+                    <div className="em-sidebar-inner">
 
-                            <NavLink to="/auth/employee/employee-dashboard/overview" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/dashboard.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">Overview</button>
-                                </SidebarMenuItem>
-                            </NavLink>
+                        <Link to="/">EW</Link>
 
-                            <NavLink to="/auth/employee/employee-dashboard/my-leaves" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/leave.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">My Leaves</button>
-                                </SidebarMenuItem>
-                            </NavLink>
+                        <NavItem to="/auth/employee/employee-dashboard/overview" icon="/../../src/assets/HR-Dashboard/dashboard.png" label="Overview" />
 
-                            <NavLink to="/auth/employee/employee-dashboard/my-salary" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/salary4.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">My Salary</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to="/auth/employee/employee-dashboard/my-notices" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/notice.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">My Notices</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to="/auth/employee/employee-dashboard/my-attendance" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/attendance.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">My Attendance</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to="/auth/employee/employee-dashboard/my-requests" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/request.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">My Requests</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to="/auth/employee/employee-dashboard/my-documents" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/docalert.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">My Documents</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to="/auth/employee/employee-dashboard/my-activity" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">My Activity</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to="/auth/employee/employee-dashboard/leave-recommendation" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/leaverec.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">Leave Recommendation</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to="/auth/employee/employee-dashboard/my-timeline" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/timeline.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">My Timeline</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to="/auth/employee/employee-dashboard/my-analytics" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/analytics.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">My Analytics</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                            <NavLink to="/auth/employee/employee-dashboard/my-security-flags" className={linkClass}>
-                                <SidebarMenuItem className={itemClass}>
-                                    <img src="/../../src/assets/HR-Dashboard/accessdrift.png" className="w-7 ms-2 my-1" alt="" />
-                                    <button className="text-[16px]">Security Flags</button>
-                                </SidebarMenuItem>
-                            </NavLink>
-
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
-            </SidebarContent>
-        </Sidebar>
+                    </div>
+                </SidebarContent>
+            </Sidebar>
+        </>
     )
 }

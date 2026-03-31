@@ -5,193 +5,103 @@ import {
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar"
+import { NavLink, Link } from "react-router-dom"
 
-import { NavLink } from "react-router-dom";
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  .hr-sidebar-inner {
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #ffffff;
+    border-right: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .hr-sidebar-header {
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    flex-shrink: 0;
+  }
+  .hr-sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .hr-sidebar-logo-mark {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    font-family: 'DM Serif Display', serif;
+  }
+
+  .hr-sidebar-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 16px;
+  }
+
+  .hr-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    margin: 1px 6px;
+  }
+
+  .hr-nav-link.active {
+    background: rgba(99,102,241,0.1);
+  }
+
+  .hr-nav-label {
+    font-size: 13px;
+  }
+`
+
+const NavItem = ({ to, icon, label }) => (
+  <NavLink
+    to={to}
+    className={({ isActive }) => `hr-nav-link${isActive ? ' active' : ''}`}
+  >
+    <img src={icon} width={18} />
+    <span className="hr-nav-label">{label}</span>
+  </NavLink>
+)
 
 export function HRdashboardSidebar() {
-  const linkClass = ({ isActive }) =>
-    isActive ? "bg-blue-200 rounded-lg" : "";
-
-  const itemClass = "flex gap-4 hover:bg-blue-200 rounded-lg";
-
   return (
-    <Sidebar>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-3 p-2">
+    <>
+      <style>{styles}</style>
+      <Sidebar>
+        <SidebarContent>
+          <div className="hr-sidebar-inner">
 
-              {/* Dashboard */}
-              <NavLink to="/hr/dashboard/dashboard-data" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/dashboard.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Dashboard</button>
-                </SidebarMenuItem>
-              </NavLink>
+            <div className="hr-sidebar-header">
+              <Link to="/" className="hr-sidebar-logo">
+                <div className="hr-sidebar-logo-mark">EW</div>
+              </Link>
+            </div>
 
-              {/* Employees */}
-              <NavLink to="/hr/dashboard/employees" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/employee-2.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Employees</button>
-                </SidebarMenuItem>
-              </NavLink>
+            <div className="hr-sidebar-scroll">
+              <NavItem to="/hr/dashboard/dashboard-data" icon="/../../src/assets/HR-Dashboard/dashboard.png" label="Dashboard" />
+              <NavItem to="/hr/dashboard/employees" icon="/../../src/assets/HR-Dashboard/employee-2.png" label="Employees" />
+            </div>
 
-              {/* Departments */}
-              <NavLink to="/hr/dashboard/departments" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/department.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Departments</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Document Alerts */}
-              <NavLink to="/hr/dashboard/documents" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/docalert.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Document Alerts</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Leave Engine */}
-              <NavLink to="/hr/dashboard/leave-recommendation" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/leaverec.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Leave Engine</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Activity Log */}
-              <NavLink to="/hr/dashboard/activity-log" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/activitylog.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Activity Log</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Salary */}
-              <NavLink to="/hr/dashboard/salary" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/salary4.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Salary</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-<NavLink to="/hr/dashboard/payroll-compliance" className={linkClass}>
-  <SidebarMenuItem className={itemClass}>
-    <img src="/../../src/assets/HR-Dashboard/Salary.png" className="w-7 ms-2 my-1" />
-    <button className="text-[16px]">Payroll Compliance</button>
-  </SidebarMenuItem>
-</NavLink>
-
-              {/* Access Drift */}
-<NavLink to="/hr/dashboard/access-drift" className={linkClass}>
-  <SidebarMenuItem className={itemClass}>
-    <img src="/../../src/assets/HR-Dashboard/accessdrift.png" className="w-7 ms-2 my-1" />
-    <button className="text-[16px]">Access Drift</button>
-  </SidebarMenuItem>
-</NavLink>
-
-              {/* Issue Notices */}
-              <NavLink to="/hr/dashboard/notices" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/notice.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Issue Notices</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Leaves */}
-              <NavLink to="/hr/dashboard/leaves" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/leave.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Leaves</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Attendance */}
-              <NavLink to="/hr/dashboard/attendance" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/attendance.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Attendances</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Recruitment */}
-              <NavLink to="/hr/dashboard/recruitment" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/recruitment.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Recruitment</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Interview Insights */}
-              <NavLink to="/hr/dashboard/interview-insights" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/interview-insights.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Interview Insights</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Requests */}
-              <NavLink to="/hr/dashboard/requests" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/request.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Requests</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* HR Profiles */}
-              <NavLink to="/hr/dashboard/hr-profiles" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/HR-profiles.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">HR Profiles</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Employee Timeline */}
-              <NavLink to="/hr/dashboard/employee-timeline" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/timeline.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Employee Timeline</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              <NavLink to="/hr/dashboard/exit-clearance" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/exit-clearance.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Exit Clearance</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Analytics */}
-              <NavLink to="/hr/dashboard/analytics" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/analytics.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Analytics</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Access Control */}
-              <NavLink to="/hr/dashboard/access-control" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/rbac.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Access Control</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-              {/* Org Structure */}
-              <NavLink to="/hr/dashboard/org-structure" className={linkClass}>
-                <SidebarMenuItem className={itemClass}>
-                  <img src="/../../src/assets/HR-Dashboard/orgstruct.png" className="w-7 ms-2 my-1" />
-                  <button className="text-[16px]">Org Structure</button>
-                </SidebarMenuItem>
-              </NavLink>
-
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
-  );
+          </div>
+        </SidebarContent>
+      </Sidebar>
+    </>
+  )
 }
