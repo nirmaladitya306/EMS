@@ -71,12 +71,12 @@ export const HRLogin = () => {
         <LoadingBar ref={loadingbar} />
 
         <SignIn
-          image={"../../src/assets/Employee-Welcome.jpg"}
           handlesigninform={handlesigninform}
           handlesigninsubmit={handlesigninsubmit}
           targetedstate={HRState}
           statevalue={signinform}
-          redirectpath={"/auth/hr/forgot-password"} // ✅ correct casing
+          redirectpath={"/auth/hr/forgot-password"}
+          role="HR"
         />
       </div>
     </div>
