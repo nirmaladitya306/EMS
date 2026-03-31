@@ -6,6 +6,9 @@ import { HandleGetDashboard } from "../../../redux/Thunks/DashboardThunk.js";
 import { useDispatch, useSelector } from "react-redux";
 import { Loading } from "../../../components/common/loading.jsx";
 
+// ✅ NEW IMPORT
+import { PageShell, PageHeader } from "../../../components/common/Dashboard/PageShell.jsx";
+
 import employeeImg from "../../../assets/HR-Dashboard/employee-2.png";
 import departmentImg from "../../../assets/HR-Dashboard/department.png";
 import leaveImg from "../../../assets/HR-Dashboard/leave.png";
@@ -49,7 +52,6 @@ export const HRDashboardPage = () => {
         );
     }, [dispatch]);
 
-    // ✅ keep showing loading until real data exists
     if (
         DashboardState?.isLoading ||
         !DashboardState?.success ||
@@ -61,21 +63,28 @@ export const HRDashboardPage = () => {
     const safeData = DashboardState.data ?? {};
 
     return (
-        <div className="w-full h-full">
-            <KeyDetailBoxContentWrapper
-                imagedataarray={DataArray}
-                data={safeData}
+        <PageShell>
+            {/* ✅ NEW HEADER */}
+            <PageHeader
+                eyebrow="HR Dashboard"
+                title="Overview"
+                subtitle="Summary of employees, departments, and activity"
             />
 
-            <div className="salary-notices-container h-3/4 grid min-[250px]:grid-cols-1 lg:grid-cols-2 min-[250px]:gap-3 xl:gap-3">
-                <SalaryChart
-                    balancedata={safeData}
-                />
-
-                <DataTable
-                    noticedata={safeData}
+            {/* ✅ Wrap sections instead of raw div */}
+            <div className="pg-section">
+                <KeyDetailBoxContentWrapper
+                    imagedataarray={DataArray}
+                    data={safeData}
                 />
             </div>
-        </div>
+
+            <div className="pg-section">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <SalaryChart balancedata={safeData} />
+                    <DataTable noticedata={safeData} />
+                </div>
+            </div>
+        </PageShell>
     );
 };
