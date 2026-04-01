@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetMyDocuments } from '../../../redux/Thunks/EmployeeDashboardThunk'
@@ -88,11 +89,11 @@ export const MyDocumentsPage = () => {
     if (state.isLoading && !documents.length) return <Loading />
 
     return (
-        <div className="my-documents-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold">My Documents</h1>
+                <PageHeader eyebrow="Finance & Docs" title="My Documents" subtitle="Track the validity of your personal documents" />
                 <p className="text-sm text-gray-500 mt-1">
                     Track the validity of your personal and professional documents
                 </p>
@@ -170,6 +171,6 @@ export const MyDocumentsPage = () => {
             <p className="text-xs text-gray-400 border-t border-gray-100 pt-3">
                 Document records are managed by HR. If you believe a document is missing or incorrect, please contact your HR team.
             </p>
-        </div>
+        </PageShell>
     )
 }

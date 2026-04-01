@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetLeaveRecommendation, HandleGetOrgLeaveSummary } from '../../../redux/Thunks/LeaveRecommendationThunk'
@@ -136,12 +137,12 @@ export const LeaveRecommendationPage = () => {
     const reco = rec?.recommendation
 
     return (
-        <div className="leave-recommendation-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* Header */}
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Leave Recommendation Engine</h1>
+                    <PageHeader eyebrow="Operations" title="Leave Recommendation Engine" subtitle="Rule-based scoring using history, attendance, and workload" />
                     <p className="text-sm text-gray-500 mt-1">Rule-based scoring using leave history, attendance, team capacity and workload patterns</p>
                 </div>
                 <div className="flex gap-2">
@@ -315,6 +316,6 @@ export const LeaveRecommendationPage = () => {
                     )}
                 </div>
             )}
-        </div>
+        </PageShell>
     )
 }

@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetLeaveRecommendation } from '../../../redux/Thunks/LeaveRecommendationThunk'
@@ -129,11 +130,11 @@ export const MyLeaveRecommendationPage = () => {
     if ((empState.isLoading && !profile) || (!rec && recState.isLoading)) return <Loading />
 
     return (
-        <div className="my-leave-recommendation-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold">Leave Recommendation</h1>
+                <PageHeader eyebrow="Work" title="Leave Recommendation" subtitle="Personalised guidance on when to take leave" />
                 <p className="text-sm text-gray-500 mt-1">
                     Personalised guidance on when to take leave based on your history, attendance, and team capacity
                 </p>
@@ -274,6 +275,6 @@ export const MyLeaveRecommendationPage = () => {
                     )}
                 </>
             )}
-        </div>
+        </PageShell>
     )
 }

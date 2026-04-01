@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetMyNotices } from '../../../redux/Thunks/EmployeeDashboardThunk'
@@ -42,11 +43,11 @@ export const MyNoticesPage = () => {
     if (state.isLoading && !notices.length) return <Loading />
 
     return (
-        <div className="my-notices-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">My Notices</h1>
+                    <PageHeader eyebrow="Communications" title="My Notices" subtitle="Notices issued to you or your department" />
                     <p className="text-sm text-gray-500 mt-1">Notices issued to you or your department</p>
                 </div>
                 <div className="bg-indigo-50 border border-purple-200 rounded-xl px-4 py-2 text-center">
@@ -84,6 +85,6 @@ export const MyNoticesPage = () => {
             </div>
 
             <NoticeDetail open={!!detail} notice={detail} onClose={() => setDetail(null)} />
-        </div>
+        </PageShell>
     )
 }

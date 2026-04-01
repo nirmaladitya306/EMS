@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetEmployeeAnalytics } from '../../../redux/Thunks/AnalyticsThunk'
@@ -125,11 +126,11 @@ export const MyAnalyticsPage = () => {
     const currency = d.latestSalary?.currency || ''
 
     return (
-        <div className="my-analytics-page w-full mx-auto my-8 flex flex-col gap-6 pb-10 pe-5 overflow-auto">
+        <PageShell>
 
             {/* ── Header ── */}
             <div>
-                <h1 className="text-3xl font-bold">My Analytics</h1>
+                <PageHeader eyebrow="Overview" title="My Analytics" subtitle="A personal breakdown of your activity and records" />
                 <p className="text-sm text-gray-500 mt-1">A personal breakdown of your activity and records</p>
             </div>
 
@@ -281,6 +282,6 @@ export const MyAnalyticsPage = () => {
                 </Section>
             </div>
 
-        </div>
+        </PageShell>
     )
 }

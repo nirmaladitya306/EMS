@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetAllRequests, HandleUpdateRequestStatus, HandleDeleteRequest } from '../../../redux/Thunks/RequestThunk'
@@ -84,10 +85,10 @@ export const RequestsPage = () => {
     if (state.isLoading && !state.data?.length) return <Loading />
 
     return (
-        <div className="requests-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             <div>
-                <h1 className="text-3xl font-bold">Employee Requests</h1>
+                <PageHeader eyebrow="Operations" title="Employee Requests" subtitle="Review and action employee-generated requests" />
                 <p className="text-sm text-gray-500 mt-1">Review and action employee-generated requests</p>
             </div>
 
@@ -150,6 +151,6 @@ export const RequestsPage = () => {
 
             <ReviewDialog open={!!selected} request={selected} HRID={HRID}
                 onClose={() => setSelected(null)} onSubmit={handleUpdate} />
-        </div>
+        </PageShell>
     )
 }

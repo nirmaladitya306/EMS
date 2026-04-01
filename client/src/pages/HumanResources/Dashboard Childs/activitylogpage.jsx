@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetActivityLogs, HandleGetLogSummary, HandleClearOldLogs } from '../../../redux/Thunks/ActivityLogThunk'
@@ -135,12 +136,12 @@ export const ActivityLogPage = () => {
     const summary = state?.summary || { total: 0, byRole: {}, byAction: [] }
 
     return (
-        <div className="activity-log-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* ── Header ── */}
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Activity Log</h1>
+                    <PageHeader eyebrow="Operations" title="Activity Log" subtitle="All system actions recorded in the last 30 days" />
                     <p className="text-sm text-gray-500 mt-1">All system actions recorded in the last 30 days</p>
                 </div>
                 <button
@@ -312,6 +313,6 @@ export const ActivityLogPage = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </PageShell>
     )
 }

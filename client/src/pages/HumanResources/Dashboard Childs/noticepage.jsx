@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetAllNotices, HandleCreateNotice, HandleUpdateNotice, HandleDeleteNotice } from '../../../redux/Thunks/NoticeThunk'
@@ -245,12 +246,12 @@ export const NoticePage = () => {
     if (noticeState.isLoading && totalCount === 0) return <Loading />
 
     return (
-        <div className="notices-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* Header */}
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Issue Notices</h1>
+                    <PageHeader eyebrow="Communications" title="Issue Notices" subtitle="Send notices to departments or individual employees" />
                     <p className="text-sm text-gray-500 mt-1">
                         Send notices to departments or individual employees
                     </p>
@@ -344,6 +345,6 @@ export const NoticePage = () => {
                 HRID={HRID}
                 initialData={editTarget}
             />
-        </div>
+        </PageShell>
     )
 }

@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleRunComplianceCheck, HandleRunSingleComplianceCheck } from '../../../redux/Thunks/PayrollComplianceThunk'
@@ -208,12 +209,12 @@ export const PayrollCompliancePage = () => {
     if (isLoading) return <Loading />
 
     return (
-        <div className="w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* ── Header ───────────────────────────────────────────────── */}
             <div className="flex justify-between items-start flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Payroll Eligibility & Compliance</h1>
+                    <PageHeader eyebrow="Finance" title="Payroll Compliance" subtitle="Validate employee payroll eligibility against compliance rules" />
                     <p className="text-sm text-gray-500 mt-1">
                         Validate employee payroll eligibility against organisation compliance rules
                     </p>
@@ -368,6 +369,6 @@ export const PayrollCompliancePage = () => {
             {showRules && orgSummary?.rulesApplied && (
                 <RulesPanel rules={orgSummary.rulesApplied} onClose={() => setShowRules(false)} />
             )}
-        </div>
+        </PageShell>
     )
 }

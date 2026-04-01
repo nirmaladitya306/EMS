@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetAllRecruitments, HandleCreateRecruitment, HandleDeleteRecruitment } from '../../../redux/Thunks/RecruitmentThunk'
@@ -84,11 +85,11 @@ export const RecruitmentPage = () => {
     if (state.isLoading && !state.data?.length) return <Loading />
 
     return (
-        <div className="recruitment-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Recruitment</h1>
+                    <PageHeader eyebrow="Recruitment" title="Recruitment" subtitle="Manage job postings and track applicants" />
                     <p className="text-sm text-gray-500 mt-1">Manage job postings and track applicants</p>
                 </div>
                 <button onClick={() => setCreateOpen(true)}
@@ -135,6 +136,6 @@ export const RecruitmentPage = () => {
 
             <CreateDialog open={createOpen} onClose={() => setCreateOpen(false)} onSubmit={handleCreate} />
             <DetailDialog open={!!detailRec} record={detailRec} onClose={() => setDetailRec(null)} />
-        </div>
+        </PageShell>
     )
 }

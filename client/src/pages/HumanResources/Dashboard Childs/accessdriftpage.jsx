@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -221,11 +222,11 @@ const state = useSelector(s => s.AccessDriftReducer)
     const summary    = state?.summary    || { total: 0, open: 0, resolved: 0, dismissed: 0, critical: 0, high: 0 }
 
     return (
-        <div className="access-drift-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* ── Header ── */}
             <div>
-                <h1 className="text-3xl font-bold">Access Drift Detection</h1>
+                <PageHeader eyebrow="Security" title="Access Drift Detection" subtitle="Monitor and investigate unusual employee access patterns" />
                 <p className="text-sm text-gray-500 mt-1">
                     Monitor and investigate unusual or out-of-policy employee access patterns
                 </p>
@@ -395,6 +396,6 @@ const state = useSelector(s => s.AccessDriftReducer)
                     onClose={() => setEvidenceDrift(null)}
                 />
             )}
-        </div>
+        </PageShell>
     )
 }

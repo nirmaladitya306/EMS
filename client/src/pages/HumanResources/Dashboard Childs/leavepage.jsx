@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetAllLeaves, HandleHRUpdateLeave } from '../../../redux/Thunks/LeaveThunk'
@@ -87,11 +88,11 @@ export const LeavePage = () => {
     if (state.isLoading && !state.data?.length) return <Loading />
 
     return (
-        <div className="leave-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Leave Management</h1>
+                    <PageHeader eyebrow="Operations" title="Leave Management" subtitle="Review and approve employee leave requests" />
                     <p className="text-sm text-gray-500 mt-1">Review and approve employee leave requests</p>
                 </div>
             </div>
@@ -154,6 +155,6 @@ export const LeavePage = () => {
 
             <ApproveDialog open={!!selected} leave={selected} HRID={HRID}
                 onClose={() => setSelected(null)} onSubmit={handleApprove} />
-        </div>
+        </PageShell>
     )
 }

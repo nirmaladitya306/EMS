@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -295,12 +296,12 @@ export const OrgStructurePage = () => {
     if (state.isLoading && !state.positions.length) return <Loading />
 
     return (
-        <div className="org-structure-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* Header */}
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Org Structure</h1>
+                    <PageHeader eyebrow="People" title="Org Structure" subtitle="Define positions, reporting lines, and the hierarchy" />
                     <p className="text-sm text-gray-500 mt-1">
                         Define positions, reporting lines, and place employees in the hierarchy
                     </p>
@@ -446,6 +447,6 @@ export const OrgStructurePage = () => {
                 employees={empState.data || []}
                 allPositionEmployees={allPositionEmployees}
             />
-        </div>
+        </PageShell>
     )
 }

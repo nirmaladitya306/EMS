@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetAllSalaries, HandleCreateSalary, HandleUpdateSalary, HandleDeleteSalary } from '../../../redux/Thunks/SalaryThunk'
@@ -229,12 +230,12 @@ export const SalaryPage = () => {
     if (state.isLoading && !state.data?.length) return <Loading />
 
     return (
-        <div className="salary-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* Header */}
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Salary Management</h1>
+                    <PageHeader eyebrow="Finance" title="Salary Management" subtitle="Manage salary records, bonuses, and payment status" />
                     <p className="text-sm text-gray-500 mt-1">Manage salary records, bonuses, deductions and payment status</p>
                 </div>
                 <button onClick={() => setDialogOpen(true)}
@@ -303,6 +304,6 @@ export const SalaryPage = () => {
             {/* Dialogs */}
             <SalaryDialog open={dialogOpen}  onClose={() => setDialogOpen(false)} onSubmit={handleCreate} employeeList={employeeList} />
             <SalaryDialog open={!!editTarget} onClose={() => setEditTarget(null)}  onSubmit={handleUpdate} employeeList={employeeList} initialData={editTarget} />
-        </div>
+        </PageShell>
     )
 }

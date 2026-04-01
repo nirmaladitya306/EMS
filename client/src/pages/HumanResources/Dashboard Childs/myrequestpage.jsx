@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -89,11 +90,11 @@ export const MyRequestsPage = () => {
     if (state.isLoading && !requests.length) return <Loading />
 
     return (
-        <div className="my-requests-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">My Requests</h1>
+                    <PageHeader eyebrow="Work" title="My Requests" subtitle="Submit and track your requests to HR" />
                     <p className="text-sm text-gray-500 mt-1">Submit and track your requests to HR</p>
                 </div>
                 <button onClick={() => setCreateOpen(true)}
@@ -144,6 +145,6 @@ export const MyRequestsPage = () => {
 
             <RequestDialog open={createOpen}   onClose={() => setCreateOpen(false)} onSubmit={handleSubmit} />
             <RequestDialog open={!!editTarget} onClose={() => setEditTarget(null)}  onSubmit={handleUpdate} initialData={editTarget} />
-        </div>
+        </PageShell>
     )
 }

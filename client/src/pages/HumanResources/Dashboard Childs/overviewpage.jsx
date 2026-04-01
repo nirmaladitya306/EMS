@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetEmployeeProfile, HandleUpdateMyProfile } from '../../../redux/Thunks/EmployeeDashboardThunk'
@@ -188,7 +189,7 @@ export const EmployeeOverviewPage = () => {
     if (state.isLoading && !profile) return <Loading />
 
     return (
-        <div className="overview-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5 overflow-auto">
+        <PageShell>
 
             {/* Header */}
             <div className="flex items-center gap-4">
@@ -196,9 +197,7 @@ export const EmployeeOverviewPage = () => {
                     {profile?.firstname?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold">
-                        Welcome, {profile?.firstname} {profile?.lastname}
-                    </h1>
+                    <PageHeader eyebrow="Employee Portal" title="My Overview" subtitle="Your profile, skills, and key statistics" />
                     <p className="text-sm text-gray-500 mt-0.5">{profile?.email}</p>
                 </div>
             </div>
@@ -243,6 +242,6 @@ export const EmployeeOverviewPage = () => {
                 </div>
             </div>
 
-        </div>
+        </PageShell>
     )
 }

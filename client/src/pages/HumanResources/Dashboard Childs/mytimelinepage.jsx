@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetMyTimeline } from '../../../redux/Thunks/EmployeeDashboardThunk'
@@ -91,12 +92,12 @@ export const MyTimelinePage = () => {
     const events = timeline?.events || []
 
     return (
-        <div className="my-timeline-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* Header */}
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">My Timeline</h1>
+                    <PageHeader eyebrow="Overview" title="My Timeline" subtitle="A chronological record of your career journey" />
                     <p className="text-sm text-gray-500 mt-1">
                         A chronological record of your career journey
                     </p>
@@ -141,6 +142,6 @@ export const MyTimelinePage = () => {
                     )
                 }
             </div>
-        </div>
+        </PageShell>
     )
 }

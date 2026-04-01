@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -408,12 +409,12 @@ export const RBACPage = () => {
     const roles  = state.roles || []
 
     return (
-        <div className="rbac-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5 overflow-auto pb-10">
+        <PageShell>
 
             {/* ── Header ── */}
             <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Role-Based Access Control</h1>
+                    <PageHeader eyebrow="Security" title="Access Control" subtitle="Define roles, assign permissions, and control HR access" />
                     <p className="text-sm text-gray-500 mt-1">
                         Define roles, assign permissions, and control what each HR user can access
                     </p>
@@ -594,6 +595,6 @@ export const RBACPage = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </PageShell>
     )
 }
