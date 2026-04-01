@@ -54,7 +54,7 @@ const OrgSummaryBar = ({ summary }) => {
     return (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {cards.map(c => (
-                <div key={c.label} className={`rounded-xl border p-4 ${c.color}`}>
+                <div key={c.label} className={`pg-stat-card ${c.color}`}>
                     <p className="text-xl font-bold">{c.value}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{c.label}</p>
                 </div>
@@ -276,10 +276,10 @@ export const PayrollCompliancePage = () => {
                     <div className="flex flex-wrap gap-3 items-center">
                         <input type="text" placeholder="Search by name..."
                             value={search} onChange={e => setSearch(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                            className="pg-search" />
                         {['All', 'Eligible', 'Review Required', 'Ineligible'].map(s => (
                             <button key={s} onClick={() => setFilterStatus(s)}
-                                className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:border-indigo-300'}`}>
+                                className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'pg-pill active' : 'pg-pill'}`}>
                                 {s}
                             </button>
                         ))}
@@ -288,7 +288,7 @@ export const PayrollCompliancePage = () => {
 
                     {/* Table header */}
                     <div className="flex flex-col gap-2 overflow-auto flex-1">
-                        <div className="grid grid-cols-12 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
+                        <div className="pg-table-head">
                             <span className="col-span-3">Employee</span>
                             <span className="col-span-2 text-center">Score</span>
                             <span className="col-span-2">Status</span>
@@ -306,7 +306,7 @@ export const PayrollCompliancePage = () => {
 
                             return (
                                 <div key={r.employeeID}
-                                    className="grid grid-cols-12 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-gray-50 transition-all">
+                                    className="pg-table-row">
                                     {/* Name */}
                                     <div className="col-span-3">
                                         <p className="font-medium">{r.name}</p>
@@ -353,7 +353,7 @@ export const PayrollCompliancePage = () => {
                                     {/* View button */}
                                     <div className="col-span-1">
                                         <button onClick={() => setSelectedRecord(r)}
-                                            className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                                            className="pg-action-btn indigo">
                                             View
                                         </button>
                                     </div>

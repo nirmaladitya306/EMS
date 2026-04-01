@@ -56,7 +56,7 @@ const RoleBadge = ({ role }) => (
 
 // ─── Summary stat card ────────────────────────────────────────────────────────
 const StatCard = ({ label, value, sub, color }) => (
-    <div className={`rounded-xl border p-4 flex flex-col gap-1 ${color}`}>
+    <div className={`pg-stat-card ${color}`}>
         <span className="text-2xl font-bold">{value}</span>
         <span className="text-sm font-medium">{label}</span>
         {sub && <span className="text-xs text-gray-400">{sub}</span>}
@@ -166,13 +166,13 @@ export const ActivityLogPage = () => {
             </div>
 
             {/* ── Filters ── */}
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-wrap gap-3 items-end">
+            <div className="pg-filter-panel">
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-500">Action type</label>
                     <select
                         value={filterAction}
                         onChange={e => setFilterAction(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white"
+                        className="pg-select"
                     >
                         <option value="">All actions</option>
                         {ALL_ACTIONS.map(a => <option key={a} value={a}>{a.replace(/_/g, ' ')}</option>)}
@@ -183,7 +183,7 @@ export const ActivityLogPage = () => {
                     <select
                         value={filterRole}
                         onChange={e => setFilterRole(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white"
+                        className="pg-select"
                     >
                         <option value="">All roles</option>
                         <option value="HR-Admin">HR Admin</option>
@@ -193,12 +193,12 @@ export const ActivityLogPage = () => {
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-500">From</label>
                     <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                        className="pg-select" />
                 </div>
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-500">To</label>
                     <input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                        className="pg-select" />
                 </div>
                 <div className="flex gap-2 pb-0.5">
                     <button onClick={handleApplyFilters}
@@ -215,7 +215,7 @@ export const ActivityLogPage = () => {
             {/* ── Log table ── */}
             <div className="flex flex-col gap-2 overflow-auto flex-1">
                 {/* Header row */}
-                <div className="grid grid-cols-12 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
+                <div className="pg-table-head">
                     <span className="col-span-1">Role</span>
                     <span className="col-span-2">Actor</span>
                     <span className="col-span-3">Action</span>
@@ -233,7 +233,7 @@ export const ActivityLogPage = () => {
 
                 {!state.isLoading && logs.map((log) => (
                     <div key={log._id}
-                        className="grid grid-cols-12 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-gray-50 transition-all">
+                        className="pg-table-row">
                         <span className="col-span-1">
                             <RoleBadge role={log.actorRole} />
                         </span>
@@ -261,7 +261,7 @@ export const ActivityLogPage = () => {
                     </span>
                     <div className="flex gap-1">
                         <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}
-                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">
+                            className="pg-page-btn">
                             ← Prev
                         </button>
                         {Array.from({ length: Math.min(5, pagination?.totalPages) }, (_, i) => {
@@ -269,13 +269,13 @@ export const ActivityLogPage = () => {
                             if (p > pagination.totalPages) return null
                             return (
                                 <button key={p} onClick={() => handlePageChange(p)}
-                                    className={`px-3 py-1.5 text-sm border rounded-lg ${p === currentPage ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 hover:bg-gray-50'}`}>
+                                    className={`px-3 py-1.5 text-sm border rounded-lg ${p === currentPage ? 'pg-page-btn active' : 'pg-page-btn'}`}>
                                     {p}
                                 </button>
                             )
                         })}
                         <button disabled={currentPage === pagination?.totalPages} onClick={() => handlePageChange(currentPage + 1)}
-                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">
+                            className="pg-page-btn">
                             Next →
                         </button>
                     </div>

@@ -72,7 +72,7 @@ const StatusBadge = ({ status }) => {
 }
 
 const StatCard = ({ label, value, color, icon }) => (
-    <div className={`rounded-xl border p-4 flex flex-col gap-1 ${color}`}>
+    <div className={`pg-stat-card ${color}`}>
         <div className="flex items-center justify-between">
             <span className="text-2xl font-bold">{value}</span>
             <span className="text-2xl">{icon}</span>
@@ -243,7 +243,7 @@ const state = useSelector(s => s.AccessDriftReducer)
             </div>
 
             {/* ── Filters ── */}
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-wrap gap-3 items-end">
+            <div className="pg-filter-panel">
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-500">Status</label>
                     <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
@@ -284,7 +284,7 @@ const state = useSelector(s => s.AccessDriftReducer)
             {/* ── Events list ── */}
             <div className="flex flex-col gap-2 overflow-auto flex-1">
                 {/* Table header */}
-                <div className="grid grid-cols-12 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
+                <div className="pg-table-head">
                     <span className="col-span-1">Sev.</span>
                     <span className="col-span-2">Employee</span>
                     <span className="col-span-2">Type</span>
@@ -364,19 +364,19 @@ const state = useSelector(s => s.AccessDriftReducer)
                     </span>
                     <div className="flex gap-1">
                         <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); fetchDrifts(currentPage - 1) }}
-                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">← Prev</button>
+                            className="pg-page-btn">← Prev</button>
                         {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                             const p = Math.max(1, currentPage - 2) + i
                             if (p > pagination.totalPages) return null
                             return (
                                 <button key={p} onClick={() => { setCurrentPage(p); fetchDrifts(p) }}
-                                    className={`px-3 py-1.5 text-sm border rounded-lg ${p === currentPage ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 hover:bg-gray-50'}`}>
+                                    className={`px-3 py-1.5 text-sm border rounded-lg ${p === currentPage ? 'pg-page-btn active' : 'pg-page-btn'}`}>
                                     {p}
                                 </button>
                             )
                         })}
                         <button disabled={currentPage === pagination.totalPages} onClick={() => { setCurrentPage(p => p + 1); fetchDrifts(currentPage + 1) }}
-                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">Next →</button>
+                            className="pg-page-btn">Next →</button>
                     </div>
                 </div>
             )}

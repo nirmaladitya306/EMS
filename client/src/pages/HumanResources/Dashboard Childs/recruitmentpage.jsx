@@ -5,7 +5,7 @@ import { HandleGetAllRecruitments, HandleCreateRecruitment, HandleDeleteRecruitm
 import { Loading } from '../../../components/common/loading'
 
 const SummaryCard = ({ label, value, color }) => (
-    <div className={`rounded-xl border p-4 flex flex-col gap-1 ${color}`}>
+    <div className={`pg-stat-card ${color}`}>
         <span className="text-xl font-bold">{value}</span>
         <span className="text-sm text-gray-500">{label}</span>
     </div>
@@ -105,10 +105,10 @@ export const RecruitmentPage = () => {
 
             <input type="text" placeholder="Search by job title..."
                 value={search} onChange={e => setSearch(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                className="pg-search" />
 
             <div className="flex flex-col gap-2 overflow-auto flex-1">
-                <div className="grid grid-cols-5 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
+                <div className="pg-table-head">
                     <span className="col-span-2">Job Title</span>
                     <span className="col-span-2">Description</span>
                     <span>Actions</span>
@@ -117,7 +117,7 @@ export const RecruitmentPage = () => {
                 {filtered.length === 0
                     ? <div className="text-center text-gray-400 py-16">No job postings found.</div>
                     : filtered.map(r => (
-                        <div key={r._id} className="grid grid-cols-5 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-gray-50 transition-all">
+                        <div key={r._id} className="pg-table-row">
                             <div className="col-span-2">
                                 <p className="font-medium">{r.jobtitle}</p>
                                 <p className="text-xs text-gray-400">{r.application?.length || 0} applicants</p>
@@ -125,9 +125,9 @@ export const RecruitmentPage = () => {
                             <p className="col-span-2 text-gray-600 text-xs truncate pe-4">{r.description}</p>
                             <div className="flex gap-2">
                                 <button onClick={() => setDetailRec(r)}
-                                    className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50">View</button>
+                                    className="pg-action-btn indigo">View</button>
                                 <button onClick={() => handleDelete(r._id)}
-                                    className="px-3 py-1 rounded-md text-xs border border-red-400 text-red-600 hover:bg-red-50">Delete</button>
+                                    className="pg-action-btn red">Delete</button>
                             </div>
                         </div>
                     ))

@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { ListWrapper } from "../../../components/common/Dashboard/ListDesigns"
 import { HeadingBar } from "../../../components/common/Dashboard/ListDesigns"
 import { useEffect, useState, useRef } from "react"
@@ -111,11 +112,11 @@ export const HREmployeesPage = () => {
     const searchLoading  = HREmployeesState.skillSearchLoading
 
     return (
-        <div className="employee-page-content w-full mx-auto my-10 flex flex-col gap-5 h-[94%]">
+        <PageShell>
 
             {/* ── Header ── */}
             <div className="employees-heading flex justify-between items-center md:pe-5">
-                <h1 className="min-[250px]:text-xl md:text-4xl font-bold">Employees</h1>
+                <PageHeader eyebrow="People" title="Employees" subtitle="Search, add, and manage your workforce" />
                 <div className="employee-crate-button">
                     <AddEmployeesDialogBox />
                 </div>
@@ -215,6 +216,6 @@ export const HREmployeesPage = () => {
                     <ListItems TargetedState={HREmployeesState} />
                 </ListContainer>
             </div>
-        </div>
+        </PageShell>
     )
 }
