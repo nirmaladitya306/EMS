@@ -35,7 +35,13 @@ const CreateDialog = ({ open, onClose, onSubmit }) => {
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
                         <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">Create</button>
+                        <button
+  type="submit"
+  className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  Create
+</button>
                     </div>
                 </form>
             </div>
@@ -92,10 +98,13 @@ export const RecruitmentPage = () => {
                     <PageHeader eyebrow="Recruitment" title="Recruitment" subtitle="Manage job postings and track applicants" />
                     <p className="text-sm text-gray-500 mt-1">Manage job postings and track applicants</p>
                 </div>
-                <button onClick={() => setCreateOpen(true)}
-                    className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                    + New Job Posting
-                </button>
+                <button
+  onClick={() => setCreateOpen(true)}
+  className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  + New Job Posting
+</button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -114,9 +115,13 @@ const DocumentDialog = ({ open, onClose, onSubmit, employeeList, initialData }) 
                     </div>
                     <div className="flex justify-end gap-3 pt-2">
                         <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                            {isEdit ? 'Save Changes' : 'Add Document'}
-                        </button>
+                        <button
+  type="submit"
+  className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  {isEdit ? 'Save Changes' : 'Add Document'}
+</button>
                     </div>
                 </form>
             </div>
@@ -207,11 +212,11 @@ export const DocumentExpiryPage = () => {
     if (state.isLoading && !state.data?.length) return <Loading />
 
     return (
-        <div className="document-expiry-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* Header */}
             <div className="flex justify-between items-center flex-wrap gap-3">
-                <h1 className="text-3xl font-bold">Document Expiry Alerts</h1>
+                <PageHeader eyebrow="Operations" title="Document Expiry Alerts" subtitle="Track document validity and trigger email alerts" />
                 <div className="flex gap-2 flex-wrap">
                     <button
                         onClick={handleRunAlerts}
@@ -221,11 +226,12 @@ export const DocumentExpiryPage = () => {
                         {runningAlerts ? 'Running...' : '⚡ Run Alert Engine'}
                     </button>
                     <button
-                        onClick={() => setDialogOpen(true)}
-                        className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
-                    >
-                        + Add Document
-                    </button>
+  onClick={() => setDialogOpen(true)}
+  className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  + Add Document
+</button>
                 </div>
             </div>
 
@@ -326,6 +332,6 @@ export const DocumentExpiryPage = () => {
 
             {/* Alert toast */}
             <AlertToast result={state.alertResult} onClose={() => setShowToast(false)} />
-        </div>
+        </PageShell>
     )
 }

@@ -224,10 +224,13 @@ export const PayrollCompliancePage = () => {
                         className="px-4 py-2 border border-gray-300 text-sm rounded-lg hover:bg-gray-50">
                         📋 View Rules
                     </button>
-                    <button onClick={handleRun}
-                        className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                        {hasRun ? '🔄 Re-run Check' : '▶ Run Compliance Check'}
-                    </button>
+                    <button
+  onClick={handleRun}
+  className="px-6 py-2.5 text-white text-sm font-medium rounded-lg hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  ▶ Run Compliance Check
+</button>
                 </div>
             </div>
 
@@ -252,10 +255,13 @@ export const PayrollCompliancePage = () => {
                             overdue payments, and more.
                         </p>
                     </div>
-                    <button onClick={handleRun}
-                        className="px-6 py-2.5 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                        ▶ Run Compliance Check
-                    </button>
+                    <button
+  onClick={handleRun}
+  className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  {hasRun ? '🔄 Re-run Check' : '▶ Run Compliance Check'}
+</button>
                 </div>
             )}
 

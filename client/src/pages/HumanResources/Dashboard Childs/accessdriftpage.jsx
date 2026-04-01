@@ -276,7 +276,13 @@ const state = useSelector(s => s.AccessDriftReducer)
                     </select>
                 </div>
                 <div className="flex gap-2 pb-0.5">
-                    <button onClick={handleApply} className="px-4 py-2 text-white rounded-lg text-sm hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">Apply</button>
+                   <button
+  onClick={handleApply}
+  className="px-4 py-2 text-white rounded-lg text-sm hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  Apply
+</button>
                     <button onClick={handleClear} className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm hover:bg-gray-100">Clear</button>
                 </div>
             </div>

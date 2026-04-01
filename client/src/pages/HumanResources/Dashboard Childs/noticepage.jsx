@@ -133,10 +133,13 @@ const NoticeDialog = ({ open, onClose, onSubmit, employeeList, departmentList, H
                             className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">
                             Cancel
                         </button>
-                        <button type="submit"
-                            className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                            {isEdit ? 'Save Changes' : 'Issue Notice'}
-                        </button>
+                        <button
+  type="submit"
+  className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  {isEdit ? 'Save Changes' : 'Issue Notice'}
+</button>
                     </div>
                 </form>
             </div>
@@ -257,11 +260,12 @@ export const NoticePage = () => {
                     </p>
                 </div>
                 <button
-                    onClick={() => setDialogOpen(true)}
-                    className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
-                >
-                    + Issue Notice
-                </button>
+  onClick={() => setDialogOpen(true)}
+  className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  + Issue Notice
+</button>
             </div>
 
             {/* Summary strip */}

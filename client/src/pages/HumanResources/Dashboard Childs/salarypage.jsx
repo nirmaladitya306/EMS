@@ -151,9 +151,13 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
 
                     <div className="flex justify-end gap-3 pt-2">
                         <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                            {isEdit ? 'Save Changes' : 'Add Record'}
-                        </button>
+                        <button
+  type="submit"
+  className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  {isEdit ? 'Save Changes' : 'Add Record'}
+</button>
                     </div>
                 </form>
             </div>
@@ -237,10 +241,13 @@ export const SalaryPage = () => {
                     <h1 className="text-3xl font-bold">Salary Management</h1>
                     <p className="text-sm text-gray-500 mt-1">Manage salary records, bonuses, deductions and payment status</p>
                 </div>
-                <button onClick={() => setDialogOpen(true)}
-                    className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                    + Add Salary Record
-                </button>
+                <button
+  onClick={() => setDialogOpen(true)}
+  className="px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90"
+  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
+>
+  + Add Salary Record
+</button>
             </div>
 
             {/* Summary cards */}
