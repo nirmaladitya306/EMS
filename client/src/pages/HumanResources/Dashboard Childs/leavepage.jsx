@@ -1,53 +1,144 @@
-import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetAllLeaves, HandleHRUpdateLeave } from '../../../redux/Thunks/LeaveThunk'
 import { Loading } from '../../../components/common/loading'
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmtDate = (d) =>
+    d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
-const StatusBadge = ({ status }) => {
-    const map = {
-        Pending:  'bg-yellow-100 text-yellow-800 border-yellow-300',
-        Approved: 'bg-green-100  text-green-800  border-green-300',
-        Rejected: 'bg-red-100    text-red-800    border-red-300',
-    }
-    return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${map[status] || ''}`}>{status}</span>
-}
+const initials = (first, last) =>
+    `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase()
 
-const SummaryCard = ({ label, value, color }) => (
-    <div className={`pg-stat-card ${color}`}>
-        <span className="text-xl font-bold">{value}</span>
-        <span className="text-sm text-gray-500">{label}</span>
+// ─── Employee avatar ──────────────────────────────────────────────────────────
+const Avatar = ({ first, last, size = 30, fontSize = 11 }) => (
+    <div style={{
+        width: size, height: size, borderRadius: '50%', flexShrink: 0,
+        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'white', fontWeight: 700, fontSize,
+        fontFamily: "'DM Serif Display', serif", letterSpacing: '0.03em',
+    }}>
+        {initials(first, last)}
     </div>
 )
 
-const ApproveDialog = ({ open, leave, onClose, onSubmit, HRID }) => {
-    const [status, setStatus] = useState('Approved')
-    if (!open || !leave) return null
+// ─── Status pill ──────────────────────────────────────────────────────────────
+const STATUS = {
+    Pending:  { bg: 'rgba(234,179,8,0.09)',  color: '#854d0e', border: 'rgba(234,179,8,0.3)'   },
+    Approved: { bg: 'rgba(22,163,74,0.08)',  color: '#15803d', border: 'rgba(22,163,74,0.22)'  },
+    Rejected: { bg: 'rgba(220,38,38,0.07)', color: '#dc2626', border: 'rgba(220,38,38,0.2)'   },
+}
+
+const StatusPill = ({ status }) => {
+    const s = STATUS[status] || { bg: 'rgba(0,0,0,0.04)', color: 'rgba(0,0,0,0.5)', border: 'rgba(0,0,0,0.1)' }
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 mx-4">
-                <h2 className="text-xl font-bold mb-4">Review Leave Request</h2>
-                <div className="flex flex-col gap-2 text-sm text-gray-700 mb-5">
-                    <p><span className="font-medium">Employee:</span> {leave.employee?.firstname} {leave.employee?.lastname}</p>
-                    <p><span className="font-medium">Title:</span> {leave.title}</p>
-                    <p><span className="font-medium">Reason:</span> {leave.reason}</p>
-                    <p><span className="font-medium">From:</span> {fmtDate(leave.startdate)} &rarr; {fmtDate(leave.enddate)}</p>
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '3px 10px', borderRadius: 100, fontSize: 11, fontWeight: 600,
+            background: s.bg, color: s.color, border: `1px solid ${s.border}`,
+        }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+            {status}
+        </span>
+    )
+}
+
+// ─── Review modal ─────────────────────────────────────────────────────────────
+const ReviewModal = ({ leave, onClose, onSubmit, HRID }) => {
+    const [decision, setDecision] = useState('Approved')
+    if (!leave) return null
+
+    const rows = [
+        { label: 'Employee',  value: `${leave.employee?.firstname} ${leave.employee?.lastname}` },
+        { label: 'Title',     value: leave.title },
+        { label: 'Reason',    value: leave.reason },
+        { label: 'From',      value: fmtDate(leave.startdate) },
+        { label: 'To',        value: fmtDate(leave.enddate) },
+    ]
+
+    return (
+        <div className="pg-modal-overlay">
+            <div className="pg-modal">
+
+                {/* Header */}
+                <div>
+                    <div style={{
+                        fontFamily: "'DM Serif Display', serif",
+                        fontSize: '1.25rem', color: '#0f172a',
+                        letterSpacing: '-0.02em', marginBottom: 4,
+                    }}>
+                        Review Leave Request
+                    </div>
+                    <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', margin: 0 }}>
+                        Approve or reject this request. The employee will be notified.
+                    </p>
                 </div>
-                <div className="mb-5">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Decision</label>
-                    <select value={status} onChange={e => setStatus(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200">
-                        <option value="Approved">Approve</option>
-                        <option value="Rejected">Reject</option>
-                    </select>
+
+                <div className="pg-divider" />
+
+                {/* Leave details */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {rows.map(({ label, value }, i) => (
+                        <div key={label} style={{
+                            display: 'flex', justifyContent: 'space-between',
+                            alignItems: 'flex-start', gap: 16, padding: '9px 0',
+                            borderBottom: i < rows.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                        }}>
+                            <span style={{
+                                fontSize: 11, fontWeight: 600, letterSpacing: '0.09em',
+                                textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)', flexShrink: 0,
+                            }}>
+                                {label}
+                            </span>
+                            <span style={{ fontSize: 13, color: '#0f172a', fontWeight: 500, textAlign: 'right' }}>
+                                {value}
+                            </span>
+                        </div>
+                    ))}
                 </div>
-                <div className="flex justify-end gap-3">
-                    <button onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                    <button onClick={() => onSubmit({ leaveID: leave._id, status, HRID })}
-                        className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                        Confirm
+
+                <div className="pg-divider" />
+
+                {/* Decision selector */}
+                <div className="pg-field">
+                    <label className="pg-label">Decision</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        {['Approved', 'Rejected'].map(opt => (
+                            <button
+                                key={opt}
+                                onClick={() => setDecision(opt)}
+                                style={{
+                                    flex: 1, padding: '9px 0', borderRadius: 10,
+                                    fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                                    fontFamily: "'DM Sans', sans-serif",
+                                    transition: 'all 0.15s',
+                                    border: decision === opt
+                                        ? (opt === 'Approved' ? '1px solid rgba(22,163,74,0.35)' : '1px solid rgba(220,38,38,0.3)')
+                                        : '1px solid rgba(0,0,0,0.1)',
+                                    background: decision === opt
+                                        ? (opt === 'Approved' ? 'rgba(22,163,74,0.08)' : 'rgba(220,38,38,0.07)')
+                                        : 'transparent',
+                                    color: decision === opt
+                                        ? (opt === 'Approved' ? '#15803d' : '#dc2626')
+                                        : 'rgba(0,0,0,0.45)',
+                                }}
+                            >
+                                {opt === 'Approved' ? '✓ Approve' : '✕ Reject'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="pg-modal-actions">
+                    <button className="pg-btn-ghost" onClick={onClose}>Cancel</button>
+                    <button
+                        className="pg-btn-primary"
+                        onClick={() => onSubmit({ leaveID: leave._id, status: decision, HRID })}
+                    >
+                        Confirm Decision
                     </button>
                 </div>
             </div>
@@ -55,6 +146,7 @@ const ApproveDialog = ({ open, leave, onClose, onSubmit, HRID }) => {
     )
 }
 
+// ─── Main page ────────────────────────────────────────────────────────────────
 export const LeavePage = () => {
     const dispatch = useDispatch()
     const state    = useSelector(s => s.LeaveReducer)
@@ -68,16 +160,15 @@ export const LeavePage = () => {
     useEffect(() => { dispatch(HandleGetAllLeaves()) }, [])
     useEffect(() => { if (state.fetchData) dispatch(HandleGetAllLeaves()) }, [state.fetchData])
 
-    const handleApprove = (payload) => {
+    const handleSubmit = (payload) => {
         dispatch(HandleHRUpdateLeave(payload))
         setSelected(null)
     }
 
     const filtered = (state.data || []).filter(l => {
-        const name = `${l.employee?.firstname || ''} ${l.employee?.lastname || ''}`.toLowerCase()
-        const matchSearch = name.includes(search.toLowerCase())
-        const matchStatus = filterStatus === 'All' || l.status === filterStatus
-        return matchSearch && matchStatus
+        const name = `${l.employee?.firstname ?? ''} ${l.employee?.lastname ?? ''}`.toLowerCase()
+        return name.includes(search.toLowerCase()) &&
+            (filterStatus === 'All' || l.status === filterStatus)
     })
 
     const total    = state.data?.length || 0
@@ -90,71 +181,149 @@ export const LeavePage = () => {
     return (
         <PageShell>
 
-            <div className="flex justify-between items-center flex-wrap gap-3">
-                <div>
-                    <PageHeader eyebrow="Operations" title="Leave Management" subtitle="Review and approve employee leave requests" />
-                    <p className="text-sm text-gray-500 mt-1">Review and approve employee leave requests</p>
-                </div>
+            {/* ── Page header ── */}
+            <PageHeader
+                eyebrow="Operations"
+                title="Leave Management"
+                subtitle="Review and approve employee leave requests"
+            />
+
+            {/* ── Stats strip ── */}
+            <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+                {[
+                    { label: 'Total',    value: total    },
+                    { label: 'Pending',  value: pending  },
+                    { label: 'Approved', value: approved },
+                    { label: 'Rejected', value: rejected },
+                ].map(s => (
+                    <div key={s.label} className="pg-stat-card">
+                        <span className="pg-stat-value">{s.value}</span>
+                        <span className="pg-stat-label">{s.label}</span>
+                    </div>
+                ))}
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <SummaryCard label="Total"    value={total}    color="border-gray-200  bg-gray-50"   />
-                <SummaryCard label="Pending"  value={pending}  color="border-yellow-200 bg-yellow-50" />
-                <SummaryCard label="Approved" value={approved} color="border-green-200  bg-green-50"  />
-                <SummaryCard label="Rejected" value={rejected} color="border-red-200    bg-red-50"    />
-            </div>
-
-            <div className="flex flex-wrap gap-3 items-center">
-                <input type="text" placeholder="Search by employee name..."
-                    value={search} onChange={e => setSearch(e.target.value)}
-                    className="pg-search" />
+            {/* ── Filters ── */}
+            <div className="pg-filters">
+                <input
+                    className="pg-search"
+                    type="text"
+                    placeholder="Search by employee name…"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    style={{ minWidth: 240 }}
+                />
                 {['All', 'Pending', 'Approved', 'Rejected'].map(s => (
-                    <button key={s} onClick={() => setFilterStatus(s)}
-                        className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'pg-pill active' : 'pg-pill'}`}>
+                    <button
+                        key={s}
+                        className={`pg-pill${filterStatus === s ? ' active' : ''}`}
+                        onClick={() => setFilterStatus(s)}
+                    >
                         {s}
                     </button>
                 ))}
             </div>
 
-            <div className="flex flex-col gap-2 overflow-auto flex-1">
-                <div className="pg-table-head">
-                    <span className="col-span-2">Employee</span>
-                    <span className="col-span-2">Title</span>
-                    <span>Duration</span>
-                    <span>Status</span>
-                    <span>Action</span>
+            {/* ── Table ── */}
+            <div className="pg-table-wrap">
+
+                {/* Header */}
+                <div
+                    className="pg-table-head"
+                    style={{ gridTemplateColumns: '2fr 2fr 1.2fr 100px 90px' }}
+                >
+                    <span className="pg-th">Employee</span>
+                    <span className="pg-th">Request</span>
+                    <span className="pg-th">Duration</span>
+                    <span className="pg-th">Status</span>
+                    <span className="pg-th">Action</span>
                 </div>
 
-                {filtered.length === 0
-                    ? <div className="text-center text-gray-400 py-16">No leave records found.</div>
-                    : filtered.map(l => (
-                        <div key={l._id} className="pg-table-row">
-                            <div className="col-span-2">
-                                <p className="font-medium">{l.employee?.firstname} {l.employee?.lastname}</p>
-                                <p className="text-xs text-gray-400">{l.employee?.department || ''}</p>
-                            </div>
-                            <div className="col-span-2">
-                                <p className="font-medium">{l.title}</p>
-                                <p className="text-xs text-gray-400 truncate max-w-[180px]">{l.reason}</p>
-                            </div>
+                {/* Empty state */}
+                {filtered.length === 0 && (
+                    <div className="pg-empty">
+                        <span className="pg-empty-icon">🌴</span>
+                        <p className="pg-empty-title">
+                            {search || filterStatus !== 'All'
+                                ? 'No records match your filters'
+                                : 'No leave requests yet'}
+                        </p>
+                        <p className="pg-empty-sub">
+                            {search || filterStatus !== 'All'
+                                ? 'Try adjusting your search or filter.'
+                                : 'Leave requests submitted by employees will appear here.'}
+                        </p>
+                    </div>
+                )}
+
+                {/* Rows */}
+                {filtered.map(l => (
+                    <div
+                        key={l._id}
+                        className="pg-table-row"
+                        style={{ gridTemplateColumns: '2fr 2fr 1.2fr 100px 90px' }}
+                    >
+                        {/* Employee */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <Avatar
+                                first={l.employee?.firstname}
+                                last={l.employee?.lastname}
+                            />
                             <div>
-                                <p className="text-xs">{fmtDate(l.startdate)}</p>
-                                <p className="text-xs text-gray-400">{fmtDate(l.enddate)}</p>
+                                <div className="pg-td-name">
+                                    {l.employee?.firstname} {l.employee?.lastname}
+                                </div>
+                                <div className="pg-td-sub">
+                                    {l.employee?.department?.name || l.employee?.department || ''}
+                                </div>
                             </div>
-                            <StatusBadge status={l.status} />
+                        </div>
+
+                        {/* Request title + reason */}
+                        <div>
+                            <div className="pg-td-name">{l.title}</div>
+                            <div className="pg-td-sub" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {l.reason}
+                            </div>
+                        </div>
+
+                        {/* Duration */}
+                        <div>
+                            <div style={{ fontSize: 12, color: '#0f172a', fontWeight: 500 }}>
+                                {fmtDate(l.startdate)}
+                            </div>
+                            <div className="pg-td-sub">→ {fmtDate(l.enddate)}</div>
+                        </div>
+
+                        {/* Status */}
+                        <span>
+                            <StatusPill status={l.status} />
+                        </span>
+
+                        {/* Review button */}
+                        <span>
                             <button
+                                className="pg-action-btn indigo"
                                 disabled={l.status !== 'Pending'}
                                 onClick={() => setSelected(l)}
-                                className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50 disabled:opacity-40 disabled:cursor-not-allowed w-fit">
+                            >
                                 Review
                             </button>
-                        </div>
-                    ))
-                }
+                        </span>
+                    </div>
+                ))}
             </div>
 
-            <ApproveDialog open={!!selected} leave={selected} HRID={HRID}
-                onClose={() => setSelected(null)} onSubmit={handleApprove} />
+            {/* ── Review modal ── */}
+            {selected && (
+                <ReviewModal
+                    leave={selected}
+                    HRID={HRID}
+                    onClose={() => setSelected(null)}
+                    onSubmit={handleSubmit}
+                />
+            )}
+
         </PageShell>
     )
 }
