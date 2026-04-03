@@ -11,48 +11,137 @@ import {
 } from '../../../redux/Thunks/DocumentThunk'
 import { Loading } from '../../../components/common/loading'
 
+// ─── Status → rgba design tokens ─────────────────────────────────────────────
+const STATUS_CONFIG = {
+    'Valid':         { bg: 'rgba(16,185,129,0.07)',  border: 'rgba(16,185,129,0.25)', color: '#059669' },
+    'Expiring Soon': { bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.28)', color: '#b45309' },
+    'Expired':       { bg: 'rgba(239,68,68,0.07)',   border: 'rgba(239,68,68,0.25)',  color: '#dc2626' },
+}
+
+const fmtDate = (d) => d
+    ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '—'
+
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  /* ── Status badge ── */
+  .doc-status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 100px; border: 1px solid;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    font-family: 'DM Sans', sans-serif; white-space: nowrap;
+  }
+  .doc-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Days remaining ── */
+  .doc-days-overdue { font-size: 11px; font-weight: 600; color: #dc2626; margin-top: 2px; }
+  .doc-days-urgent  { font-size: 11px; font-weight: 600; color: #b45309; margin-top: 2px; }
+  .doc-days-ok      { font-size: 11px; color: rgba(0,0,0,0.3); margin-top: 2px; }
+
+  /* ── Alert engine button (amber accent, ghost style) ── */
+  .doc-btn-alert {
+    padding: 9px 18px; background: rgba(245,158,11,0.08); color: #b45309;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; cursor: pointer;
+    transition: background 0.15s; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .doc-btn-alert:hover    { background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.4); }
+  .doc-btn-alert:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Toast notification ── */
+  .doc-toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 60;
+    background: #ffffff; border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 14px; padding: 14px 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'DM Sans', sans-serif; min-width: 260px;
+    animation: toastIn 0.3s ease;
+  }
+  .doc-toast-icon {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  .doc-toast-msg  { font-size: 13px; color: #0f172a; font-weight: 500; flex: 1; }
+  .doc-toast-close {
+    background: none; border: none; cursor: pointer;
+    color: rgba(0,0,0,0.3); font-size: 16px; line-height: 1; padding: 0;
+    transition: color 0.15s;
+  }
+  .doc-toast-close:hover { color: rgba(0,0,0,0.6); }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Modal wider variant ── */
+  .doc-modal {
+    background: #ffffff; border-radius: 20px; padding: 28px 30px;
+    width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.12);
+    display: flex; flex-direction: column; gap: 18px;
+    font-family: 'DM Sans', sans-serif;
+  }
+`
+
 // ─── Status badge ─────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
-    const styles = {
-        'Valid':          'bg-green-100 text-green-800 border border-green-300',
-        'Expiring Soon':  'bg-yellow-100 text-yellow-800 border border-yellow-300',
-        'Expired':        'bg-red-100 text-red-800 border border-red-300',
-    }
+    const cfg = STATUS_CONFIG[status]
+    if (!cfg) return <span style={{ fontSize: '12px', color: 'rgba(0,0,0,0.4)' }}>{status}</span>
     return (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${styles[status] || ''}`}>
+        <span
+            className="doc-status-badge"
+            style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.color }}
+        >
+            <span className="doc-status-dot" style={{ background: cfg.color }} />
             {status}
         </span>
     )
 }
 
-// ─── Summary card ─────────────────────────────────────────────────────────────
-const SummaryCard = ({ label, count, color }) => (
-    <div className={`rounded-xl p-4 flex flex-col gap-1 border ${color}`}>
-        <span className="text-2xl font-bold">{count}</span>
-        <span className="text-sm text-gray-500">{label}</span>
-    </div>
-)
+// ─── Days remaining cell ──────────────────────────────────────────────────────
+const DaysRemaining = ({ expirydate }) => {
+    const days = Math.ceil((new Date(expirydate) - new Date()) / (1000 * 60 * 60 * 24))
+    if (days < 0)   return <span className="doc-days-overdue">{Math.abs(days)}d overdue</span>
+    if (days <= 7)  return <span className="doc-days-urgent">{days}d left</span>
+    if (days <= 30) return <span className="doc-days-urgent" style={{ color: '#b45309', opacity: 0.7 }}>{days}d left</span>
+    return <span className="doc-days-ok">{days}d left</span>
+}
 
-// ─── Add / Edit dialog ────────────────────────────────────────────────────────
+// ─── Alert toast ──────────────────────────────────────────────────────────────
+const AlertToast = ({ result, onClose }) => {
+    if (!result) return null
+    return (
+        <div className="doc-toast">
+            <div className="doc-toast-icon">✅</div>
+            <span className="doc-toast-msg">{result.message}</span>
+            <button className="doc-toast-close" onClick={onClose}>×</button>
+        </div>
+    )
+}
+
+// ─── Add / Edit document dialog ───────────────────────────────────────────────
 const DocumentDialog = ({ open, onClose, onSubmit, employeeList, initialData }) => {
     const isEdit = !!initialData
     const empty  = { employeeID: '', documentname: '', documenttype: 'ID Proof', documentnumber: '', issuedate: '', expirydate: '', notes: '' }
     const [form, setForm] = useState(empty)
 
     useEffect(() => {
-        if (open) setForm(initialData
-            ? {
-                documentID:     initialData._id,
-                employeeID:     initialData.employee?._id || '',
-                documentname:   initialData.documentname,
-                documenttype:   initialData.documenttype,
-                documentnumber: initialData.documentnumber || '',
-                issuedate:      initialData.issuedate ? initialData.issuedate.split('T')[0] : '',
-                expirydate:     initialData.expirydate ? initialData.expirydate.split('T')[0] : '',
-                notes:          initialData.notes || ''
-            }
-            : empty
-        )
+        if (open) setForm(initialData ? {
+            documentID:     initialData._id,
+            employeeID:     initialData.employee?._id || '',
+            documentname:   initialData.documentname,
+            documenttype:   initialData.documenttype,
+            documentnumber: initialData.documentnumber || '',
+            issuedate:      initialData.issuedate ? initialData.issuedate.split('T')[0] : '',
+            expirydate:     initialData.expirydate ? initialData.expirydate.split('T')[0] : '',
+            notes:          initialData.notes || '',
+        } : empty)
     }, [open, initialData])
 
     if (!open) return null
@@ -60,68 +149,86 @@ const DocumentDialog = ({ open, onClose, onSubmit, employeeList, initialData }) 
     const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
     const submit = (e) => { e.preventDefault(); onSubmit(form) }
 
-    const fieldClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
-    const labelClass = "block text-sm font-medium text-gray-700 mb-1"
-
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 mx-4">
-                <h2 className="text-xl font-bold mb-5">{isEdit ? 'Edit Document' : 'Add New Document'}</h2>
-                <form onSubmit={submit} className="flex flex-col gap-4">
+        <div className="pg-modal-overlay">
+            <div className="doc-modal">
+                <div>
+                    <h2 className="pg-modal-title">{isEdit ? 'Edit Document' : 'Add New Document'}</h2>
+                </div>
+
+                <div className="pg-divider" />
+
+                <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {/* Employee selector — create only */}
                     {!isEdit && (
-                        <div>
-                            <label className={labelClass}>Employee</label>
-                            <select name="employeeID" value={form.employeeID} onChange={handle} required className={fieldClass}>
+                        <div className="pg-field">
+                            <label className="pg-label">Employee</label>
+                            <select name="employeeID" value={form.employeeID} onChange={handle} required className="pg-input" style={{ cursor: 'pointer' }}>
                                 <option value="">Select employee</option>
                                 {employeeList.map(emp => (
-                                    <option key={emp._id} value={emp._id}>
-                                        {emp.firstname} {emp.lastname}
-                                    </option>
+                                    <option key={emp._id} value={emp._id}>{emp.firstname} {emp.lastname}</option>
                                 ))}
                             </select>
                         </div>
                     )}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={labelClass}>Document Name</label>
-                            <input name="documentname" value={form.documentname} onChange={handle} required placeholder="e.g. Passport" className={fieldClass} />
+
+                    {/* Doc name + type */}
+                    <div className="pg-grid-2">
+                        <div className="pg-field">
+                            <label className="pg-label">Document Name</label>
+                            <input name="documentname" value={form.documentname} onChange={handle} required
+                                placeholder="e.g. Passport" className="pg-input" />
                         </div>
-                        <div>
-                            <label className={labelClass}>Document Type</label>
-                            <select name="documenttype" value={form.documenttype} onChange={handle} className={fieldClass}>
+                        <div className="pg-field">
+                            <label className="pg-label">Document Type</label>
+                            <select name="documenttype" value={form.documenttype} onChange={handle} className="pg-input" style={{ cursor: 'pointer' }}>
                                 {['ID Proof', 'Passport', 'Work Visa', 'Certification', 'Contract', 'Other'].map(t => (
                                     <option key={t}>{t}</option>
                                 ))}
                             </select>
                         </div>
                     </div>
-                    <div>
-                        <label className={labelClass}>Document Number <span className="text-gray-400">(optional)</span></label>
-                        <input name="documentnumber" value={form.documentnumber} onChange={handle} placeholder="e.g. A1234567" className={fieldClass} />
+
+                    {/* Doc number */}
+                    <div className="pg-field">
+                        <label className="pg-label">
+                            Document Number
+                            <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(0,0,0,0.28)', marginLeft: '6px' }}>(optional)</span>
+                        </label>
+                        <input name="documentnumber" value={form.documentnumber} onChange={handle}
+                            placeholder="e.g. A1234567" className="pg-input" />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={labelClass}>Issue Date <span className="text-gray-400">(optional)</span></label>
-                            <input type="date" name="issuedate" value={form.issuedate} onChange={handle} className={fieldClass} />
+
+                    {/* Issue + expiry dates */}
+                    <div className="pg-grid-2">
+                        <div className="pg-field">
+                            <label className="pg-label">
+                                Issue Date
+                                <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(0,0,0,0.28)', marginLeft: '6px' }}>(optional)</span>
+                            </label>
+                            <input type="date" name="issuedate" value={form.issuedate} onChange={handle} className="pg-input" />
                         </div>
-                        <div>
-                            <label className={labelClass}>Expiry Date</label>
-                            <input type="date" name="expirydate" value={form.expirydate} onChange={handle} required className={fieldClass} />
+                        <div className="pg-field">
+                            <label className="pg-label">Expiry Date</label>
+                            <input type="date" name="expirydate" value={form.expirydate} onChange={handle} required className="pg-input" />
                         </div>
                     </div>
-                    <div>
-                        <label className={labelClass}>Notes <span className="text-gray-400">(optional)</span></label>
-                        <textarea name="notes" value={form.notes} onChange={handle} rows={2} className={fieldClass} placeholder="Any additional notes..." />
+
+                    {/* Notes */}
+                    <div className="pg-field">
+                        <label className="pg-label">
+                            Notes
+                            <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(0,0,0,0.28)', marginLeft: '6px' }}>(optional)</span>
+                        </label>
+                        <textarea name="notes" value={form.notes} onChange={handle} rows={2}
+                            placeholder="Any additional notes…" className="pg-textarea" />
                     </div>
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button
-  type="submit"
-  className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90"
-  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
->
-  {isEdit ? 'Save Changes' : 'Add Document'}
-</button>
+
+                    <div className="pg-modal-actions">
+                        <button type="button" onClick={onClose} className="pg-btn-ghost">Cancel</button>
+                        <button type="submit" className="pg-btn-primary">
+                            {isEdit ? 'Save Changes' : 'Add Document'}
+                        </button>
                     </div>
                 </form>
             </div>
@@ -129,21 +236,10 @@ const DocumentDialog = ({ open, onClose, onSubmit, employeeList, initialData }) 
     )
 }
 
-// ─── Alert result toast ───────────────────────────────────────────────────────
-const AlertToast = ({ result, onClose }) => {
-    if (!result) return null
-    return (
-        <div className="fixed bottom-6 right-6 bg-green-700 text-white px-5 py-3 rounded-xl shadow-lg flex gap-3 items-center z-50">
-            <span className="text-sm">{result.message}</span>
-            <button onClick={onClose} className="text-white/70 hover:text-white text-lg leading-none">&times;</button>
-        </div>
-    )
-}
-
 // ─── Main page ────────────────────────────────────────────────────────────────
 export const DocumentExpiryPage = () => {
-    const dispatch   = useDispatch()
-    const state      = useSelector(s => s.DocumentReducer)
+    const dispatch = useDispatch()
+    const state    = useSelector(s => s.DocumentReducer)
 
     const [dialogOpen,    setDialogOpen]    = useState(false)
     const [editTarget,    setEditTarget]    = useState(null)
@@ -152,7 +248,7 @@ export const DocumentExpiryPage = () => {
     const [showToast,     setShowToast]     = useState(false)
     const [runningAlerts, setRunningAlerts] = useState(false)
 
-    // Derive employee list from document data for the add-document dropdown
+    // Derive employee list from existing documents for the dropdown
     const employeeList = []
     const seen = new Set()
     ;(state.data || []).forEach(doc => {
@@ -178,22 +274,11 @@ export const DocumentExpiryPage = () => {
         if (state.alertResult) setShowToast(true)
     }, [state.alertResult])
 
-    const handleAdd = (form) => {
-        dispatch(HandleCreateDocument(form))
-        setDialogOpen(false)
-    }
-
-    const handleEdit = (form) => {
-        dispatch(HandleUpdateDocument(form))
-        setEditTarget(null)
-    }
-
+    const handleAdd    = (form) => { dispatch(HandleCreateDocument(form)); setDialogOpen(false) }
+    const handleEdit   = (form) => { dispatch(HandleUpdateDocument(form)); setEditTarget(null) }
     const handleDelete = (docID) => {
-        if (window.confirm('Are you sure you want to delete this document record?')) {
-            dispatch(HandleDeleteDocument({ documentID: docID }))
-        }
+        if (window.confirm('Delete this document record?')) dispatch(HandleDeleteDocument({ documentID: docID }))
     }
-
     const handleRunAlerts = async () => {
         setRunningAlerts(true)
         await dispatch(HandleRunAlertEngine())
@@ -212,126 +297,134 @@ export const DocumentExpiryPage = () => {
     if (state.isLoading && !state.data?.length) return <Loading />
 
     return (
-        <PageShell>
+        <>
+            <style>{styles}</style>
+            <PageShell>
 
-            {/* Header */}
-            <div className="flex justify-between items-center flex-wrap gap-3">
-                <PageHeader eyebrow="Operations" title="Document Expiry Alerts" subtitle="Track document validity and trigger email alerts" />
-                <div className="flex gap-2 flex-wrap">
+                {/* ── Header ── */}
+                <PageHeader
+                    eyebrow="Operations"
+                    title="Document Expiry"
+                    subtitle="Track document validity and trigger email alerts"
+                >
                     <button
+                        className="doc-btn-alert"
                         onClick={handleRunAlerts}
                         disabled={runningAlerts}
-                        className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium disabled:opacity-60 flex items-center gap-2"
                     >
-                        {runningAlerts ? 'Running...' : '⚡ Run Alert Engine'}
+                        ⚡ {runningAlerts ? 'Running…' : 'Run Alert Engine'}
                     </button>
-                    <button
-  onClick={() => setDialogOpen(true)}
-  className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90"
-  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}
->
-  + Add Document
-</button>
-                </div>
-            </div>
-
-            {/* Summary cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <SummaryCard label="Total Documents"  count={state.summary.total}        color="border-gray-200 bg-gray-50" />
-                <SummaryCard label="Valid"             count={state.summary.valid}         color="border-green-200 bg-green-50" />
-                <SummaryCard label="Expiring Soon"     count={state.summary.expiringSoon}  color="border-yellow-200 bg-yellow-50" />
-                <SummaryCard label="Expired"           count={state.summary.expired}       color="border-red-200 bg-red-50" />
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap gap-3 items-center">
-                <input
-                    type="text"
-                    placeholder="Search by employee or document..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                />
-                {['All', 'Valid', 'Expiring Soon', 'Expired'].map(s => (
-                    <button
-                        key={s}
-                        onClick={() => setFilterStatus(s)}
-                        className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
-                            filterStatus === s
-                                ? 'bg-indigo-600 text-white border-indigo-600'
-                                : 'border-gray-300 text-gray-600 hover:border-indigo-300'
-                        }`}
-                    >
-                        {s}
+                    <button className="pg-btn-primary" onClick={() => setDialogOpen(true)}>
+                        + Add Document
                     </button>
-                ))}
-            </div>
+                </PageHeader>
 
-            {/* Table */}
-            <div className="flex flex-col gap-2 overflow-auto flex-1">
-                {/* Table header */}
-                <div className="grid grid-cols-6 bg-gray-100 rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 sticky top-0">
-                    <span>Employee</span>
-                    <span>Document Name</span>
-                    <span>Type</span>
-                    <span>Expiry Date</span>
-                    <span>Status</span>
-                    <span>Actions</span>
+                {/* ── Stats ── */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                        { label: 'Total',         value: state.summary?.total        ?? 0 },
+                        { label: 'Valid',          value: state.summary?.valid        ?? 0 },
+                        { label: 'Expiring Soon',  value: state.summary?.expiringSoon ?? 0 },
+                        { label: 'Expired',        value: state.summary?.expired      ?? 0 },
+                    ].map(c => (
+                        <div key={c.label} className="pg-stat-card">
+                            <span className="pg-stat-value">{c.value}</span>
+                            <span className="pg-stat-label">{c.label}</span>
+                        </div>
+                    ))}
                 </div>
 
-                {/* Rows */}
-                {filtered.length === 0 ? (
-                    <div className="text-center text-gray-400 py-16">No documents found.</div>
-                ) : (
-                    filtered.map(doc => {
-                        const daysLeft = Math.ceil((new Date(doc.expirydate) - new Date()) / (1000 * 60 * 60 * 24))
-                        return (
-                            <div key={doc._id} className="grid grid-cols-6 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-gray-50 transition-all">
-                                <span className="font-medium">
-                                    {doc.employee?.firstname} {doc.employee?.lastname}
-                                </span>
-                                <span>{doc.documentname}</span>
-                                <span className="text-gray-500">{doc.documenttype}</span>
-                                <div className="flex flex-col">
-                                    <span>{new Date(doc.expirydate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                    <span className={`text-xs ${daysLeft < 0 ? 'text-red-500' : daysLeft <= 7 ? 'text-orange-500' : 'text-gray-400'}`}>
-                                        {daysLeft < 0 ? `${Math.abs(daysLeft)}d overdue` : `${daysLeft}d left`}
-                                    </span>
-                                </div>
-                                <StatusBadge status={doc.status} />
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setEditTarget(doc)}
-                                        className="px-3 py-1 rounded-md text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50"
-                                    >Edit</button>
-                                    <button
-                                        onClick={() => handleDelete(doc._id)}
-                                        className="px-3 py-1 rounded-md text-xs border border-red-400 text-red-600 hover:bg-red-50"
-                                    >Delete</button>
-                                </div>
+                {/* ── Filters ── */}
+                <div className="pg-filters">
+                    <input
+                        type="text"
+                        placeholder="Search by employee or document…"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="pg-search"
+                    />
+                    {['All', 'Valid', 'Expiring Soon', 'Expired'].map(s => (
+                        <button
+                            key={s}
+                            onClick={() => setFilterStatus(s)}
+                            className={`pg-pill${filterStatus === s ? ' active' : ''}`}
+                        >
+                            {s}
+                        </button>
+                    ))}
+                </div>
+
+                {/* ── Table ── */}
+                <div className="pg-table-wrap">
+                    <div className="pg-table-head grid grid-cols-6">
+                        {['Employee', 'Document', 'Type', 'Expiry', 'Status', 'Actions'].map(h => (
+                            <span key={h} className="pg-th">{h}</span>
+                        ))}
+                    </div>
+
+                    {filtered.length === 0 ? (
+                        <div className="pg-empty">
+                            <span className="pg-empty-icon">📄</span>
+                            <p className="pg-empty-title">No documents found</p>
+                            <p className="pg-empty-sub">Try adjusting your search or filter, or add a new document record.</p>
+                        </div>
+                    ) : filtered.map(doc => (
+                        <div key={doc._id} className="pg-table-row grid grid-cols-6">
+                            {/* Employee */}
+                            <div>
+                                <p className="pg-td-name">{doc.employee?.firstname} {doc.employee?.lastname}</p>
                             </div>
-                        )
-                    })
+
+                            {/* Document name */}
+                            <div>
+                                <p className="pg-td-name">{doc.documentname}</p>
+                                {doc.documentnumber && (
+                                    <p className="pg-td-sub">#{doc.documentnumber}</p>
+                                )}
+                            </div>
+
+                            {/* Type */}
+                            <span className="pg-td-muted">{doc.documenttype}</span>
+
+                            {/* Expiry date + countdown */}
+                            <div>
+                                <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500 }}>{fmtDate(doc.expirydate)}</p>
+                                <DaysRemaining expirydate={doc.expirydate} />
+                            </div>
+
+                            {/* Status */}
+                            <StatusBadge status={doc.status} />
+
+                            {/* Actions */}
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <button className="pg-action-btn indigo" onClick={() => setEditTarget(doc)}>Edit</button>
+                                <button className="pg-action-btn red"    onClick={() => handleDelete(doc._id)}>Delete</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* ── Dialogs ── */}
+                <DocumentDialog
+                    open={dialogOpen}
+                    onClose={() => setDialogOpen(false)}
+                    onSubmit={handleAdd}
+                    employeeList={employeeList}
+                />
+                <DocumentDialog
+                    open={!!editTarget}
+                    onClose={() => setEditTarget(null)}
+                    onSubmit={handleEdit}
+                    employeeList={employeeList}
+                    initialData={editTarget}
+                />
+
+                {/* ── Toast ── */}
+                {showToast && (
+                    <AlertToast result={state.alertResult} onClose={() => setShowToast(false)} />
                 )}
-            </div>
 
-            {/* Dialogs */}
-            <DocumentDialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                onSubmit={handleAdd}
-                employeeList={employeeList}
-            />
-            <DocumentDialog
-                open={!!editTarget}
-                onClose={() => setEditTarget(null)}
-                onSubmit={handleEdit}
-                employeeList={employeeList}
-                initialData={editTarget}
-            />
-
-            {/* Alert toast */}
-            <AlertToast result={state.alertResult} onClose={() => setShowToast(false)} />
-        </PageShell>
+            </PageShell>
+        </>
     )
 }
