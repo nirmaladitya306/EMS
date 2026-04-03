@@ -2,66 +2,107 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetHRAnalytics } from '../../../redux/Thunks/AnalyticsThunk'
 import { Loading } from '../../../components/common/loading'
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import {
     BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 
-// ─── Colour palettes ──────────────────────────────────────────────────────────
-const BLUE    = '#3b82f6'
-const GREEN   = '#22c55e'
-const RED     = '#ef4444'
-const AMBER   = '#f59e0b'
-const INDIGO  = '#6366f1'
-const TEAL    = '#14b8a6'
-const SLATE   = '#94a3b8'
-const PIE_COLORS = [GREEN, AMBER, RED, INDIGO, TEAL, SLATE, BLUE]
+// ─── Chart colour tokens (match the design system palette) ───────────────────
+const C = {
+    indigo:  '#6366f1',
+    violet:  '#8b5cf6',
+    green:   '#16a34a',
+    amber:   '#d97706',
+    red:     '#dc2626',
+    sky:     '#0ea5e9',
+    teal:    '#0d9488',
+    slate:   '#64748b',
+}
 
-// ─── Reusable section wrapper ─────────────────────────────────────────────────
-const Section = ({ title, children, className = '' }) => (
-    <div className={`bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-4 ${className}`}>
-        <h2 className="text-base font-bold text-gray-700 border-b border-gray-100 pb-2">{title}</h2>
+// ─── Section card — replaces the old bg-white border-gray-200 Section ────────
+// Uses pg-section from PageShell: frosted neutral bg + subtle border + 16px radius
+const Section = ({ title, children, style = {} }) => (
+    <div className="pg-section" style={style}>
+        <div className="pg-section-title">{title}</div>
         {children}
     </div>
 )
 
-// ─── KPI card ─────────────────────────────────────────────────────────────────
-const KPI = ({ label, value, sub, color = 'border-gray-200 bg-gray-50' }) => (
-    <div className={`rounded-xl border p-4 flex flex-col gap-1 ${color}`}>
-        <span className="text-2xl font-bold text-gray-800">{value ?? '—'}</span>
-        <span className="text-sm font-medium text-gray-600">{label}</span>
-        {sub && <span className="text-xs text-gray-400">{sub}</span>}
+// ─── KPI mini-card — replaces the coloured bg-blue-50 / bg-green-50 cards ────
+// Uses pg-stat-card from PageShell: neutral frosted, DM Serif Display number
+const KPI = ({ label, value, sub }) => (
+    <div className="pg-stat-card">
+        <span className="pg-stat-value" style={{ fontSize: '1.4rem' }}>{value ?? '—'}</span>
+        <span className="pg-stat-label">{label}</span>
+        {sub && (
+            <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.28)', marginTop: 1 }}>{sub}</span>
+        )}
     </div>
 )
 
-// ─── Custom tooltip ───────────────────────────────────────────────────────────
+// ─── Recharts custom tooltip — kept from original, colours updated ─────────────
 const ChartTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null
     return (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2 text-xs">
-            <p className="font-semibold text-gray-700 mb-1">{label}</p>
+        <div style={{
+            background: '#ffffff',
+            border: '1px solid rgba(0,0,0,0.08)',
+            borderRadius: 10,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+            padding: '8px 12px',
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 12,
+        }}>
+            {label && (
+                <p style={{ fontWeight: 600, color: '#0f172a', marginBottom: 4 }}>{label}</p>
+            )}
             {payload.map((p, i) => (
-                <p key={i} style={{ color: p.color }}>{p.name}: <strong>{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</strong></p>
+                <p key={i} style={{ color: p.color, margin: '2px 0' }}>
+                    {p.name}: <strong>{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</strong>
+                </p>
             ))}
         </div>
     )
 }
 
-// ─── Donut / Pie wrapper ──────────────────────────────────────────────────────
-const DonutChart = ({ data, colors }) => (
-    <ResponsiveContainer width="100%" height={200}>
+// ─── Donut chart wrapper ──────────────────────────────────────────────────────
+const DonutChart = ({ data, colors, height = 200 }) => (
+    <ResponsiveContainer width="100%" height={height}>
         <PieChart>
-            <Pie data={data} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
-                dataKey="value" paddingAngle={3}>
-                {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
+            <Pie
+                data={data}
+                cx="50%" cy="50%"
+                innerRadius={52} outerRadius={82}
+                dataKey="value"
+                paddingAngle={3}
+            >
+                {data.map((_, i) => (
+                    <Cell key={i} fill={colors[i % colors.length]} />
+                ))}
             </Pie>
-            <Tooltip formatter={(v) => v.toLocaleString()} />
-            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+            <Tooltip formatter={v => v.toLocaleString()} />
+            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, fontFamily: "'DM Sans', sans-serif" }} />
         </PieChart>
     </ResponsiveContainer>
 )
 
-// ─── Main HR Analytics page ───────────────────────────────────────────────────
+// ─── Empty data placeholder inside a section ─────────────────────────────────
+const NoData = ({ text = 'No data yet.' }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '32px 0', fontSize: 13, color: 'rgba(0,0,0,0.3)',
+        fontFamily: "'DM Sans', sans-serif",
+    }}>
+        {text}
+    </div>
+)
+
+// ─── Shared axis / grid props ─────────────────────────────────────────────────
+const axisStyle = { fontSize: 11, fontFamily: "'DM Sans', sans-serif", fill: 'rgba(0,0,0,0.4)' }
+const gridProps = { strokeDasharray: '3 3', stroke: 'rgba(0,0,0,0.06)' }
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 export const HRAnalyticsPage = () => {
     const dispatch = useDispatch()
     const state    = useSelector(s => s.AnalyticsReducer)
@@ -73,13 +114,21 @@ export const HRAnalyticsPage = () => {
 
     if (state.error.status) {
         return (
-            <div className="flex items-center justify-center h-64 text-red-500 text-sm">
-                Failed to load analytics: {state.error.message}
-            </div>
+            <PageShell>
+                <div style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexDirection: 'column', gap: 12, textAlign: 'center',
+                }}>
+                    <span style={{ fontSize: '2.5rem' }}>⚠️</span>
+                    <p style={{ fontSize: 14, color: '#dc2626', fontFamily: "'DM Sans', sans-serif" }}>
+                        Failed to load analytics: {state.error.message}
+                    </p>
+                </div>
+            </PageShell>
         )
     }
 
-    // ── Derived data for charts ───────────────────────────────────────────────
+    // ── Derived chart data ────────────────────────────────────────────────────
     const leaveDonut = [
         { name: 'Approved', value: d.leaveStats.approved },
         { name: 'Pending',  value: d.leaveStats.pending  },
@@ -93,16 +142,16 @@ export const HRAnalyticsPage = () => {
     ].filter(x => x.value > 0)
 
     const docDonut = [
-        { name: 'Valid',         value: d.documentStats.valid         },
-        { name: 'Expiring Soon', value: d.documentStats.expiringSoon  },
-        { name: 'Expired',       value: d.documentStats.expired       },
+        { name: 'Valid',         value: d.documentStats.valid        },
+        { name: 'Expiring Soon', value: d.documentStats.expiringSoon },
+        { name: 'Expired',       value: d.documentStats.expired      },
     ].filter(x => x.value > 0)
 
     const exitDonut = [
-        { name: 'Pending',     value: d.exitStats.pending     },
-        { name: 'In Progress', value: d.exitStats.inProgress  },
-        { name: 'Cleared',     value: d.exitStats.cleared     },
-        { name: 'Rejected',    value: d.exitStats.rejected    },
+        { name: 'Pending',     value: d.exitStats.pending    },
+        { name: 'In Progress', value: d.exitStats.inProgress },
+        { name: 'Cleared',     value: d.exitStats.cleared    },
+        { name: 'Rejected',    value: d.exitStats.rejected   },
     ].filter(x => x.value > 0)
 
     const reqDonut = [
@@ -115,198 +164,228 @@ export const HRAnalyticsPage = () => {
         .map(([name, value]) => ({ name: name.replace(/-/g, ' '), value }))
 
     return (
-        <div className="hr-analytics-page w-full mx-auto my-8 flex flex-col gap-6 pb-10 pe-5 overflow-auto">
+        <PageShell>
 
-            {/* ── Header ── */}
-            <div>
-                <h1 className="text-3xl font-bold">Analytics</h1>
-                <p className="text-sm text-gray-500 mt-1">Organisation-wide metrics across all modules</p>
+            {/* ── Page header ── */}
+            <PageHeader
+                eyebrow="Intelligence"
+                title="Analytics"
+                subtitle="Organisation-wide metrics across all modules"
+            />
+
+            {/* ── Overview KPI strip ── */}
+            <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+                <KPI label="Total Employees"  value={d.overview.totalEmployees}                                              />
+                <KPI label="Departments"      value={d.overview.totalDepts}                                                  />
+                <KPI label="Attendance Rate"  value={`${d.overview.orgAttendanceRate}%`}                                     />
+                <KPI label="Total Payroll"    value={d.overview.totalPayroll?.toLocaleString()}    sub="sum of all net pay"  />
+                <KPI label="Avg Salary"       value={d.overview.avgSalary?.toLocaleString()}       sub="per employee"        />
             </div>
 
-            {/* ── Overview KPIs ── */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                <KPI label="Total Employees"    value={d.overview.totalEmployees}                        color="border-blue-200   bg-blue-50"   />
-                <KPI label="Departments"        value={d.overview.totalDepts}                            color="border-indigo-200 bg-indigo-50" />
-                <KPI label="Attendance Rate"    value={`${d.overview.orgAttendanceRate}%`}               color="border-teal-200   bg-teal-50"   />
-                <KPI label="Total Payroll"      value={`${d.overview.totalPayroll?.toLocaleString()}`}   color="border-green-200  bg-green-50"  sub="sum of all net pay" />
-                <KPI label="Avg Salary"         value={`${d.overview.avgSalary?.toLocaleString()}`}      color="border-amber-200  bg-amber-50"  sub="per employee" />
-            </div>
+            {/* ── Row 1 — Headcount ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
-            {/* ── Row 1: Headcount ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
-                {/* New hires per month */}
                 <Section title="New Hires — Last 6 Months">
                     <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={d.hiresPerMonth} barSize={28}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                        <BarChart data={d.hiresPerMonth} barSize={26}>
+                            <CartesianGrid {...gridProps} />
+                            <XAxis dataKey="month"  tick={axisStyle} />
+                            <YAxis allowDecimals={false} tick={axisStyle} />
                             <Tooltip content={<ChartTooltip />} />
-                            <Bar dataKey="hires" name="New Hires" fill={BLUE} radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="hires" name="New Hires" fill={C.indigo} radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </Section>
 
-                {/* Headcount by department */}
                 <Section title="Headcount by Department">
-                    {d.headcountByDept.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-8">No department data yet.</p>
-                    ) : (
+                    {d.headcountByDept.length === 0 ? <NoData text="No department data yet." /> : (
                         <ResponsiveContainer width="100%" height={220}>
-                            <BarChart data={d.headcountByDept} layout="vertical" barSize={18}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-                                <YAxis type="category" dataKey="department" tick={{ fontSize: 11 }} width={110} />
+                            <BarChart data={d.headcountByDept} layout="vertical" barSize={16}>
+                                <CartesianGrid {...gridProps} horizontal={false} />
+                                <XAxis type="number" allowDecimals={false} tick={axisStyle} />
+                                <YAxis type="category" dataKey="department" tick={axisStyle} width={110} />
                                 <Tooltip content={<ChartTooltip />} />
-                                <Bar dataKey="count" name="Employees" fill={INDIGO} radius={[0, 4, 4, 0]} />
+                                <Bar dataKey="count" name="Employees" fill={C.violet} radius={[0, 4, 4, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     )}
                 </Section>
             </div>
 
-            {/* ── Row 2: Leaves & Payroll ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* ── Row 2 — Leaves ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
-                {/* Leaves per month stacked */}
                 <Section title="Leave Applications — Last 6 Months">
                     <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={d.leavesPerMonth} barSize={22}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                        <BarChart data={d.leavesPerMonth} barSize={20}>
+                            <CartesianGrid {...gridProps} />
+                            <XAxis dataKey="month" tick={axisStyle} />
+                            <YAxis allowDecimals={false} tick={axisStyle} />
                             <Tooltip content={<ChartTooltip />} />
-                            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                            <Bar dataKey="approved" name="Approved" stackId="a" fill={GREEN}  radius={[0, 0, 0, 0]} />
-                            <Bar dataKey="pending"  name="Pending"  stackId="a" fill={AMBER}  />
-                            <Bar dataKey="rejected" name="Rejected" stackId="a" fill={RED}    radius={[4, 4, 0, 0]} />
+                            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, fontFamily: "'DM Sans', sans-serif" }} />
+                            <Bar dataKey="approved" name="Approved" stackId="a" fill={C.green}                        />
+                            <Bar dataKey="pending"  name="Pending"  stackId="a" fill={C.amber}                        />
+                            <Bar dataKey="rejected" name="Rejected" stackId="a" fill={C.red}   radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </Section>
 
-                {/* Leave status donut */}
                 <Section title="Leave Status Breakdown">
                     {leaveDonut.length === 0
-                        ? <p className="text-sm text-gray-400 text-center py-8">No leave data yet.</p>
-                        : <DonutChart data={leaveDonut} colors={[GREEN, AMBER, RED]} />
+                        ? <NoData text="No leave data yet." />
+                        : <DonutChart data={leaveDonut} colors={[C.green, C.amber, C.red]} />
                     }
                 </Section>
             </div>
 
-            {/* ── Row 3: Payroll trend ── */}
+            {/* ── Row 3 — Payroll trend (full width) ── */}
             <Section title="Payroll Trend — Last 6 Months">
                 <ResponsiveContainer width="100%" height={240}>
                     <LineChart data={d.payrollPerMonth}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                        <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v.toLocaleString()} />
-                        <Tooltip content={<ChartTooltip />} formatter={(v) => v.toLocaleString()} />
-                        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                        <Line type="monotone" dataKey="total"      name="Net Pay"    stroke={BLUE}   strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="bonuses"    name="Bonuses"    stroke={GREEN}  strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 2" />
-                        <Line type="monotone" dataKey="deductions" name="Deductions" stroke={RED}    strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 2" />
+                        <CartesianGrid {...gridProps} />
+                        <XAxis dataKey="month" tick={axisStyle} />
+                        <YAxis tick={axisStyle} tickFormatter={v => v.toLocaleString()} />
+                        <Tooltip content={<ChartTooltip />} />
+                        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, fontFamily: "'DM Sans', sans-serif" }} />
+                        <Line type="monotone" dataKey="total"      name="Net Pay"    stroke={C.indigo} strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="bonuses"    name="Bonuses"    stroke={C.green}  strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 2" />
+                        <Line type="monotone" dataKey="deductions" name="Deductions" stroke={C.red}    strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 2" />
                     </LineChart>
                 </ResponsiveContainer>
             </Section>
 
-            {/* ── Row 4: Salary, Docs, Requests ── */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* ── Row 4 — Salary · Docs · Requests ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
 
                 <Section title="Salary Payment Status">
                     {salaryDonut.length === 0
-                        ? <p className="text-sm text-gray-400 text-center py-8">No salary data.</p>
-                        : <DonutChart data={salaryDonut} colors={[GREEN, AMBER, RED]} />
+                        ? <NoData text="No salary data." />
+                        : <DonutChart data={salaryDonut} colors={[C.green, C.amber, C.red]} />
                     }
                 </Section>
 
                 <Section title="Document Status">
                     {docDonut.length === 0
-                        ? <p className="text-sm text-gray-400 text-center py-8">No documents yet.</p>
-                        : <DonutChart data={docDonut} colors={[GREEN, AMBER, RED]} />
+                        ? <NoData text="No documents yet." />
+                        : <DonutChart data={docDonut} colors={[C.green, C.amber, C.red]} />
                     }
                 </Section>
 
                 <Section title="Request Outcomes">
                     {reqDonut.length === 0
-                        ? <p className="text-sm text-gray-400 text-center py-8">No requests yet.</p>
-                        : <DonutChart data={reqDonut} colors={[GREEN, AMBER, RED]} />
+                        ? <NoData text="No requests yet." />
+                        : <DonutChart data={reqDonut} colors={[C.green, C.amber, C.red]} />
                     }
                 </Section>
             </div>
 
-            {/* ── Row 5: Recruitment & Exit Clearance ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* ── Row 5 — Recruitment · Exit clearance ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
-                {/* Applicants by status */}
-                <Section title={`Recruitment Pipeline (${d.recruitmentStats.openRoles} open roles)`}>
-                    {appByStatus.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-8">No applicants yet.</p>
-                    ) : (
+                <Section title={`Recruitment Pipeline — ${d.recruitmentStats.openRoles} open role${d.recruitmentStats.openRoles !== 1 ? 's' : ''}`}>
+                    {appByStatus.length === 0 ? <NoData text="No applicants yet." /> : (
                         <ResponsiveContainer width="100%" height={220}>
-                            <BarChart data={appByStatus} barSize={30}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                            <BarChart data={appByStatus} barSize={28}>
+                                <CartesianGrid {...gridProps} />
+                                <XAxis dataKey="name" tick={{ ...axisStyle, fontSize: 10 }} />
+                                <YAxis allowDecimals={false} tick={axisStyle} />
                                 <Tooltip content={<ChartTooltip />} />
-                                <Bar dataKey="value" name="Applicants" fill={INDIGO} radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="value" name="Applicants" fill={C.indigo} radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     )}
                 </Section>
 
-                {/* Exit clearance */}
                 <Section title="Exit Clearance Status">
-                    <div className="grid grid-cols-2 gap-3 mb-2">
-                        <KPI label="Total"       value={d.exitStats.total}      color="border-gray-200   bg-gray-50"   />
-                        <KPI label="In Progress" value={d.exitStats.inProgress} color="border-blue-200   bg-blue-50"   />
-                        <KPI label="Cleared"     value={d.exitStats.cleared}    color="border-green-200  bg-green-50"  />
-                        <KPI label="Pending"     value={d.exitStats.pending}    color="border-amber-200  bg-amber-50"  />
+                    {/* Mini KPI grid inside the section */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                        <KPI label="Total"       value={d.exitStats.total}      />
+                        <KPI label="In Progress" value={d.exitStats.inProgress} />
+                        <KPI label="Cleared"     value={d.exitStats.cleared}    />
+                        <KPI label="Pending"     value={d.exitStats.pending}    />
                     </div>
-                    {exitDonut.length > 0 && <DonutChart data={exitDonut} colors={[AMBER, BLUE, GREEN, RED]} />}
-                </Section>
-            </div>
-
-            {/* ── Row 6: Notices & Activity ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
-                {/* Notices per month */}
-                <Section title="Notices Issued — Last 6 Months">
-                    <ResponsiveContainer width="100%" height={200}>
-                        <BarChart data={d.noticesPerMonth} barSize={28}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                            <Tooltip content={<ChartTooltip />} />
-                            <Bar dataKey="count" name="Notices" fill={AMBER} radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </Section>
-
-                {/* Top activity actions */}
-                <Section title="Top System Actions — Last 30 Days">
-                    {d.topActions.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-8">No activity in the last 30 days.</p>
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                            {d.topActions.map((a, i) => {
-                                const max = d.topActions[0]?.count || 1
-                                const pct = Math.round((a.count / max) * 100)
-                                return (
-                                    <div key={i} className="flex items-center gap-3">
-                                        <span className="text-xs text-gray-500 w-36 truncate capitalize">{a.action.toLowerCase()}</span>
-                                        <div className="flex-1 bg-gray-100 rounded-full h-2">
-                                            <div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
-                                        </div>
-                                        <span className="text-xs font-semibold text-gray-600 w-8 text-right">{a.count}</span>
-                                    </div>
-                                )
-                            })}
-                        </div>
+                    {exitDonut.length > 0 && (
+                        <DonutChart data={exitDonut} colors={[C.amber, C.sky, C.green, C.red]} height={180} />
                     )}
                 </Section>
             </div>
 
-        </div>
+            {/* ── Row 6 — Notices · Top actions ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+
+                <Section title="Notices Issued — Last 6 Months">
+                    <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={d.noticesPerMonth} barSize={26}>
+                            <CartesianGrid {...gridProps} />
+                            <XAxis dataKey="month" tick={axisStyle} />
+                            <YAxis allowDecimals={false} tick={axisStyle} />
+                            <Tooltip content={<ChartTooltip />} />
+                            <Bar dataKey="count" name="Notices" fill={C.amber} radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </Section>
+
+                <Section title="Top System Actions — Last 30 Days">
+                    {d.topActions.length === 0
+                        ? <NoData text="No activity in the last 30 days." />
+                        : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                {d.topActions.map((a, i) => {
+                                    const max = d.topActions[0]?.count || 1
+                                    const pct = Math.round((a.count / max) * 100)
+                                    return (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            {/* Rank badge */}
+                                            <span style={{
+                                                width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                                                background: i === 0 ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'rgba(0,0,0,0.06)',
+                                                color: i === 0 ? 'white' : 'rgba(0,0,0,0.4)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: 9, fontWeight: 700,
+                                                fontFamily: "'DM Serif Display', serif",
+                                            }}>
+                                                {i + 1}
+                                            </span>
+                                            {/* Action name */}
+                                            <span style={{
+                                                width: 150, flexShrink: 0,
+                                                fontSize: 12, color: 'rgba(0,0,0,0.55)',
+                                                overflow: 'hidden', textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap', textTransform: 'capitalize',
+                                                fontFamily: "'DM Sans', sans-serif",
+                                            }}>
+                                                {a.action.replace(/_/g, ' ').toLowerCase()}
+                                            </span>
+                                            {/* Bar track */}
+                                            <div style={{
+                                                flex: 1, height: 6, borderRadius: 100,
+                                                background: 'rgba(0,0,0,0.06)',
+                                            }}>
+                                                <div style={{
+                                                    width: `${pct}%`, height: '100%', borderRadius: 100,
+                                                    background: i === 0
+                                                        ? 'linear-gradient(90deg,#6366f1,#8b5cf6)'
+                                                        : 'rgba(99,102,241,0.35)',
+                                                    transition: 'width 0.4s ease',
+                                                }} />
+                                            </div>
+                                            {/* Count */}
+                                            <span style={{
+                                                width: 28, textAlign: 'right', flexShrink: 0,
+                                                fontSize: 12, fontWeight: 700, color: '#0f172a',
+                                                fontFamily: "'DM Serif Display', serif",
+                                            }}>
+                                                {a.count}
+                                            </span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )
+                    }
+                </Section>
+            </div>
+
+        </PageShell>
     )
 }
