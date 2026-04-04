@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetMyDriftEvents } from '../../../redux/Thunks/AccessDriftThunk'
@@ -79,12 +80,12 @@ export const MyAccessDriftPage = () => {
     if (state.isLoading && !drifts.length) return <Loading />
 
     return (
-        <div className="my-access-drift-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
 
             {/* ── Header ── */}
             <div className="flex justify-between items-start flex-wrap gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">My Security Flags</h1>
+                    <PageHeader eyebrow="Security" title="My Security Flags" subtitle="Access drift alerts flagged on your account" />
                     <p className="text-sm text-gray-500 mt-1">
                         Access drift alerts flagged on your account by the security system
                     </p>
@@ -225,6 +226,6 @@ export const MyAccessDriftPage = () => {
             <p className="text-xs text-gray-400 border-t border-gray-100 pt-3">
                 Showing last 50 security flags. Older records are archived automatically.
             </p>
-        </div>
+        </PageShell>
     )
 }

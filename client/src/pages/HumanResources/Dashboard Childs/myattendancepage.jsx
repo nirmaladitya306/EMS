@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -8,15 +9,40 @@ import {
 } from '../../../redux/Thunks/EmployeeDashboardThunk'
 import { Loading } from '../../../components/common/loading'
 
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+const fmtDate = (d) => {
+    return d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+}
+
+const STATUS_CONFIG = {
+    'Present':       { bg: 'rgba(16,185,129,0.07)',  border: 'rgba(16,185,129,0.25)', color: '#059669' },
+    'Absent':        { bg: 'rgba(239,68,68,0.07)',   border: 'rgba(239,68,68,0.25)',  color: '#dc2626' },
+    'Not Specified': { bg: 'rgba(107,114,128,0.08)', border: 'rgba(107,114,128,0.28)', color: '#4b5563' }
+}
+
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+  .at-status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 100px; border: 1px solid;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    font-family: 'DM Sans', sans-serif; white-space: nowrap;
+  }
+  .at-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .at-mark-card {
+    background: white; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;
+  }
+`
 
 const StatusBadge = ({ status }) => {
-    const map = {
-        Present:        'bg-green-100  text-green-800  border-green-300',
-        Absent:         'bg-red-100    text-red-800    border-red-300',
-        'Not Specified':'bg-gray-100   text-gray-600   border-gray-300',
-    }
-    return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${map[status] || ''}`}>{status}</span>
+    const cfg = STATUS_CONFIG[status]
+    if (!cfg) return <span style={{ fontSize: '12px', color: 'rgba(0,0,0,0.4)' }}>{status}</span>
+    return (
+        <span className="at-status-badge" style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.color }}>
+            <span className="at-status-dot" style={{ background: cfg.color }} />
+            {status}
+        </span>
+    )
 }
 
 export const MyAttendancePage = () => {
@@ -29,11 +55,17 @@ export const MyAttendancePage = () => {
     const [markStatus, setMarkStatus] = useState('Present')
     const today = new Date().toISOString().split('T')[0]
 
-    useEffect(() => {
-        if (!profile) dispatch(HandleGetEmployeeProfile())
-    }, [])
-    useEffect(() => { dispatch(HandleGetMyAttendance()) }, [])
-    useEffect(() => { if (state.fetchAttendance) dispatch(HandleGetMyAttendance()) }, [state.fetchAttendance])
+    useEffect(() => { 
+        if (!profile) dispatch(HandleGetEmployeeProfile()) 
+    }, [dispatch, profile])
+
+    useEffect(() => { 
+        dispatch(HandleGetMyAttendance()) 
+    }, [dispatch])
+
+    useEffect(() => { 
+        if (state.fetchAttendance) dispatch(HandleGetMyAttendance()) 
+    }, [state.fetchAttendance, dispatch])
 
     const handleInitialize = () => {
         if (!employeeID) return
@@ -49,90 +81,102 @@ export const MyAttendancePage = () => {
         }))
     }
 
-    const todayLog   = attendance?.attendancelog?.find(l => l.logdate?.split('T')[0] === today)
-    const logs       = [...(attendance?.attendancelog || [])].reverse()
-    const presentCt  = attendance?.attendancelog?.filter(l => l.logstatus === 'Present').length  || 0
-    const absentCt   = attendance?.attendancelog?.filter(l => l.logstatus === 'Absent').length   || 0
-    const totalDays  = attendance?.attendancelog?.length || 0
-    const rate       = totalDays ? Math.round((presentCt / totalDays) * 100) : 0
+    const logs = attendance?.attendancelog ? [...attendance.attendancelog].reverse() : []
+    const todayLog = attendance?.attendancelog?.find(l => l.logdate?.split('T')[0] === today)
+    
+    const presentCt = attendance?.attendancelog?.filter(l => l.logstatus === 'Present').length || 0
+    const absentCt = attendance?.attendancelog?.filter(l => l.logstatus === 'Absent').length || 0
+    const totalDays = attendance?.attendancelog?.length || 0
+    const rate = totalDays ? Math.round((presentCt / totalDays) * 100) : 0
 
     if (state.isLoading && !attendance && attendance !== null) return <Loading />
 
     return (
-        <div className="my-attendance-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <>
+            <style>{styles}</style>
+            <PageShell>
+                <PageHeader 
+                    eyebrow="Work" 
+                    title="My Attendance" 
+                    subtitle="Track your daily attendance and check-in history" 
+                />
 
-            <div>
-                <h1 className="text-3xl font-bold">My Attendance</h1>
-                <p className="text-sm text-gray-500 mt-1">Track your daily attendance</p>
-            </div>
-
-            {/* No attendance record yet */}
-            {!attendance ? (
-                <div className="flex flex-col items-center justify-center gap-4 py-16 border-2 border-dashed border-gray-200 rounded-2xl">
-                    <p className="text-gray-400 text-sm">Your attendance record hasn't been initialized yet.</p>
-                    <button onClick={handleInitialize}
-                        className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">
-                        Initialize Attendance
-                    </button>
-                </div>
-            ) : (
-                <>
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {[
-                            { label: 'Total Days',        value: totalDays,    color: 'border-gray-200   bg-gray-50'   },
-                            { label: 'Present',           value: presentCt,    color: 'border-green-200  bg-green-50'  },
-                            { label: 'Absent',            value: absentCt,     color: 'border-red-200    bg-red-50'    },
-                            { label: 'Attendance Rate',   value: `${rate}%`,   color: 'border-purple-200 bg-indigo-50' },
-                        ].map(c => (
-                            <div key={c.label} className={`rounded-xl border p-4 flex flex-col gap-1 ${c.color}`}>
-                                <span className="text-2xl font-bold">{c.value}</span>
-                                <span className="text-sm text-gray-500">{c.label}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Mark today */}
-                    <div className="bg-white border border-gray-200 rounded-xl px-5 py-4 flex flex-wrap items-center gap-4">
-                        <div>
-                            <p className="text-sm font-medium text-gray-700">Mark Today's Attendance</p>
-                            <p className="text-xs text-gray-400">{fmtDate(today)}</p>
-                            {todayLog && (
-                                <p className="text-xs text-indigo-600 mt-1">
-                                    Already marked as <strong>{todayLog.logstatus}</strong> — you can update it
-                                </p>
-                            )}
-                        </div>
-                        <select value={markStatus} onChange={e => setMarkStatus(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200">
-                            <option value="Present">Present</option>
-                            <option value="Absent">Absent</option>
-                            <option value="Not Specified">Not Specified</option>
-                        </select>
-                        <button onClick={handleMark}
-                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">
-                            {todayLog ? 'Update' : 'Mark'}
+                {!attendance ? (
+                    <div className="pg-empty border-dashed border-2 py-16">
+                        <span className="pg-empty-icon">📅</span>
+                        <p className="pg-empty-title">Attendance not initialized</p>
+                        <p className="pg-empty-sub mb-4">Start tracking your work days by initializing your record.</p>
+                        <button onClick={handleInitialize} className="pg-btn-primary">
+                            Initialize Attendance
                         </button>
                     </div>
-
-                    {/* Log */}
-                    <div className="flex flex-col gap-2 overflow-auto flex-1">
-                        <div className="grid grid-cols-2 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
-                            <span>Date</span>
-                            <span>Status</span>
-                        </div>
-                        {logs.length === 0
-                            ? <div className="text-center text-gray-400 py-10">No log entries yet.</div>
-                            : logs.map((l, i) => (
-                                <div key={i} className="grid grid-cols-2 bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm items-center hover:bg-gray-50">
-                                    <span className="text-gray-600">{fmtDate(l.logdate)}</span>
-                                    <StatusBadge status={l.logstatus} />
+                ) : (
+                    <>
+                        <div className="grid grid-cols-4 gap-3 mb-5">
+                            {[
+                                { label: 'Total Days', value: totalDays },
+                                { label: 'Present',    value: presentCt },
+                                { label: 'Absent',     value: absentCt },
+                                { label: 'Rate (%)',   value: `${rate}%` },
+                            ].map(c => (
+                                <div key={c.label} className="pg-stat-card">
+                                    <span className="pg-stat-value">{c.value}</span>
+                                    <span className="pg-stat-label">{c.label}</span>
                                 </div>
-                            ))
-                        }
-                    </div>
-                </>
-            )}
-        </div>
+                            ))}
+                        </div>
+
+                        <div className="at-mark-card">
+                            <div>
+                                <p className="pg-td-name" style={{ fontSize: '15px' }}>Mark Attendance</p>
+                                <p className="pg-td-sub">{fmtDate(today)}</p>
+                                {todayLog && (
+                                    <p className="text-xs text-indigo-600 mt-1 font-medium">
+                                        Marked as {todayLog.logstatus} (Editable)
+                                    </p>
+                                )}
+                            </div>
+                            <div className="flex gap-3">
+                                <select 
+                                    value={markStatus} 
+                                    onChange={e => setMarkStatus(e.target.value)}
+                                    className="pg-input" 
+                                    style={{ width: '140px', padding: '6px 12px' }}
+                                >
+                                    <option value="Present">Present</option>
+                                    <option value="Absent">Absent</option>
+                                    <option value="Not Specified">Not Specified</option>
+                                </select>
+                                <button onClick={handleMark} className="pg-btn-primary">
+                                    {todayLog ? 'Update Status' : 'Check In'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="pg-table-wrap">
+                            <div className="pg-table-head grid grid-cols-2">
+                                <span className="pg-th">Log Date</span>
+                                <span className="pg-th">Status</span>
+                            </div>
+
+                            {logs.length === 0 ? (
+                                <div className="pg-empty">
+                                    <span className="pg-empty-icon">📂</span>
+                                    <p className="pg-empty-title">No log entries</p>
+                                    <p className="pg-empty-sub">Your daily check-ins will appear here.</p>
+                                </div>
+                            ) : (
+                                logs.map((l, i) => (
+                                    <div key={i} className="pg-table-row grid grid-cols-2 items-center">
+                                        <span className="pg-td-muted font-medium">{fmtDate(l.logdate)}</span>
+                                        <StatusBadge status={l.logstatus} />
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </>
+                )}
+            </PageShell>
+        </>
     )
 }
