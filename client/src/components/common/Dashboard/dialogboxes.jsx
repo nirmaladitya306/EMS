@@ -1,431 +1,497 @@
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
     DialogClose,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { ErrorPopup } from "../error-popup.jsx"
-import { Button } from "@/components/ui/button"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { CommonStateHandler } from "../../../utils/commonhandler.js"
 import { useDispatch, useSelector } from "react-redux"
-import { FormSubmitToast } from "./Toasts.jsx"
 import { Loading } from "../loading.jsx"
-import { HandleDeleteHREmployees } from "../../../redux/Thunks/HREmployeesThunk.js"
+import { HandlePostHREmployees, HandleDeleteHREmployees } from "../../../redux/Thunks/HREmployeesThunk.js"
 import { HandlePostHRDepartments, HandlePatchHRDepartments, HandleDeleteHRDepartments } from "../../../redux/Thunks/HRDepartmentPageThunk.js"
-import { useToast } from "../../../hooks/use-toast.js"
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-    CommandSeparator,
-    CommandShortcut,
-} from "@/components/ui/command"
 import { fetchEmployeesIDs } from "../../../redux/Thunks/EmployeesIDsThunk.js"
 
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+  .dlg-inner {
+    font-family: 'DM Sans', sans-serif;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .dlg-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem; color: #0f172a;
+    letter-spacing: -0.02em; margin: 0;
+  }
+  .dlg-divider { height: 1px; background: rgba(0,0,0,0.06); }
+  .dlg-field  { display: flex; flex-direction: column; gap: 5px; }
+  .dlg-label  {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.09em; color: rgba(0,0,0,0.4);
+  }
+  .dlg-input, .dlg-textarea {
+    width: 100%; padding: 9px 13px; border: 1px solid rgba(0,0,0,0.12);
+    background: #fff; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; color: #0f172a;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box;
+  }
+  .dlg-textarea { resize: vertical; min-height: 80px; }
+  .dlg-input:focus, .dlg-textarea:focus {
+    border-color: rgba(99,102,241,0.45); box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
+  }
+  .dlg-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dlg-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 4px; border-top: 1px solid rgba(0,0,0,0.06); }
+
+  /* ── Employee detail ── */
+  .dlg-emp-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px; font-weight: 700; flex-shrink: 0;
+    font-family: 'DM Serif Display', serif;
+  }
+  .dlg-emp-name   { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: #0f172a; letter-spacing: -0.01em; }
+  .dlg-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .dlg-detail-row  { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; background: rgba(0,0,0,0.012); border: 1px solid rgba(0,0,0,0.07); border-radius: 10px; }
+  .dlg-detail-key  { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: rgba(0,0,0,0.35); }
+  .dlg-detail-val  { font-size: 13px; font-weight: 500; color: #0f172a; }
+
+  .dlg-skill-chip {
+    display: inline-flex; padding: 3px 10px; border-radius: 100px;
+    font-size: 11px; font-weight: 500;
+    background: rgba(99,102,241,0.07); color: #4f46e5;
+    border: 1px solid rgba(99,102,241,0.18);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* ── Confirm dialog ── */
+  .dlg-confirm-icon { font-size: 2.5rem; text-align: center; }
+  .dlg-confirm-text { font-size: 14px; color: rgba(0,0,0,0.55); text-align: center; line-height: 1.6; }
+  .dlg-confirm-text strong { color: #0f172a; }
+
+  /* ── Employee checkbox list ── */
+  .dlg-emp-search {
+    width: 100%; padding: 9px 13px; border: 1px solid rgba(0,0,0,0.12);
+    background: #fff; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; color: #0f172a;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box;
+  }
+  .dlg-emp-search:focus { border-color: rgba(99,102,241,0.45); box-shadow: 0 0 0 3px rgba(99,102,241,0.08); }
+  .dlg-emp-search::placeholder { color: rgba(0,0,0,0.3); }
+  .dlg-emp-list {
+    display: flex; flex-direction: column; gap: 4px;
+    max-height: 260px; overflow-y: auto; padding: 2px;
+  }
+  .dlg-emp-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px; cursor: pointer;
+    border: 1px solid transparent; transition: background 0.12s, border-color 0.12s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .dlg-emp-item:hover:not(.dlg-emp-item--disabled) { background: rgba(99,102,241,0.04); border-color: rgba(99,102,241,0.12); }
+  .dlg-emp-item--selected { background: rgba(99,102,241,0.07); border-color: rgba(99,102,241,0.2); }
+  .dlg-emp-item--disabled { opacity: 0.45; cursor: not-allowed; }
+  .dlg-emp-item input[type="checkbox"] { accent-color: #6366f1; width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+  .dlg-emp-item-name  { font-size: 13px; font-weight: 500; color: #0f172a; }
+  .dlg-emp-item-dept  { font-size: 11px; color: rgba(0,0,0,0.35); margin-top: 1px; }
+
+  /* Buttons reused from pg-* system */
+  .dlg-btn-primary {
+    padding: 9px 18px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; border: none;
+    border-radius: 10px; cursor: pointer;
+    transition: opacity 0.2s; white-space: nowrap;
+  }
+  .dlg-btn-primary:hover:not(:disabled) { opacity: 0.9; }
+  .dlg-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .dlg-btn-ghost {
+    padding: 9px 16px; background: transparent; color: rgba(0,0,0,0.5);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .dlg-btn-ghost:hover { background: rgba(0,0,0,0.04); }
+
+  .dlg-btn-danger {
+    padding: 9px 18px; background: rgba(239,68,68,0.08); color: #dc2626;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    border: 1px solid rgba(220,38,38,0.2); border-radius: 10px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .dlg-btn-danger:hover { background: rgba(239,68,68,0.14); }
+`
+
+// ─── Add Employees ────────────────────────────────────────────────────────────
 export const AddEmployeesDialogBox = () => {
-    const HREmployeesState = useSelector((state) => state.HREmployeesPageReducer)
+    const dispatch = useDispatch()
     const [formdata, setformdata] = useState({
-        firstname: "",
-        lastname: "",
-        email: "",
-        contactnumber: "",
-        textpassword: "",
-        password: "",
+        firstname: '', lastname: '', email: '',
+        contactnumber: '', textpassword: '', password: '',
     })
+    const [open, setOpen] = useState(false)
 
-    const handleformchange = (event) => {
-        CommonStateHandler(formdata, setformdata, event)
+    const handle = (e) => CommonStateHandler(formdata, setformdata, e)
+
+    const submit = () => {
+        if (!formdata.firstname || !formdata.email || !formdata.textpassword || !formdata.password) return
+        dispatch(HandlePostHREmployees({ apiroute: 'ADDEMPLOYEE', data: formdata }))
+        setformdata({ firstname: '', lastname: '', email: '', contactnumber: '', textpassword: '', password: '' })
+        setOpen(false)
     }
 
     return (
-        <div className="AddEmployees-content">
-            <Dialog>
-                <DialogTrigger className="bg-blue-800 border-2 border-blue-800 md:px-4 md:py-2 md:text-lg min-[250px]:px-2 min-[250px]:py-1 min-[250px]:text-sm text-white font-bold rounded-lg hover:bg-white hover:text-blue-800">Add Employees</DialogTrigger>
-                <DialogContent className="max-w-[315px] sm:max-w-[50vw] 2xl:max-w-[45vw]">
-                    <div className="add-employees-container flex flex-col gap-5">
-                        <div className="heading">
-                            <h1 className="font-bold text-2xl">Add Employee Info</h1>
-                        </div>
-                        <div className="form-container grid md:grid-cols-2 min-[250px]:grid-cols-1 gap-4">
-                            <div className="form-group flex flex-col gap-3">
-                                <div className="label-input-field flex flex-col gap-1">
-                                    <label htmlFor="firstname" className="md:text-md lg:text-lg font-bold">First Name</label>
-                                    <input type="text"
-                                        id="firstname"
-                                        className="border-2 border-gray-700 rounded px-2 py-1"
-                                        name="firstname"
-                                        value={formdata.firstname}
-                                        onChange={handleformchange} />
-                                </div>
-                                <div className="label-input-field flex flex-col gap-1">
-                                    <label htmlFor="lastname" className="md:text-md lg:text-lg font-bold">Last Name</label>
-                                    <input type="text"
-                                        id="lastanme"
-                                        className="border-2 border-gray-700 rounded px-2 py-1"
-                                        name="lastname"
-                                        value={formdata.lastname}
-                                        onChange={handleformchange} />
-                                </div>
-                                <div className="label-input-field flex flex-col gap-1">
-                                    <label htmlFor="email" className="md:text-md lg:text-lg font-bold">Email</label>
-                                    <input type="email"
-                                        id="email" required={true} className="border-2 border-gray-700 rounded px-2 py-1"
-                                        name="email"
-                                        value={formdata.email}
-                                        onChange={handleformchange} />
-                                </div>
+        <>
+            <style>{styles}</style>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger className="dlg-btn-primary">Add Employee</DialogTrigger>
+                <DialogContent className="max-w-[340px] sm:max-w-[520px]">
+                    <div className="dlg-inner">
+                        <h2 className="dlg-title">Add Employee</h2>
+                        <div className="dlg-divider" />
+                        <div className="dlg-grid-2">
+                            <div className="dlg-field">
+                                <label className="dlg-label">First Name</label>
+                                <input name="firstname" value={formdata.firstname} onChange={handle} placeholder="e.g. Aisha" className="dlg-input" />
                             </div>
-                            <div className="form-group flex flex-col gap-3">
-                                <div className="label-input-field flex flex-col gap-1">
-                                    <label htmlFor="contactnumber" className="md:text-md lg:text-lg font-bold">Contact Number</label>
-                                    <input type="number"
-                                        id="contactnumber" className="border-2 border-gray-700 rounded px-2 py-1"
-                                        name="contactnumber"
-                                        value={formdata.contactnumber}
-                                        onChange={handleformchange} />
-                                </div>
-                                <div className="label-input-field flex flex-col gap-1">
-                                    <label htmlFor="text-password" className="md:text-md lg:text-lg font-bold">Password</label>
-                                    <input type="password"
-                                        id="text-password" className="border-2 border-gray-700 rounded px-2 py-1"
-                                        name="textpassword"
-                                        value={formdata.textpassword}
-                                        onChange={handleformchange} />
-                                </div>
-                                <div className="label-input-field flex flex-col gap-1">
-                                    <label htmlFor="password" className="md:text-md lg:text-lg font-bold">Confirm Password</label>
-                                    <input type="password"
-                                        id="password" required={true} className="border-2 border-gray-700 rounded px-2 py-1"
-                                        name="password"
-                                        value={formdata.password}
-                                        onChange={handleformchange} />
-                                </div>
+                            <div className="dlg-field">
+                                <label className="dlg-label">Last Name</label>
+                                <input name="lastname" value={formdata.lastname} onChange={handle} placeholder="e.g. Khan" className="dlg-input" />
                             </div>
                         </div>
-                        <div className="add-button flex items-center justify-center">
-                            <FormSubmitToast formdata={formdata} />
+                        <div className="dlg-field">
+                            <label className="dlg-label">Email</label>
+                            <input name="email" type="email" value={formdata.email} onChange={handle} placeholder="e.g. aisha@company.com" className="dlg-input" />
+                        </div>
+                        <div className="dlg-field">
+                            <label className="dlg-label">Contact Number</label>
+                            <input name="contactnumber" type="number" value={formdata.contactnumber} onChange={handle} placeholder="e.g. 9876543210" className="dlg-input" />
+                        </div>
+                        <div className="dlg-grid-2">
+                            <div className="dlg-field">
+                                <label className="dlg-label">Password</label>
+                                <input name="textpassword" type="password" value={formdata.textpassword} onChange={handle} className="dlg-input" />
+                            </div>
+                            <div className="dlg-field">
+                                <label className="dlg-label">Confirm Password</label>
+                                <input name="password" type="password" value={formdata.password} onChange={handle} className="dlg-input" />
+                            </div>
+                        </div>
+                        <div className="dlg-actions">
+                            <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
+                            <button className="dlg-btn-primary" onClick={submit}>Add Employee</button>
                         </div>
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     )
 }
 
+// ─── View Employee ────────────────────────────────────────────────────────────
 export const EmployeeDetailsDialogBox = ({ EmployeeID }) => {
-    const HREmployeesState = useSelector((state) => state.HREmployeesPageReducer)
-    const FetchEmployeeData = (EmID) => {
-        const employee = HREmployeesState.data.find((item) => item._id === EmID)
-        return employee
-    }
-    const employeeData = FetchEmployeeData(EmployeeID)
+    const HREmployeesState = useSelector(s => s.HREmployeesPageReducer)
+    const emp = HREmployeesState.data?.find(e => e._id === EmployeeID)
+    if (!emp) return null
+
+    const initials = `${emp.firstname?.[0] || ''}${emp.lastname?.[0] || ''}`.toUpperCase()
+
+    const details1 = [
+        { key: 'First Name',     val: emp.firstname },
+        { key: 'Last Name',      val: emp.lastname  },
+        { key: 'Email',          val: emp.email     },
+        { key: 'Contact',        val: emp.contactnumber },
+        { key: 'Department',     val: emp.department?.name || 'Not Specified' },
+        { key: 'Email Verified', val: emp.isverified ? 'Verified' : 'Not Verified' },
+    ]
+    const details2 = [
+        { key: 'Notices',        val: emp.notice?.length        || 0 },
+        { key: 'Salary Records', val: emp.salary?.length        || 0 },
+        { key: 'Leave Requests', val: emp.leaverequest?.length  || 0 },
+        { key: 'Requests',       val: emp.generaterequest?.length || 0 },
+    ]
+
     return (
-        <div className="Employees-Details-container">
+        <>
+            <style>{styles}</style>
             <Dialog>
-                <div>
-                    <DialogTrigger className="btn-sm btn-blue-700 text-md border-2 border-blue-800 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md hover:bg-blue-800 hover:text-white">View</DialogTrigger>
-                </div>
-                <DialogContent className="max-w-[315px] lg:max-w-[55vw] 2xl:max-w-[45vw]">
-                    <div className="employee-data-container flex flex-col gap-4">
-                        <div className="employee-profile-logo flex items-center gap-3">
-                            <div className="logo border-2 border-blue-800 rounded-[50%] flex justify-center items-center">
-                                <p className="font-bold text-2xl text-blue-700 p-2">{`${employeeData.firstname.slice(0, 1).toUpperCase()} ${employeeData.lastname.slice(0, 1).toUpperCase()}`}</p>
-                            </div>
-                            <div className="employee-fullname">
-                                <p className="font-bold text-2xl">{`${employeeData.firstname} ${employeeData.lastname}`}</p>
+                <DialogTrigger className="pg-action-btn indigo">View</DialogTrigger>
+                <DialogContent className="max-w-[340px] sm:max-w-[560px]">
+                    <div className="dlg-inner">
+                        {/* Avatar + name */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <div className="dlg-emp-avatar">{initials}</div>
+                            <div>
+                                <p className="dlg-emp-name">{emp.firstname} {emp.lastname}</p>
+                                <p style={{ fontSize: '12px', color: 'rgba(0,0,0,0.38)', marginTop: '2px' }}>{emp.email}</p>
                             </div>
                         </div>
-                        <div className="employees-all-details grid lg:grid-cols-2 min-[250px]:gap-2 lg:gap-10">
-                            <div className="details-group-1 flex flex-col gap-3">
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">First Name :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.firstname}</p>
+                        <div className="dlg-divider" />
+
+                        {/* Details grid */}
+                        <div className="dlg-detail-grid">
+                            {[...details1, ...details2].map(d => (
+                                <div key={d.key} className="dlg-detail-row">
+                                    <span className="dlg-detail-key">{d.key}</span>
+                                    <span className="dlg-detail-val">{d.val}</span>
                                 </div>
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">Last Name :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.lastname}</p>
-                                </div>
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">Email :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.email}</p>
-                                </div>
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">Contact Number :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.contactnumber}</p>
-                                </div>
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">Department :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.department ? employeeData.department.name : "Not Specified"}</p>
-                                </div>
-                            </div>
-                            <div className="details-group-1 flex flex-col gap-3">
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">Notices :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.notice.length}</p>
-                                </div>
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">Salary Records :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.salary.length}</p>
-                                </div>
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">Leave Requests :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.leaverequest.length}</p>
-                                </div>
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">Requests :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.generaterequest.length}</p>
-                                </div>
-                                <div className="label-value-pair flex items-center gap-2">
-                                    <label className="font-bold md:text-sm xl:text-lg">Email Verify :</label>
-                                    <p className="md:text-sm xl:text-lg">{employeeData.isverified ? "Verified" : "Not Verified"}</p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
 
-                        {/* Skills tags */}
-                        <div className="skills-section border-t border-gray-100 pt-4 mt-1">
-                            <label className="font-bold md:text-sm xl:text-lg block mb-2">Skills :</label>
-                            {employeeData.skills && employeeData.skills.length > 0 ? (
-                                <div className="flex flex-wrap gap-2">
-                                    {employeeData.skills.map((skill, i) => (
-                                        <span
-                                            key={i}
-                                            className="inline-flex items-center bg-blue-100 text-blue-800 border border-blue-200 rounded-full px-3 py-1 text-sm font-medium"
-                                        >
-                                            {skill}
-                                        </span>
-                                    ))}
+                        {/* Skills */}
+                        <div>
+                            <p className="dlg-label" style={{ marginBottom: '8px' }}>Skills</p>
+                            {emp.skills?.length > 0 ? (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                    {emp.skills.map((s, i) => <span key={i} className="dlg-skill-chip">{s}</span>)}
                                 </div>
                             ) : (
-                                <p className="text-sm text-gray-400 italic">No skills added yet.</p>
+                                <p style={{ fontSize: '12px', color: 'rgba(0,0,0,0.3)', fontStyle: 'italic' }}>No skills added yet.</p>
                             )}
                         </div>
+
+                        <div className="dlg-actions">
+                            <DialogClose className="dlg-btn-ghost">Close</DialogClose>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     )
 }
 
-
+// ─── Delete Employee ──────────────────────────────────────────────────────────
 export const DeleteEmployeeDialogBox = ({ EmployeeID }) => {
     const dispatch = useDispatch()
-    const DeleteEmployee = (EMID) => {
-        dispatch(HandleDeleteHREmployees({ apiroute: `DELETE.${EMID}` }))
-    }
+
     return (
-        <div className="delete-employee-dialog-container">
+        <>
+            <style>{styles}</style>
             <Dialog>
-                <DialogTrigger className="btn-sm btn-blue-700 text-md border-2 border-blue-800 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md hover:bg-blue-800 hover:text-white">Delete</DialogTrigger>
-                <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                    <div className="flex flex-col justify-center items-center gap-4">
-                        <p className="text-lg font-bold min-[250px]:text-center">Are you sure you want to delete this employee?</p>
-                        <div className="delete-employee-button-group flex gap-2">
-                            <DialogClose asChild>
-                                <Button className="btn-sm btn-blue-700 text-md border-2 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md bg-red-700 border-red-700 hover:bg-transparent hover:text-red-700" onClick={() => DeleteEmployee(EmployeeID)}>Delete</Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                                <Button className="btn-sm btn-blue-700 text-md border-2 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md bg-green-700 border-green-700 hover:bg-transparent hover:text-green-700">Cancel</Button>
+                <DialogTrigger className="pg-action-btn red">Delete</DialogTrigger>
+                <DialogContent className="max-w-[340px] sm:max-w-[400px]">
+                    <div className="dlg-inner" style={{ textAlign: 'center', alignItems: 'center' }}>
+                        <div className="dlg-confirm-icon">🗑️</div>
+                        <h2 className="dlg-title">Delete Employee</h2>
+                        <p className="dlg-confirm-text">
+                            Are you sure you want to <strong>permanently delete</strong> this employee? This action cannot be undone.
+                        </p>
+                        <div className="dlg-divider" style={{ width: '100%' }} />
+                        <div className="dlg-actions" style={{ width: '100%' }}>
+                            <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
+                            <DialogClose
+                                className="dlg-btn-danger"
+                                onClick={() => dispatch(HandleDeleteHREmployees({ apiroute: `DELETE.${EmployeeID}` }))}
+                            >
+                                Delete
                             </DialogClose>
                         </div>
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     )
 }
 
-
-
+// ─── Create Department ────────────────────────────────────────────────────────
 export const CreateDepartmentDialogBox = () => {
-    const { toast } = useToast()
     const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({
-        name: "",
-        description: ""
-    })
+    const [formdata, setformdata] = useState({ name: '', description: '' })
+    const [open, setOpen] = useState(false)
+    const [error, setError] = useState('')
 
-    const handleformchange = (event) => {
-        CommonStateHandler(formdata, setformdata, event)
-    }
+    const handle = (e) => CommonStateHandler(formdata, setformdata, e)
 
-    const CreateDepartment = () => {
-        dispatch(HandlePostHRDepartments({ apiroute: "CREATE", data: formdata }))
-        setformdata({
-            name: "",
-            description: ""
-        })
-    }
-
-    const ShowToast = () => {
-        toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: `All Fields are required to create a department`,
-        })
+    const create = () => {
+        if (!formdata.name.trim() || !formdata.description.trim()) {
+            setError('Both fields are required.')
+            return
+        }
+        dispatch(HandlePostHRDepartments({ apiroute: 'CREATE', data: formdata }))
+        setformdata({ name: '', description: '' })
+        setError('')
+        setOpen(false)
     }
 
     return (
-        <Dialog>
-            <DialogTrigger className="min-[250px]:text-sm sm:text-lg min-[250px]:px-2 min-[250px]:py-1 sm:px-4 sm:py-2 bg-blue-700 font-bold text-white rounded-lg border-2 border-blue-700 hover:bg-white hover:text-blue-700">Create Department</DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="create-department-container flex flex-col gap-4">
-                    <div className="create-department-heading">
-                        <h1 className="font-bold text-2xl">Create Department</h1>
-                    </div>
-                    <div className="create-department-form flex flex-col gap-4">
-                        <div className="form-group flex flex-col gap-3">
-                            <div className="label-input-field flex flex-col gap-1">
-                                <label htmlFor="departmentname" className="md:text-md lg:text-lg font-bold">Department Name</label>
-                                <input type="text"
-                                    id="departmentname"
-                                    name="name"
-                                    value={formdata.name}
-                                    onChange={handleformchange}
-                                    placeholder="Enter Department Name"
-                                    className="border-2 border-gray-700 rounded px-2 py-1" />
-                            </div>
-                            <div className="label-input-field flex flex-col gap-1">
-                                <label htmlFor="departmentdescription" className="md:text-md lg:text-lg font-bold">Department Description</label>
-                                <textarea
-                                    id="departmentdescription"
-                                    name="description"
-                                    value={formdata.description}
-                                    onChange={handleformchange}
-                                    className="border-2 border-gray-700 rounded px-2 py-1 h-[100px]"
-                                    placeholder="Write Your Department Description Here"></textarea>
-                            </div>
+        <>
+            <style>{styles}</style>
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); setError('') }}>
+                <DialogTrigger className="dlg-btn-primary">Create Department</DialogTrigger>
+                <DialogContent className="max-w-[340px] sm:max-w-[460px]">
+                    <div className="dlg-inner">
+                        <h2 className="dlg-title">Create Department</h2>
+                        <div className="dlg-divider" />
+                        <div className="dlg-field">
+                            <label className="dlg-label">Department Name</label>
+                            <input
+                                name="name"
+                                value={formdata.name}
+                                onChange={handle}
+                                placeholder="e.g. Engineering"
+                                className="dlg-input"
+                            />
                         </div>
-                        <div className="create-department-button flex justify-center items-center">
-                            {
-                                (formdata.name.trim().length === 0 || formdata.description.trim().length === 0) ? <Button className="btn-sm btn-blue-700 text-md border-2 bg-blue-700 border-blue-700 px-2 py-1 rounded-md hover:bg-white hover:text-blue-700" onClick={() => ShowToast()}>Create</Button> :
-                                    <DialogClose asChild>
-                                        <Button className="btn-sm btn-blue-700 text-md border-2 bg-blue-700 border-blue-700 px-2 py-1 rounded-md hover:bg-white hover:text-blue-700" onClick={() => CreateDepartment()}>Create</Button>
-                                    </DialogClose>
-                            }
+                        <div className="dlg-field">
+                            <label className="dlg-label">Description</label>
+                            <textarea
+                                name="description"
+                                value={formdata.description}
+                                onChange={handle}
+                                placeholder="Describe this department's function…"
+                                className="dlg-textarea"
+                            />
+                        </div>
+                        {error && (
+                            <p style={{ fontSize: '12px', color: '#dc2626' }}>{error}</p>
+                        )}
+                        <div className="dlg-actions">
+                            <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
+                            <button className="dlg-btn-primary" onClick={create}>Create</button>
                         </div>
                     </div>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
 
-
-
+// ─── Add Employees to Department ──────────────────────────────────────────────
 export const EmployeesIDSDialogBox = ({ DepartmentID }) => {
-    console.log("this is Department ID", DepartmentID)
-    const EmployeesIDState = useSelector((state) => state.EMployeesIDReducer)
-    const dispatch = useDispatch()
-    const [SelectedEmployeesData, Set_selectedEmployeesData] = useState({
-        departmentID: DepartmentID,
-        employeeIDArray: [],
-    })
-
-    const SelectEmployees = (EMID) => {
-        if (SelectedEmployeesData.employeeIDArray.includes(EMID)) {
-            Set_selectedEmployeesData({ ...SelectedEmployeesData, employeeIDArray: SelectedEmployeesData.employeeIDArray.filter((item) => item !== EMID) })
-        }
-        else if (!SelectedEmployeesData.employeeIDArray.includes(EMID)) {
-            Set_selectedEmployeesData({ ...SelectedEmployeesData }, SelectedEmployeesData.employeeIDArray.push(EMID))
-        }
-    }
-
-    const ClearSelectedEmployeesData = () => {
-        Set_selectedEmployeesData({
-            departmentID: DepartmentID,
-            employeeIDArray: []
-        })
-    }
-
-    const SetEmployees = () => {
-        dispatch(HandlePatchHRDepartments({ apiroute: "UPDATE", data: SelectedEmployeesData }))
-        ClearSelectedEmployeesData()
-    }
-
-    console.log(SelectedEmployeesData)
+    const dispatch        = useDispatch()
+    const EmployeesIDState = useSelector(s => s.EMployeesIDReducer)
+    const [search, setSearch] = useState('')
+    const [selected, setSelected] = useState({ departmentID: DepartmentID, employeeIDArray: [] })
 
     useEffect(() => {
-        Set_selectedEmployeesData(
-            {
-                departmentID: DepartmentID,
-                employeeIDArray: [],
-            }
-        )
+        setSelected({ departmentID: DepartmentID, employeeIDArray: [] })
     }, [DepartmentID])
 
-    return (
-        <div className="employeeIDs-box-container">
-            <Dialog>
-                <DialogTrigger className="px-4 py-2 font-bold m-2 bg-blue-600 text-white border-2 border-blue-600 rounded-lg hover:bg-white hover:text-blue-700 min-[250px]:text-xs md:text-sm lg:text-lg" onClick={() => dispatch(fetchEmployeesIDs({ apiroute: "GETALL" }))}>Add Employees</DialogTrigger>
-                <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                    {EmployeesIDState.isLoading ? <Loading height={"h-auto"} /> : <div className="employeeID-checkbox-container flex flex-col gap-4">
-                        <div>
-                            <h1 className="font-bold text-2xl">Select Employees</h1>
-                        </div>
-                        <div className="employeeID-checkbox-group">
-                            <Command className="rounded-lg border shadow-md w-full">
-                                <CommandInput placeholder="Type a Employee Name..." />
-                                <CommandList>
-                                    <CommandEmpty>No results found.</CommandEmpty>
-                                    <CommandGroup heading="All Employees">
-                                        {EmployeesIDState.data ? EmployeesIDState.data.map((item, index) => <CommandItem key={index}>
-                                            <div className="employeeID-checkbox flex justify-center items-center gap-2">
-                                                <input type="checkbox" id={`EmployeeID-${index + 1}`} className="border-2 border-gray-700 w-4 h-4" onClick={() => SelectEmployees(item._id)} checked={SelectedEmployeesData.employeeIDArray.includes(item._id)} disabled={item.department ? true : false} />
-                                                <label htmlFor={`EmployeeID-${index + 1}`} className="text-lg">{`${item.firstname} ${item.lastname}`} <span className="text-xs mx-0.5 overflow-hidden text-ellipsis">{item.department ? `(${item.department.name})` : null}</span> </label>
-                                            </div>
-                                        </CommandItem>) : null}
-                                    </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </div>
-                        <div className="employeeID-checkbox-button-group flex justify-center items-center gap-2">
-                            <Button className="btn-sm btn-blue-700 text-md border-2 bg-blue-700 border-blue-700 px-2 py-1 rounded-lg hover:bg-white hover:text-blue-700" onClick={() => SetEmployees()}>Add</Button>
-                            <DialogClose asChild>
-                                <Button className="btn-sm btn-blue-700 text-md border-2 bg-blue-700 border-blue-700 px-2 py-1 rounded-lg hover:bg-white hover:text-blue-700" onClick={() => ClearSelectedEmployeesData()}>Cancel</Button>
-                            </DialogClose>
-                        </div>
-                    </div>}
+    const toggle = (id) => {
+        setSelected(prev => ({
+            ...prev,
+            employeeIDArray: prev.employeeIDArray.includes(id)
+                ? prev.employeeIDArray.filter(e => e !== id)
+                : [...prev.employeeIDArray, id],
+        }))
+    }
 
+    const add = () => {
+        dispatch(HandlePatchHRDepartments({ apiroute: 'UPDATE', data: selected }))
+        setSelected({ departmentID: DepartmentID, employeeIDArray: [] })
+    }
+
+    const filtered = (EmployeesIDState.data || []).filter(e =>
+        `${e.firstname} ${e.lastname}`.toLowerCase().includes(search.toLowerCase())
+    )
+
+    return (
+        <>
+            <style>{styles}</style>
+            <Dialog onOpenChange={() => setSelected({ departmentID: DepartmentID, employeeIDArray: [] })}>
+                <DialogTrigger
+                    className="dlg-btn-primary"
+                    onClick={() => dispatch(fetchEmployeesIDs({ apiroute: 'GETALL' }))}
+                >
+                    Add Employees
+                </DialogTrigger>
+                <DialogContent className="max-w-[340px] sm:max-w-[460px]">
+                    {EmployeesIDState.isLoading ? <Loading height="h-auto" /> : (
+                        <div className="dlg-inner">
+                            <h2 className="dlg-title">Add Employees</h2>
+                            <div className="dlg-divider" />
+                            <input
+                                className="dlg-emp-search"
+                                placeholder="Search by name…"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                            />
+                            <div className="dlg-emp-list">
+                                {filtered.length === 0 && (
+                                    <p style={{ fontSize: '13px', color: 'rgba(0,0,0,0.3)', padding: '12px', textAlign: 'center' }}>No employees found.</p>
+                                )}
+                                {filtered.map((emp, i) => {
+                                    const isDisabled = !!emp.department
+                                    const isSelected = selected.employeeIDArray.includes(emp._id)
+                                    return (
+                                        <label
+                                            key={emp._id}
+                                            className={`dlg-emp-item ${isSelected ? 'dlg-emp-item--selected' : ''} ${isDisabled ? 'dlg-emp-item--disabled' : ''}`}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={isSelected}
+                                                disabled={isDisabled}
+                                                onChange={() => !isDisabled && toggle(emp._id)}
+                                            />
+                                            <div>
+                                                <p className="dlg-emp-item-name">{emp.firstname} {emp.lastname}</p>
+                                                {emp.department && (
+                                                    <p className="dlg-emp-item-dept">Already in {emp.department.name}</p>
+                                                )}
+                                            </div>
+                                        </label>
+                                    )
+                                })}
+                            </div>
+                            <div className="dlg-actions">
+                                <DialogClose
+                                    className="dlg-btn-ghost"
+                                    onClick={() => setSelected({ departmentID: DepartmentID, employeeIDArray: [] })}
+                                >
+                                    Cancel
+                                </DialogClose>
+                                <DialogClose
+                                    className="dlg-btn-primary"
+                                    onClick={add}
+                                    disabled={selected.employeeIDArray.length === 0}
+                                >
+                                    Add {selected.employeeIDArray.length > 0 ? `(${selected.employeeIDArray.length})` : ''}
+                                </DialogClose>
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     )
 }
 
+// ─── Remove Employee from Department ─────────────────────────────────────────
 export const RemoveEmployeeFromDepartmentDialogBox = ({ DepartmentName, DepartmentID, EmployeeID }) => {
     const dispatch = useDispatch()
 
-    const RemoveEmployee = (EMID) => {
-        dispatch(HandleDeleteHRDepartments({ apiroute: "DELETE", data: { departmentID: DepartmentID, employeeIDArray: [EMID], action: "delete-employee" } }))
-    }
-
     return (
-        <div className="remove-employee">
+        <>
+            <style>{styles}</style>
             <Dialog>
-                <DialogTrigger className="btn-sm btn-blue-700 text-md border-2 border-blue-800 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md hover:bg-blue-800 hover:text-white">Remove</DialogTrigger>
-                <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                    <div className="flex flex-col justify-center items-center gap-4">
-                        <p className="text-lg font-bold min-[250px]:text-center">{`Are you sure you want to remove this employee from ${DepartmentName} department ?`}</p>
-                        <div className="delete-employee-button-group flex gap-2">
-                            <DialogClose asChild>
-                                <Button className="btn-sm btn-blue-700 text-md border-2 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md bg-red-700 border-red-700 hover:bg-transparent hover:text-red-700" onClick={() => RemoveEmployee(EmployeeID)}>Remove</Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                                <Button className="btn-sm btn-blue-700 text-md border-2 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md bg-green-700 border-green-700 hover:bg-transparent hover:text-green-700">Cancel</Button>
+                <DialogTrigger className="pg-action-btn red">Remove</DialogTrigger>
+                <DialogContent className="max-w-[340px] sm:max-w-[400px]">
+                    <div className="dlg-inner" style={{ textAlign: 'center', alignItems: 'center' }}>
+                        <div className="dlg-confirm-icon">👤</div>
+                        <h2 className="dlg-title">Remove Employee</h2>
+                        <p className="dlg-confirm-text">
+                            Are you sure you want to remove this employee from the <strong>{DepartmentName}</strong> department?
+                        </p>
+                        <div className="dlg-divider" style={{ width: '100%' }} />
+                        <div className="dlg-actions" style={{ width: '100%' }}>
+                            <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
+                            <DialogClose
+                                className="dlg-btn-danger"
+                                onClick={() => dispatch(HandleDeleteHRDepartments({
+                                    apiroute: 'DELETE',
+                                    data: { departmentID: DepartmentID, employeeIDArray: [EmployeeID], action: 'delete-employee' }
+                                }))}
+                            >
+                                Remove
                             </DialogClose>
                         </div>
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     )
 }
