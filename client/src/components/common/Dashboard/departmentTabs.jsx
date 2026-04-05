@@ -5,7 +5,7 @@ import { Loading } from "../loading.jsx"
 import { HeadingBar } from "./ListDesigns.jsx"
 import { DepartmentListItems } from "./ListDesigns.jsx"
 import { useToast } from "../../../hooks/use-toast.js"
-import { EmployeesIDSDialogBox } from "./dialogboxes.jsx"
+import { EmployeesIDSDialogBox, ModifyDepartmentDialogBox } from "./dialogboxes.jsx"
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -182,9 +182,10 @@ export const HRDepartmentTabs = () => {
                                         <span className="dept-card-chip">📋 {dept.notice?.length || 0} notices</span>
                                     </div>
                                 </div>
-                                <button className="dept-view-btn" onClick={() => setDepartment(dept.name)}>
-                                    View →
-                                </button>
+                                <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
+                                    <ModifyDepartmentDialogBox dept={dept} />
+                                    <button className="dept-view-btn" onClick={() => setDepartment(dept.name)}>View →</button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -212,7 +213,10 @@ const DepartmentDetail = ({ dept }) => {
                     <h2 className="dept-detail-name">{dept.name}</h2>
                     <p className="dept-detail-desc">{dept.description}</p>
                 </div>
-                <EmployeesIDSDialogBox DepartmentID={dept._id} />
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <ModifyDepartmentDialogBox dept={dept} />
+                    <EmployeesIDSDialogBox DepartmentID={dept._id} />
+                </div>
             </div>
 
             {/* Tabs */}

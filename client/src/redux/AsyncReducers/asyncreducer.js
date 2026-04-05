@@ -194,7 +194,7 @@ export const HRDepartmentPageAsyncReducer = (builder, thunk) => {
         state.error.content = null;
     })
     builder.addCase(thunk.fulfilled, (state, action) => {
-        if (action.payload.type === "AllDepartments") {
+        if (action.payload?.data) {
             state.isLoading = false;
             state.error.status = false;
             state.error.message = null

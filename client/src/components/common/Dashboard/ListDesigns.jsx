@@ -1,5 +1,6 @@
 import { EmployeeDetailsDialogBox } from "./dialogboxes.jsx"
 import { DeleteEmployeeDialogBox } from "./dialogboxes.jsx"
+import { ModifyEmployeeDialogBox } from "./dialogboxes.jsx"
 import { RemoveEmployeeFromDepartmentDialogBox } from "./dialogboxes.jsx"
 
 export const ListWrapper = ({ children }) => (
@@ -44,7 +45,8 @@ export const ListItems = ({ TargetedState }) => (
                 <div className="pg-td-muted min-[250px]:hidden sm:block text-center">{item.contactnumber}</div>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'center' }}>
                     <EmployeeDetailsDialogBox EmployeeID={item._id} />
-                    <DeleteEmployeeDialogBox EmployeeID={item._id} />
+                    <ModifyEmployeeDialogBox  EmployeeID={item._id} />
+                    <DeleteEmployeeDialogBox  EmployeeID={item._id} />
                 </div>
             </div>
         )) : null}

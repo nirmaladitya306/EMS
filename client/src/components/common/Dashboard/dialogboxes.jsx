@@ -8,8 +8,8 @@ import { useState, useEffect } from "react"
 import { CommonStateHandler } from "../../../utils/commonhandler.js"
 import { useDispatch, useSelector } from "react-redux"
 import { Loading } from "../loading.jsx"
-import { HandlePostHREmployees, HandleDeleteHREmployees } from "../../../redux/Thunks/HREmployeesThunk.js"
-import { HandlePostHRDepartments, HandlePatchHRDepartments, HandleDeleteHRDepartments } from "../../../redux/Thunks/HRDepartmentPageThunk.js"
+import { HandlePostHREmployees, HandleDeleteHREmployees, HandlePatchHREmployees } from "../../../redux/Thunks/HREmployeesThunk.js"
+import { HandlePostHRDepartments, HandlePatchHRDepartments, HandleDeleteHRDepartments, HandleGetHRDepartments } from "../../../redux/Thunks/HRDepartmentPageThunk.js"
 import { fetchEmployeesIDs } from "../../../redux/Thunks/EmployeesIDsThunk.js"
 
 const styles = `
@@ -123,6 +123,12 @@ const styles = `
     transition: background 0.15s;
   }
   .dlg-btn-danger:hover { background: rgba(239,68,68,0.14); }
+
+  .dlg-error {
+    font-size: 12px; color: #dc2626;
+    background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.18);
+    border-radius: 8px; padding: 8px 12px;
+  }
 `
 
 // ─── Add Employees ────────────────────────────────────────────────────────────
@@ -221,7 +227,6 @@ export const EmployeeDetailsDialogBox = ({ EmployeeID }) => {
                 <DialogTrigger className="pg-action-btn indigo">View</DialogTrigger>
                 <DialogContent className="max-w-[340px] sm:max-w-[560px]">
                     <div className="dlg-inner">
-                        {/* Avatar + name */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                             <div className="dlg-emp-avatar">{initials}</div>
                             <div>
@@ -230,8 +235,6 @@ export const EmployeeDetailsDialogBox = ({ EmployeeID }) => {
                             </div>
                         </div>
                         <div className="dlg-divider" />
-
-                        {/* Details grid */}
                         <div className="dlg-detail-grid">
                             {[...details1, ...details2].map(d => (
                                 <div key={d.key} className="dlg-detail-row">
@@ -240,8 +243,6 @@ export const EmployeeDetailsDialogBox = ({ EmployeeID }) => {
                                 </div>
                             ))}
                         </div>
-
-                        {/* Skills */}
                         <div>
                             <p className="dlg-label" style={{ marginBottom: '8px' }}>Skills</p>
                             {emp.skills?.length > 0 ? (
@@ -252,9 +253,120 @@ export const EmployeeDetailsDialogBox = ({ EmployeeID }) => {
                                 <p style={{ fontSize: '12px', color: 'rgba(0,0,0,0.3)', fontStyle: 'italic' }}>No skills added yet.</p>
                             )}
                         </div>
-
                         <div className="dlg-actions">
                             <DialogClose className="dlg-btn-ghost">Close</DialogClose>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
+    )
+}
+
+// ─── Modify Employee ──────────────────────────────────────────────────────────
+export const ModifyEmployeeDialogBox = ({ EmployeeID }) => {
+    const dispatch         = useDispatch()
+    const HREmployeesState = useSelector(s => s.HREmployeesPageReducer)
+    const emp              = HREmployeesState.data?.find(e => e._id === EmployeeID)
+
+    const [open, setOpen]   = useState(false)
+    const [error, setError] = useState('')
+    const [form, setForm]   = useState({
+        firstname: '', lastname: '', contactnumber: '',
+    })
+
+    useEffect(() => {
+        if (open && emp) {
+            setForm({
+                firstname:     emp.firstname     || '',
+                lastname:      emp.lastname      || '',
+                contactnumber: emp.contactnumber || '',
+            })
+            setError('')
+        }
+    }, [open, emp])
+
+    if (!emp) return null
+
+    const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+
+    const submit = () => {
+        if (!form.firstname.trim()) { setError('First name is required.'); return }
+        dispatch(HandlePatchHREmployees({
+            employeeId:      EmployeeID,
+            updatedEmployee: {
+                firstname:     form.firstname.trim(),
+                lastname:      form.lastname.trim(),
+                contactnumber: form.contactnumber.trim(),
+            },
+        }))
+        setOpen(false)
+    }
+
+    return (
+        <>
+            <style>{styles}</style>
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); setError('') }}>
+                <DialogTrigger className="pg-action-btn">Modify</DialogTrigger>
+                <DialogContent className="max-w-[340px] sm:max-w-[480px]">
+                    <div className="dlg-inner">
+                        {/* Header with avatar */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                            <div className="dlg-emp-avatar">
+                                {`${emp.firstname?.[0] || ''}${emp.lastname?.[0] || ''}`.toUpperCase()}
+                            </div>
+                            <div>
+                                <h2 className="dlg-title">Modify Employee</h2>
+                                <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 2 }}>
+                                    {emp.email}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="dlg-divider" />
+
+                        <div className="dlg-grid-2">
+                            <div className="dlg-field">
+                                <label className="dlg-label">First Name *</label>
+                                <input
+                                    name="firstname"
+                                    value={form.firstname}
+                                    onChange={handle}
+                                    placeholder="e.g. Aisha"
+                                    className="dlg-input"
+                                />
+                            </div>
+                            <div className="dlg-field">
+                                <label className="dlg-label">Last Name</label>
+                                <input
+                                    name="lastname"
+                                    value={form.lastname}
+                                    onChange={handle}
+                                    placeholder="e.g. Khan"
+                                    className="dlg-input"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="dlg-field">
+                            <label className="dlg-label">Contact Number</label>
+                            <input
+                                name="contactnumber"
+                                type="tel"
+                                value={form.contactnumber}
+                                onChange={handle}
+                                placeholder="e.g. 9876543210"
+                                className="dlg-input"
+                            />
+                        </div>
+
+                        {error && <p className="dlg-error">{error}</p>}
+
+                        <div className="dlg-actions">
+                            <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
+                            <button className="dlg-btn-primary" onClick={submit}>
+                                Save Changes
+                            </button>
                         </div>
                     </div>
                 </DialogContent>
@@ -345,9 +457,7 @@ export const CreateDepartmentDialogBox = () => {
                                 className="dlg-textarea"
                             />
                         </div>
-                        {error && (
-                            <p style={{ fontSize: '12px', color: '#dc2626' }}>{error}</p>
-                        )}
+                        {error && <p className="dlg-error">{error}</p>}
                         <div className="dlg-actions">
                             <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
                             <button className="dlg-btn-primary" onClick={create}>Create</button>
@@ -359,9 +469,85 @@ export const CreateDepartmentDialogBox = () => {
     )
 }
 
+// ─── Modify Department ────────────────────────────────────────────────────────
+export const ModifyDepartmentDialogBox = ({ dept }) => {
+    const dispatch = useDispatch()
+    const [open, setOpen]   = useState(false)
+    const [error, setError] = useState('')
+    const [form, setForm]   = useState({ name: '', description: '' })
+
+    useEffect(() => {
+        if (open && dept) {
+            setForm({ name: dept.name || '', description: dept.description || '' })
+            setError('')
+        }
+    }, [open, dept])
+
+    const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+
+    const save = () => {
+        if (!form.name.trim() || !form.description.trim()) {
+            setError('Both fields are required.')
+            return
+        }
+        dispatch(HandlePatchHRDepartments({
+            apiroute: 'UPDATE',
+            data: { departmentID: dept._id, UpdatedDepartment: { name: form.name.trim(), description: form.description.trim() } },
+        })).then(() => {
+            dispatch(HandleGetHRDepartments({ apiroute: 'GETALL' }))
+        })
+        setOpen(false)
+    }
+
+    return (
+        <>
+            <style>{styles}</style>
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); setError('') }}>
+                <DialogTrigger className="dlg-btn-ghost" style={{ fontSize: 12, padding: '7px 14px' }}>
+                    ✏️ Modify
+                </DialogTrigger>
+                <DialogContent className="max-w-[340px] sm:max-w-[460px]">
+                    <div className="dlg-inner">
+                        <h2 className="dlg-title">Modify Department</h2>
+                        <div className="dlg-divider" />
+
+                        <div className="dlg-field">
+                            <label className="dlg-label">Department Name</label>
+                            <input
+                                name="name"
+                                value={form.name}
+                                onChange={handle}
+                                placeholder="e.g. Engineering"
+                                className="dlg-input"
+                            />
+                        </div>
+                        <div className="dlg-field">
+                            <label className="dlg-label">Description</label>
+                            <textarea
+                                name="description"
+                                value={form.description}
+                                onChange={handle}
+                                placeholder="Describe this department's function…"
+                                className="dlg-textarea"
+                            />
+                        </div>
+
+                        {error && <p className="dlg-error">{error}</p>}
+
+                        <div className="dlg-actions">
+                            <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
+                            <button className="dlg-btn-primary" onClick={save}>Save Changes</button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
+    )
+}
+
 // ─── Add Employees to Department ──────────────────────────────────────────────
 export const EmployeesIDSDialogBox = ({ DepartmentID }) => {
-    const dispatch        = useDispatch()
+    const dispatch         = useDispatch()
     const EmployeesIDState = useSelector(s => s.EMployeesIDReducer)
     const [search, setSearch] = useState('')
     const [selected, setSelected] = useState({ departmentID: DepartmentID, employeeIDArray: [] })
@@ -413,7 +599,7 @@ export const EmployeesIDSDialogBox = ({ DepartmentID }) => {
                                 {filtered.length === 0 && (
                                     <p style={{ fontSize: '13px', color: 'rgba(0,0,0,0.3)', padding: '12px', textAlign: 'center' }}>No employees found.</p>
                                 )}
-                                {filtered.map((emp, i) => {
+                                {filtered.map((emp) => {
                                     const isDisabled = !!emp.department
                                     const isSelected = selected.employeeIDArray.includes(emp._id)
                                     return (
