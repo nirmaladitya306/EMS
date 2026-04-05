@@ -43,7 +43,6 @@ const styles = `
   .dlg-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .dlg-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 4px; border-top: 1px solid rgba(0,0,0,0.06); }
 
-  /* ── Employee detail ── */
   .dlg-emp-avatar {
     width: 52px; height: 52px; border-radius: 50%;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -65,12 +64,10 @@ const styles = `
     font-family: 'DM Sans', sans-serif;
   }
 
-  /* ── Confirm dialog ── */
   .dlg-confirm-icon { font-size: 2.5rem; text-align: center; }
   .dlg-confirm-text { font-size: 14px; color: rgba(0,0,0,0.55); text-align: center; line-height: 1.6; }
   .dlg-confirm-text strong { color: #0f172a; }
 
-  /* ── Employee checkbox list ── */
   .dlg-emp-search {
     width: 100%; padding: 9px 13px; border: 1px solid rgba(0,0,0,0.12);
     background: #fff; border-radius: 10px;
@@ -96,7 +93,6 @@ const styles = `
   .dlg-emp-item-name  { font-size: 13px; font-weight: 500; color: #0f172a; }
   .dlg-emp-item-dept  { font-size: 11px; color: rgba(0,0,0,0.35); margin-top: 1px; }
 
-  /* Buttons reused from pg-* system */
   .dlg-btn-primary {
     padding: 9px 18px;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -131,24 +127,18 @@ const styles = `
   }
 `
 
-// ─── Add Employees ────────────────────────────────────────────────────────────
+// ─── Add Employee ─────────────────────────────────────────────────────────────
 export const AddEmployeesDialogBox = () => {
     const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({
-        firstname: '', lastname: '', email: '',
-        contactnumber: '', textpassword: '', password: '',
-    })
+    const [formdata, setformdata] = useState({ firstname: '', lastname: '', email: '', contactnumber: '', textpassword: '', password: '' })
     const [open, setOpen] = useState(false)
-
     const handle = (e) => CommonStateHandler(formdata, setformdata, e)
-
     const submit = () => {
         if (!formdata.firstname || !formdata.email || !formdata.textpassword || !formdata.password) return
         dispatch(HandlePostHREmployees({ apiroute: 'ADDEMPLOYEE', data: formdata }))
         setformdata({ firstname: '', lastname: '', email: '', contactnumber: '', textpassword: '', password: '' })
         setOpen(false)
     }
-
     return (
         <>
             <style>{styles}</style>
@@ -159,32 +149,14 @@ export const AddEmployeesDialogBox = () => {
                         <h2 className="dlg-title">Add Employee</h2>
                         <div className="dlg-divider" />
                         <div className="dlg-grid-2">
-                            <div className="dlg-field">
-                                <label className="dlg-label">First Name</label>
-                                <input name="firstname" value={formdata.firstname} onChange={handle} placeholder="e.g. Aisha" className="dlg-input" />
-                            </div>
-                            <div className="dlg-field">
-                                <label className="dlg-label">Last Name</label>
-                                <input name="lastname" value={formdata.lastname} onChange={handle} placeholder="e.g. Khan" className="dlg-input" />
-                            </div>
+                            <div className="dlg-field"><label className="dlg-label">First Name</label><input name="firstname" value={formdata.firstname} onChange={handle} placeholder="e.g. Aisha" className="dlg-input" /></div>
+                            <div className="dlg-field"><label className="dlg-label">Last Name</label><input name="lastname" value={formdata.lastname} onChange={handle} placeholder="e.g. Khan" className="dlg-input" /></div>
                         </div>
-                        <div className="dlg-field">
-                            <label className="dlg-label">Email</label>
-                            <input name="email" type="email" value={formdata.email} onChange={handle} placeholder="e.g. aisha@company.com" className="dlg-input" />
-                        </div>
-                        <div className="dlg-field">
-                            <label className="dlg-label">Contact Number</label>
-                            <input name="contactnumber" type="number" value={formdata.contactnumber} onChange={handle} placeholder="e.g. 9876543210" className="dlg-input" />
-                        </div>
+                        <div className="dlg-field"><label className="dlg-label">Email</label><input name="email" type="email" value={formdata.email} onChange={handle} placeholder="e.g. aisha@company.com" className="dlg-input" /></div>
+                        <div className="dlg-field"><label className="dlg-label">Contact Number</label><input name="contactnumber" type="number" value={formdata.contactnumber} onChange={handle} placeholder="e.g. 9876543210" className="dlg-input" /></div>
                         <div className="dlg-grid-2">
-                            <div className="dlg-field">
-                                <label className="dlg-label">Password</label>
-                                <input name="textpassword" type="password" value={formdata.textpassword} onChange={handle} className="dlg-input" />
-                            </div>
-                            <div className="dlg-field">
-                                <label className="dlg-label">Confirm Password</label>
-                                <input name="password" type="password" value={formdata.password} onChange={handle} className="dlg-input" />
-                            </div>
+                            <div className="dlg-field"><label className="dlg-label">Password</label><input name="textpassword" type="password" value={formdata.textpassword} onChange={handle} className="dlg-input" /></div>
+                            <div className="dlg-field"><label className="dlg-label">Confirm Password</label><input name="password" type="password" value={formdata.password} onChange={handle} className="dlg-input" /></div>
                         </div>
                         <div className="dlg-actions">
                             <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
@@ -199,27 +171,17 @@ export const AddEmployeesDialogBox = () => {
 
 // ─── View Employee ────────────────────────────────────────────────────────────
 export const EmployeeDetailsDialogBox = ({ EmployeeID }) => {
-    const HREmployeesState = useSelector(s => s.HREmployeesPageReducer)
-    const emp = HREmployeesState.data?.find(e => e._id === EmployeeID)
+    const emp = useSelector(s => s.HREmployeesPageReducer)?.data?.find(e => e._id === EmployeeID)
     if (!emp) return null
-
     const initials = `${emp.firstname?.[0] || ''}${emp.lastname?.[0] || ''}`.toUpperCase()
-
-    const details1 = [
-        { key: 'First Name',     val: emp.firstname },
-        { key: 'Last Name',      val: emp.lastname  },
-        { key: 'Email',          val: emp.email     },
-        { key: 'Contact',        val: emp.contactnumber },
-        { key: 'Department',     val: emp.department?.name || 'Not Specified' },
-        { key: 'Email Verified', val: emp.isverified ? 'Verified' : 'Not Verified' },
+    const rows = [
+        { key: 'First Name', val: emp.firstname }, { key: 'Last Name', val: emp.lastname },
+        { key: 'Email', val: emp.email }, { key: 'Contact', val: emp.contactnumber },
+        { key: 'Department', val: emp.department?.name || 'Not Specified' },
+        { key: 'Verified', val: emp.isverified ? 'Verified' : 'Not Verified' },
+        { key: 'Notices', val: emp.notice?.length || 0 }, { key: 'Salary Records', val: emp.salary?.length || 0 },
+        { key: 'Leave Requests', val: emp.leaverequest?.length || 0 }, { key: 'Requests', val: emp.generaterequest?.length || 0 },
     ]
-    const details2 = [
-        { key: 'Notices',        val: emp.notice?.length        || 0 },
-        { key: 'Salary Records', val: emp.salary?.length        || 0 },
-        { key: 'Leave Requests', val: emp.leaverequest?.length  || 0 },
-        { key: 'Requests',       val: emp.generaterequest?.length || 0 },
-    ]
-
     return (
         <>
             <style>{styles}</style>
@@ -227,35 +189,21 @@ export const EmployeeDetailsDialogBox = ({ EmployeeID }) => {
                 <DialogTrigger className="pg-action-btn indigo">View</DialogTrigger>
                 <DialogContent className="max-w-[340px] sm:max-w-[560px]">
                     <div className="dlg-inner">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                             <div className="dlg-emp-avatar">{initials}</div>
-                            <div>
-                                <p className="dlg-emp-name">{emp.firstname} {emp.lastname}</p>
-                                <p style={{ fontSize: '12px', color: 'rgba(0,0,0,0.38)', marginTop: '2px' }}>{emp.email}</p>
-                            </div>
+                            <div><p className="dlg-emp-name">{emp.firstname} {emp.lastname}</p><p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 2 }}>{emp.email}</p></div>
                         </div>
                         <div className="dlg-divider" />
                         <div className="dlg-detail-grid">
-                            {[...details1, ...details2].map(d => (
-                                <div key={d.key} className="dlg-detail-row">
-                                    <span className="dlg-detail-key">{d.key}</span>
-                                    <span className="dlg-detail-val">{d.val}</span>
-                                </div>
-                            ))}
+                            {rows.map(d => <div key={d.key} className="dlg-detail-row"><span className="dlg-detail-key">{d.key}</span><span className="dlg-detail-val">{d.val}</span></div>)}
                         </div>
                         <div>
-                            <p className="dlg-label" style={{ marginBottom: '8px' }}>Skills</p>
-                            {emp.skills?.length > 0 ? (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                    {emp.skills.map((s, i) => <span key={i} className="dlg-skill-chip">{s}</span>)}
-                                </div>
-                            ) : (
-                                <p style={{ fontSize: '12px', color: 'rgba(0,0,0,0.3)', fontStyle: 'italic' }}>No skills added yet.</p>
-                            )}
+                            <p className="dlg-label" style={{ marginBottom: 8 }}>Skills</p>
+                            {emp.skills?.length > 0
+                                ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{emp.skills.map((s, i) => <span key={i} className="dlg-skill-chip">{s}</span>)}</div>
+                                : <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.3)', fontStyle: 'italic' }}>No skills added yet.</p>}
                         </div>
-                        <div className="dlg-actions">
-                            <DialogClose className="dlg-btn-ghost">Close</DialogClose>
-                        </div>
+                        <div className="dlg-actions"><DialogClose className="dlg-btn-ghost">Close</DialogClose></div>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -265,109 +213,42 @@ export const EmployeeDetailsDialogBox = ({ EmployeeID }) => {
 
 // ─── Modify Employee ──────────────────────────────────────────────────────────
 export const ModifyEmployeeDialogBox = ({ EmployeeID }) => {
-    const dispatch         = useDispatch()
-    const HREmployeesState = useSelector(s => s.HREmployeesPageReducer)
-    const emp              = HREmployeesState.data?.find(e => e._id === EmployeeID)
-
+    const dispatch = useDispatch()
+    const emp      = useSelector(s => s.HREmployeesPageReducer)?.data?.find(e => e._id === EmployeeID)
     const [open, setOpen]   = useState(false)
     const [error, setError] = useState('')
-    const [form, setForm]   = useState({
-        firstname: '', lastname: '', contactnumber: '',
-    })
+    const [form, setForm]   = useState({ firstname: '', lastname: '', contactnumber: '' })
 
     useEffect(() => {
-        if (open && emp) {
-            setForm({
-                firstname:     emp.firstname     || '',
-                lastname:      emp.lastname      || '',
-                contactnumber: emp.contactnumber || '',
-            })
-            setError('')
-        }
+        if (open && emp) { setForm({ firstname: emp.firstname || '', lastname: emp.lastname || '', contactnumber: emp.contactnumber || '' }); setError('') }
     }, [open, emp])
 
     if (!emp) return null
-
     const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-
     const submit = () => {
         if (!form.firstname.trim()) { setError('First name is required.'); return }
-        dispatch(HandlePatchHREmployees({
-            employeeId:      EmployeeID,
-            updatedEmployee: {
-                firstname:     form.firstname.trim(),
-                lastname:      form.lastname.trim(),
-                contactnumber: form.contactnumber.trim(),
-            },
-        }))
+        dispatch(HandlePatchHREmployees({ employeeId: EmployeeID, updatedEmployee: { firstname: form.firstname.trim(), lastname: form.lastname.trim(), contactnumber: form.contactnumber.trim() } }))
         setOpen(false)
     }
-
     return (
         <>
             <style>{styles}</style>
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); setError('') }}>
+            <Dialog open={open} onOpenChange={v => { setOpen(v); setError('') }}>
                 <DialogTrigger className="pg-action-btn">Modify</DialogTrigger>
                 <DialogContent className="max-w-[340px] sm:max-w-[480px]">
                     <div className="dlg-inner">
-                        {/* Header with avatar */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                            <div className="dlg-emp-avatar">
-                                {`${emp.firstname?.[0] || ''}${emp.lastname?.[0] || ''}`.toUpperCase()}
-                            </div>
-                            <div>
-                                <h2 className="dlg-title">Modify Employee</h2>
-                                <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 2 }}>
-                                    {emp.email}
-                                </p>
-                            </div>
+                            <div className="dlg-emp-avatar">{`${emp.firstname?.[0] || ''}${emp.lastname?.[0] || ''}`.toUpperCase()}</div>
+                            <div><h2 className="dlg-title">Modify Employee</h2><p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 2 }}>{emp.email}</p></div>
                         </div>
-
                         <div className="dlg-divider" />
-
                         <div className="dlg-grid-2">
-                            <div className="dlg-field">
-                                <label className="dlg-label">First Name *</label>
-                                <input
-                                    name="firstname"
-                                    value={form.firstname}
-                                    onChange={handle}
-                                    placeholder="e.g. Aisha"
-                                    className="dlg-input"
-                                />
-                            </div>
-                            <div className="dlg-field">
-                                <label className="dlg-label">Last Name</label>
-                                <input
-                                    name="lastname"
-                                    value={form.lastname}
-                                    onChange={handle}
-                                    placeholder="e.g. Khan"
-                                    className="dlg-input"
-                                />
-                            </div>
+                            <div className="dlg-field"><label className="dlg-label">First Name *</label><input name="firstname" value={form.firstname} onChange={handle} className="dlg-input" /></div>
+                            <div className="dlg-field"><label className="dlg-label">Last Name</label><input name="lastname" value={form.lastname} onChange={handle} className="dlg-input" /></div>
                         </div>
-
-                        <div className="dlg-field">
-                            <label className="dlg-label">Contact Number</label>
-                            <input
-                                name="contactnumber"
-                                type="tel"
-                                value={form.contactnumber}
-                                onChange={handle}
-                                placeholder="e.g. 9876543210"
-                                className="dlg-input"
-                            />
-                        </div>
-
+                        <div className="dlg-field"><label className="dlg-label">Contact Number</label><input name="contactnumber" type="tel" value={form.contactnumber} onChange={handle} className="dlg-input" /></div>
                         {error && <p className="dlg-error">{error}</p>}
-
-                        <div className="dlg-actions">
-                            <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
-                            <button className="dlg-btn-primary" onClick={submit}>
-                                Save Changes
-                            </button>
-                        </div>
+                        <div className="dlg-actions"><DialogClose className="dlg-btn-ghost">Cancel</DialogClose><button className="dlg-btn-primary" onClick={submit}>Save Changes</button></div>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -378,7 +259,6 @@ export const ModifyEmployeeDialogBox = ({ EmployeeID }) => {
 // ─── Delete Employee ──────────────────────────────────────────────────────────
 export const DeleteEmployeeDialogBox = ({ EmployeeID }) => {
     const dispatch = useDispatch()
-
     return (
         <>
             <style>{styles}</style>
@@ -388,18 +268,11 @@ export const DeleteEmployeeDialogBox = ({ EmployeeID }) => {
                     <div className="dlg-inner" style={{ textAlign: 'center', alignItems: 'center' }}>
                         <div className="dlg-confirm-icon">🗑️</div>
                         <h2 className="dlg-title">Delete Employee</h2>
-                        <p className="dlg-confirm-text">
-                            Are you sure you want to <strong>permanently delete</strong> this employee? This action cannot be undone.
-                        </p>
+                        <p className="dlg-confirm-text">Are you sure you want to <strong>permanently delete</strong> this employee? This action cannot be undone.</p>
                         <div className="dlg-divider" style={{ width: '100%' }} />
                         <div className="dlg-actions" style={{ width: '100%' }}>
                             <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
-                            <DialogClose
-                                className="dlg-btn-danger"
-                                onClick={() => dispatch(HandleDeleteHREmployees({ apiroute: `DELETE.${EmployeeID}` }))}
-                            >
-                                Delete
-                            </DialogClose>
+                            <DialogClose className="dlg-btn-danger" onClick={() => dispatch(HandleDeleteHREmployees({ apiroute: `DELETE.${EmployeeID}` }))}>Delete</DialogClose>
                         </div>
                     </div>
                 </DialogContent>
@@ -412,56 +285,27 @@ export const DeleteEmployeeDialogBox = ({ EmployeeID }) => {
 export const CreateDepartmentDialogBox = () => {
     const dispatch = useDispatch()
     const [formdata, setformdata] = useState({ name: '', description: '' })
-    const [open, setOpen] = useState(false)
+    const [open, setOpen]   = useState(false)
     const [error, setError] = useState('')
-
     const handle = (e) => CommonStateHandler(formdata, setformdata, e)
-
     const create = () => {
-        if (!formdata.name.trim() || !formdata.description.trim()) {
-            setError('Both fields are required.')
-            return
-        }
+        if (!formdata.name.trim() || !formdata.description.trim()) { setError('Both fields are required.'); return }
         dispatch(HandlePostHRDepartments({ apiroute: 'CREATE', data: formdata }))
-        setformdata({ name: '', description: '' })
-        setError('')
-        setOpen(false)
+        setformdata({ name: '', description: '' }); setError(''); setOpen(false)
     }
-
     return (
         <>
             <style>{styles}</style>
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); setError('') }}>
+            <Dialog open={open} onOpenChange={v => { setOpen(v); setError('') }}>
                 <DialogTrigger className="dlg-btn-primary">Create Department</DialogTrigger>
                 <DialogContent className="max-w-[340px] sm:max-w-[460px]">
                     <div className="dlg-inner">
                         <h2 className="dlg-title">Create Department</h2>
                         <div className="dlg-divider" />
-                        <div className="dlg-field">
-                            <label className="dlg-label">Department Name</label>
-                            <input
-                                name="name"
-                                value={formdata.name}
-                                onChange={handle}
-                                placeholder="e.g. Engineering"
-                                className="dlg-input"
-                            />
-                        </div>
-                        <div className="dlg-field">
-                            <label className="dlg-label">Description</label>
-                            <textarea
-                                name="description"
-                                value={formdata.description}
-                                onChange={handle}
-                                placeholder="Describe this department's function…"
-                                className="dlg-textarea"
-                            />
-                        </div>
+                        <div className="dlg-field"><label className="dlg-label">Department Name</label><input name="name" value={formdata.name} onChange={handle} placeholder="e.g. Engineering" className="dlg-input" /></div>
+                        <div className="dlg-field"><label className="dlg-label">Description</label><textarea name="description" value={formdata.description} onChange={handle} placeholder="Describe this department's function…" className="dlg-textarea" /></div>
                         {error && <p className="dlg-error">{error}</p>}
-                        <div className="dlg-actions">
-                            <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
-                            <button className="dlg-btn-primary" onClick={create}>Create</button>
-                        </div>
+                        <div className="dlg-actions"><DialogClose className="dlg-btn-ghost">Cancel</DialogClose><button className="dlg-btn-primary" onClick={create}>Create</button></div>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -477,67 +321,32 @@ export const ModifyDepartmentDialogBox = ({ dept }) => {
     const [form, setForm]   = useState({ name: '', description: '' })
 
     useEffect(() => {
-        if (open && dept) {
-            setForm({ name: dept.name || '', description: dept.description || '' })
-            setError('')
-        }
+        if (open && dept) { setForm({ name: dept.name || '', description: dept.description || '' }); setError('') }
     }, [open, dept])
 
     const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-
     const save = () => {
-        if (!form.name.trim() || !form.description.trim()) {
-            setError('Both fields are required.')
-            return
-        }
+        if (!form.name.trim() || !form.description.trim()) { setError('Both fields are required.'); return }
+        // Send only name+description for a dept info update (no employeeIDArray = update info)
         dispatch(HandlePatchHRDepartments({
             apiroute: 'UPDATE',
-            data: { departmentID: dept._id, UpdatedDepartment: { name: form.name.trim(), description: form.description.trim() } },
-        })).then(() => {
-            dispatch(HandleGetHRDepartments({ apiroute: 'GETALL' }))
-        })
+            data: { departmentID: dept._id, name: form.name.trim(), description: form.description.trim() },
+        })).then(() => dispatch(HandleGetHRDepartments({ apiroute: 'GETALL' })))
         setOpen(false)
     }
-
     return (
         <>
             <style>{styles}</style>
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); setError('') }}>
-                <DialogTrigger className="dlg-btn-ghost" style={{ fontSize: 12, padding: '7px 14px' }}>
-                    ✏️ Modify
-                </DialogTrigger>
+            <Dialog open={open} onOpenChange={v => { setOpen(v); setError('') }}>
+                <DialogTrigger className="dlg-btn-ghost" style={{ fontSize: 12, padding: '7px 14px' }}>✏️ Modify</DialogTrigger>
                 <DialogContent className="max-w-[340px] sm:max-w-[460px]">
                     <div className="dlg-inner">
                         <h2 className="dlg-title">Modify Department</h2>
                         <div className="dlg-divider" />
-
-                        <div className="dlg-field">
-                            <label className="dlg-label">Department Name</label>
-                            <input
-                                name="name"
-                                value={form.name}
-                                onChange={handle}
-                                placeholder="e.g. Engineering"
-                                className="dlg-input"
-                            />
-                        </div>
-                        <div className="dlg-field">
-                            <label className="dlg-label">Description</label>
-                            <textarea
-                                name="description"
-                                value={form.description}
-                                onChange={handle}
-                                placeholder="Describe this department's function…"
-                                className="dlg-textarea"
-                            />
-                        </div>
-
+                        <div className="dlg-field"><label className="dlg-label">Department Name</label><input name="name" value={form.name} onChange={handle} placeholder="e.g. Engineering" className="dlg-input" /></div>
+                        <div className="dlg-field"><label className="dlg-label">Description</label><textarea name="description" value={form.description} onChange={handle} placeholder="Describe this department's function…" className="dlg-textarea" /></div>
                         {error && <p className="dlg-error">{error}</p>}
-
-                        <div className="dlg-actions">
-                            <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
-                            <button className="dlg-btn-primary" onClick={save}>Save Changes</button>
-                        </div>
+                        <div className="dlg-actions"><DialogClose className="dlg-btn-ghost">Cancel</DialogClose><button className="dlg-btn-primary" onClick={save}>Save Changes</button></div>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -549,92 +358,45 @@ export const ModifyDepartmentDialogBox = ({ dept }) => {
 export const EmployeesIDSDialogBox = ({ DepartmentID }) => {
     const dispatch         = useDispatch()
     const EmployeesIDState = useSelector(s => s.EMployeesIDReducer)
-    const [search, setSearch] = useState('')
+    const [search, setSearch]   = useState('')
     const [selected, setSelected] = useState({ departmentID: DepartmentID, employeeIDArray: [] })
 
-    useEffect(() => {
-        setSelected({ departmentID: DepartmentID, employeeIDArray: [] })
-    }, [DepartmentID])
+    useEffect(() => { setSelected({ departmentID: DepartmentID, employeeIDArray: [] }) }, [DepartmentID])
 
-    const toggle = (id) => {
-        setSelected(prev => ({
-            ...prev,
-            employeeIDArray: prev.employeeIDArray.includes(id)
-                ? prev.employeeIDArray.filter(e => e !== id)
-                : [...prev.employeeIDArray, id],
-        }))
-    }
-
-    const add = () => {
-        dispatch(HandlePatchHRDepartments({ apiroute: 'UPDATE', data: selected }))
-        setSelected({ departmentID: DepartmentID, employeeIDArray: [] })
-    }
-
-    const filtered = (EmployeesIDState.data || []).filter(e =>
-        `${e.firstname} ${e.lastname}`.toLowerCase().includes(search.toLowerCase())
-    )
+    const toggle = (id) => setSelected(prev => ({ ...prev, employeeIDArray: prev.employeeIDArray.includes(id) ? prev.employeeIDArray.filter(e => e !== id) : [...prev.employeeIDArray, id] }))
+    const add = () => { dispatch(HandlePatchHRDepartments({ apiroute: 'UPDATE', data: selected })); setSelected({ departmentID: DepartmentID, employeeIDArray: [] }) }
+    const filtered = (EmployeesIDState.data || []).filter(e => `${e.firstname} ${e.lastname}`.toLowerCase().includes(search.toLowerCase()))
 
     return (
         <>
             <style>{styles}</style>
             <Dialog onOpenChange={() => setSelected({ departmentID: DepartmentID, employeeIDArray: [] })}>
-                <DialogTrigger
-                    className="dlg-btn-primary"
-                    onClick={() => dispatch(fetchEmployeesIDs({ apiroute: 'GETALL' }))}
-                >
-                    Add Employees
-                </DialogTrigger>
+                <DialogTrigger className="dlg-btn-primary" onClick={() => dispatch(fetchEmployeesIDs({ apiroute: 'GETALL' }))}>Add Employees</DialogTrigger>
                 <DialogContent className="max-w-[340px] sm:max-w-[460px]">
                     {EmployeesIDState.isLoading ? <Loading height="h-auto" /> : (
                         <div className="dlg-inner">
                             <h2 className="dlg-title">Add Employees</h2>
                             <div className="dlg-divider" />
-                            <input
-                                className="dlg-emp-search"
-                                placeholder="Search by name…"
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                            />
+                            <input className="dlg-emp-search" placeholder="Search by name…" value={search} onChange={e => setSearch(e.target.value)} />
                             <div className="dlg-emp-list">
-                                {filtered.length === 0 && (
-                                    <p style={{ fontSize: '13px', color: 'rgba(0,0,0,0.3)', padding: '12px', textAlign: 'center' }}>No employees found.</p>
-                                )}
-                                {filtered.map((emp) => {
+                                {filtered.length === 0 && <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.3)', padding: 12, textAlign: 'center' }}>No employees found.</p>}
+                                {filtered.map(emp => {
                                     const isDisabled = !!emp.department
                                     const isSelected = selected.employeeIDArray.includes(emp._id)
                                     return (
-                                        <label
-                                            key={emp._id}
-                                            className={`dlg-emp-item ${isSelected ? 'dlg-emp-item--selected' : ''} ${isDisabled ? 'dlg-emp-item--disabled' : ''}`}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={isSelected}
-                                                disabled={isDisabled}
-                                                onChange={() => !isDisabled && toggle(emp._id)}
-                                            />
+                                        <label key={emp._id} className={`dlg-emp-item ${isSelected ? 'dlg-emp-item--selected' : ''} ${isDisabled ? 'dlg-emp-item--disabled' : ''}`}>
+                                            <input type="checkbox" checked={isSelected} disabled={isDisabled} onChange={() => !isDisabled && toggle(emp._id)} />
                                             <div>
                                                 <p className="dlg-emp-item-name">{emp.firstname} {emp.lastname}</p>
-                                                {emp.department && (
-                                                    <p className="dlg-emp-item-dept">Already in {emp.department.name}</p>
-                                                )}
+                                                {emp.department && <p className="dlg-emp-item-dept">Already in {emp.department.name}</p>}
                                             </div>
                                         </label>
                                     )
                                 })}
                             </div>
                             <div className="dlg-actions">
-                                <DialogClose
-                                    className="dlg-btn-ghost"
-                                    onClick={() => setSelected({ departmentID: DepartmentID, employeeIDArray: [] })}
-                                >
-                                    Cancel
-                                </DialogClose>
-                                <DialogClose
-                                    className="dlg-btn-primary"
-                                    onClick={add}
-                                    disabled={selected.employeeIDArray.length === 0}
-                                >
+                                <DialogClose className="dlg-btn-ghost" onClick={() => setSelected({ departmentID: DepartmentID, employeeIDArray: [] })}>Cancel</DialogClose>
+                                <DialogClose className="dlg-btn-primary" onClick={add} disabled={selected.employeeIDArray.length === 0}>
                                     Add {selected.employeeIDArray.length > 0 ? `(${selected.employeeIDArray.length})` : ''}
                                 </DialogClose>
                             </div>
@@ -649,7 +411,6 @@ export const EmployeesIDSDialogBox = ({ DepartmentID }) => {
 // ─── Remove Employee from Department ─────────────────────────────────────────
 export const RemoveEmployeeFromDepartmentDialogBox = ({ DepartmentName, DepartmentID, EmployeeID }) => {
     const dispatch = useDispatch()
-
     return (
         <>
             <style>{styles}</style>
@@ -659,21 +420,11 @@ export const RemoveEmployeeFromDepartmentDialogBox = ({ DepartmentName, Departme
                     <div className="dlg-inner" style={{ textAlign: 'center', alignItems: 'center' }}>
                         <div className="dlg-confirm-icon">👤</div>
                         <h2 className="dlg-title">Remove Employee</h2>
-                        <p className="dlg-confirm-text">
-                            Are you sure you want to remove this employee from the <strong>{DepartmentName}</strong> department?
-                        </p>
+                        <p className="dlg-confirm-text">Are you sure you want to remove this employee from the <strong>{DepartmentName}</strong> department?</p>
                         <div className="dlg-divider" style={{ width: '100%' }} />
                         <div className="dlg-actions" style={{ width: '100%' }}>
                             <DialogClose className="dlg-btn-ghost">Cancel</DialogClose>
-                            <DialogClose
-                                className="dlg-btn-danger"
-                                onClick={() => dispatch(HandleDeleteHRDepartments({
-                                    apiroute: 'DELETE',
-                                    data: { departmentID: DepartmentID, employeeIDArray: [EmployeeID], action: 'delete-employee' }
-                                }))}
-                            >
-                                Remove
-                            </DialogClose>
+                            <DialogClose className="dlg-btn-danger" onClick={() => dispatch(HandleDeleteHRDepartments({ apiroute: 'DELETE', data: { departmentID: DepartmentID, employeeIDArray: [EmployeeID], action: 'delete-employee' } }))}>Remove</DialogClose>
                         </div>
                     </div>
                 </DialogContent>
