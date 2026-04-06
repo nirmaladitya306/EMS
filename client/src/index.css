@@ -843,3 +843,294 @@
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   background: rgba(255,255,255,0.18);
 }
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADDITIONAL DARK MODE OVERRIDES — Round 2
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Org Structure: org-* ───────────────────────────────────────────────────── */
+[data-theme="dark"] .org-node-indent {
+  border-left-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .org-node-card:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .org-dept-chip {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.4);
+}
+
+[data-theme="dark"] .org-node-btn {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.55);
+}
+
+[data-theme="dark"] .org-node-btn:hover {
+  background: rgba(255,255,255,0.09);
+  border-color: rgba(255,255,255,0.2);
+}
+
+[data-theme="dark"] .org-node-btn.assign {
+  color: #a5b4fc;
+  border-color: rgba(99,102,241,0.35);
+}
+
+[data-theme="dark"] .org-node-btn.assign:hover {
+  background: rgba(99,102,241,0.12);
+}
+
+[data-theme="dark"] .org-employees-strip {
+  border-top-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .org-emp-pill {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .org-emp-name {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .org-emp-remove {
+  color: rgba(255,255,255,0.25);
+}
+
+[data-theme="dark"] .org-no-emp {
+  color: rgba(255,255,255,0.28);
+}
+
+[data-theme="dark"] .org-modal-overlay {
+  background: rgba(0,0,0,0.6);
+}
+
+[data-theme="dark"] .org-modal {
+  background: #1a1d2e;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .org-modal-title {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .org-modal-sub {
+  color: rgba(255,255,255,0.38);
+}
+
+[data-theme="dark"] .org-divider {
+  background: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .org-label {
+  color: rgba(255,255,255,0.4);
+}
+
+[data-theme="dark"] .org-input,
+[data-theme="dark"] .org-textarea,
+[data-theme="dark"] .org-select-input {
+  background: #1e2130;
+  border-color: rgba(255,255,255,0.1);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .org-input:focus,
+[data-theme="dark"] .org-textarea:focus,
+[data-theme="dark"] .org-select-input:focus {
+  border-color: rgba(99,102,241,0.55);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+
+[data-theme="dark"] .org-input::placeholder,
+[data-theme="dark"] .org-textarea::placeholder {
+  color: rgba(255,255,255,0.25);
+}
+
+[data-theme="dark"] .org-modal-actions {
+  border-top-color: rgba(255,255,255,0.07);
+}
+
+/* ── Salary chart: sc-* ─────────────────────────────────────────────────────── */
+[data-theme="dark"] .sc-title {
+  color: rgba(255,255,255,0.35);
+}
+
+[data-theme="dark"] .sc-sub {
+  color: rgba(255,255,255,0.38);
+}
+
+[data-theme="dark"] .sc-footer {
+  border-top-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .sc-balance {
+  color: #f1f5f9;
+}
+
+/* ── Data table: dt-* ───────────────────────────────────────────────────────── */
+[data-theme="dark"] .dt-root {
+  background: transparent;
+}
+
+[data-theme="dark"] .dt-title {
+  color: rgba(255,255,255,0.35);
+}
+
+[data-theme="dark"] .dt-table-wrap {
+  border-color: rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .dt-table-head {
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.3);
+}
+
+[data-theme="dark"] .dt-row {
+  border-bottom-color: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.65);
+}
+
+[data-theme="dark"] .dt-row:hover {
+  background: rgba(99,102,241,0.06);
+}
+
+[data-theme="dark"] .dt-id,
+[data-theme="dark"] .dt-title-cell {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .dt-muted {
+  color: rgba(255,255,255,0.4);
+}
+
+[data-theme="dark"] .dt-empty {
+  color: rgba(255,255,255,0.3);
+}
+
+/* ── Employee sidebar: em-* ─────────────────────────────────────────────────── */
+[data-theme="dark"] .em-sidebar-inner {
+  background: #13151f !important;
+  border-right-color: rgba(255,255,255,0.06) !important;
+}
+
+[data-theme="dark"] .em-sidebar-header {
+  border-bottom-color: rgba(255,255,255,0.06) !important;
+}
+
+[data-theme="dark"] .em-sidebar-logo-text {
+  color: rgba(255,255,255,0.3) !important;
+}
+
+[data-theme="dark"] .em-nav-section-label {
+  color: rgba(255,255,255,0.2) !important;
+}
+
+[data-theme="dark"] .em-nav-link:hover {
+  background: rgba(255,255,255,0.05) !important;
+}
+
+[data-theme="dark"] .em-nav-link.active {
+  background: rgba(139,92,246,0.15) !important;
+}
+
+[data-theme="dark"] .em-nav-label {
+  color: rgba(255,255,255,0.55) !important;
+}
+
+[data-theme="dark"] .em-nav-link.active .em-nav-label {
+  color: #c4b5fd !important;
+}
+
+[data-theme="dark"] .em-sidebar-footer {
+  border-top-color: rgba(255,255,255,0.06) !important;
+}
+
+[data-theme="dark"] .em-footer-badge {
+  color: rgba(255,255,255,0.2) !important;
+}
+
+[data-theme="dark"] .em-theme-toggle {
+  background: rgba(255,255,255,0.04) !important;
+  color: rgba(255,255,255,0.5) !important;
+}
+
+[data-theme="dark"] .em-theme-toggle:hover {
+  background: rgba(255,255,255,0.08) !important;
+}
+
+/* ── Salary chart tooltip (inline hardcoded white bg) ───────────────────────── */
+[data-theme="dark"] .recharts-tooltip-wrapper > div,
+[data-theme="dark"] .recharts-default-tooltip {
+  background: #1a1d2e !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: #e2e8f0 !important;
+}
+
+/* ── Dashboard wrapper (employee dashboard container) ───────────────────────── */
+[data-theme="dark"] .employee-dashboard-container {
+  background: #0f1117;
+}
+
+[data-theme="dark"] .employee-dashboard-content {
+  background: #0f1117;
+}
+
+/* ── View toggle segmented control (org structure tree/list toggle) ─────────── */
+[data-theme="dark"] .org-view-toggle {
+  background: rgba(255,255,255,0.05);
+}
+
+[data-theme="dark"] .org-view-toggle-btn {
+  color: rgba(255,255,255,0.4);
+}
+
+[data-theme="dark"] .org-view-toggle-btn.active {
+  background: #1e2130;
+  color: #f1f5f9;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+/* ── List view table in org structure ────────────────────────────────── */
+[data-theme="dark"] .org-list-row {
+  border-bottom-color: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.65);
+}
+
+/* ── Error banners ───────────────────────────────────────────────────────── */
+[data-theme="dark"] [style*="background: rgba(239,68,68,0.06)"],
+[data-theme="dark"] [style*="background:rgba(239,68,68,0.06)"] {
+  background: rgba(239,68,68,0.12) !important;
+  border-color: rgba(220,38,38,0.3) !important;
+}
+
+/* ── shadcn Dialog (used by dialogboxes.jsx) dark fix ───────────────────────── */
+[data-theme="dark"] [role="dialog"] {
+  background: #1a1d2e !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #e2e8f0 !important;
+}
+
+/* ── skill-chip-remove button ───────────────────────────────────────────────── */
+[data-theme="dark"] .skill-chip-remove {
+  color: rgba(99,102,241,0.5);
+}
+
+[data-theme="dark"] .skill-chip-remove:hover {
+  color: #a5b4fc;
+}
+
+[data-theme="dark"] .skill-chip {
+  background: rgba(99,102,241,0.12);
+  border-color: rgba(99,102,241,0.25);
+  color: #a5b4fc;
+}
+
+/* ── Org structure level palette: node bg/border colors are inline styles, ──
+   but the cards that use rgba(0,0,0,...) borders on white bg need adjusting.
+   We target the known level tints and boost them slightly for dark mode. ──── */
+[data-theme="dark"] .org-node-card {
+  /* Override any inline rgba(0,0,0,...) opacity backgrounds to be lighter */
+  filter: brightness(1.15) saturate(1.1);
+}
