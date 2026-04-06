@@ -61,7 +61,7 @@ export const HRRoutes = [
             element: <HRDepartmentPage />
         },
         {
-            path: "documents",
+            path: "document-expiry",
             element: <DocumentExpiryPage />
         },
         {
@@ -93,7 +93,7 @@ export const HRRoutes = [
             element: <RecruitmentPage />
         },
         {
-            path: "interview-insights",
+            path: "interviews",
             element: <InterviewPage />
         },
         {

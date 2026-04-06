@@ -74,7 +74,7 @@ export function HRdashboardSidebar() {
               <NavItem to="/hr/dashboard/attendance"            icon={I("attendance.png")}          label="Attendance" />
               <NavItem to="/hr/dashboard/salary"                icon={I("salary.png")}              label="Salary" />
               <NavItem to="/hr/dashboard/notices"               icon={I("notice.png")}              label="Notices" />
-              <NavItem to="/hr/dashboard/document-expiry"       icon={I("document.png")}            label="Document Expiry" />
+              <NavItem to="/hr/dashboard/document-expiry"       icon={I("docalert.png")}            label="Document Expiry" />
               <NavItem to="/hr/dashboard/exit-clearance"        icon={I("leave.png")}               label="Exit Clearance" />
               <NavItem to="/hr/dashboard/leave-recommendation"  icon={I("leave.png")}               label="Leave Recommendation" />
               <NavItem to="/hr/dashboard/payroll-compliance"    icon={I("salary.png")}              label="Payroll Compliance" />
