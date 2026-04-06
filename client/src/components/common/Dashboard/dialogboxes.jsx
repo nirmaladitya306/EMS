@@ -330,9 +330,8 @@ export const ModifyDepartmentDialogBox = ({ dept }) => {
         // Send only name+description for a dept info update (no employeeIDArray = update info)
         dispatch(HandlePatchHRDepartments({
             apiroute: 'UPDATE',
-            data: { departmentID: dept._id, name: form.name.trim(), description: form.description.trim() },
-        })).then(() => dispatch(HandleGetHRDepartments({ apiroute: 'GETALL' })))
-        setOpen(false)
+            data: { departmentID: dept._id, UpdatedDepartment: { name: form.name.trim(), description: form.description.trim() } },
+        }))
     }
     return (
         <>

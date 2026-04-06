@@ -135,7 +135,7 @@ export const HRDashboardAsyncReducer = (builder, thunk) => {
     builder.addCase(thunk.fulfilled, (state, action) => {
         state.isLoading = false;
         state.error.status = false;
-        state.data = action.payload.data;
+        state.data = action.payload.data?.departments || action.payload.data || [];
         state.success = action.payload.success
     })
     builder.addCase(thunk.rejected, (state, action) => {
@@ -157,7 +157,7 @@ export const HREmployeesPageAsyncReducer = (builder, thunk) => {
             state.error.status = false;
             state.error.message = null
             state.error.content = null;
-            state.data = action.payload.data;
+            state.data = action.payload.data?.departments || action.payload.data || [];
             state.success = action.payload.success
             state.fetchData = false
         }
@@ -166,7 +166,7 @@ export const HREmployeesPageAsyncReducer = (builder, thunk) => {
             state.error.status = false;
             state.error.message = null
             state.error.content = null;
-            state.data = action.payload.data;
+            state.data = action.payload.data?.departments || action.payload.data || [];
             state.success = action.payload.success;
             state.fetchData = true
         }
@@ -192,49 +192,86 @@ export const HRDepartmentPageAsyncReducer = (builder, thunk) => {
     builder.addCase(thunk.pending, (state) => {
         state.isLoading = true;
         state.error.content = null;
-    })
+    });
+
     builder.addCase(thunk.fulfilled, (state, action) => {
-        if (action.payload?.data) {
+        const payload = action.payload;
+
+        // ✅ 1. Handle GET ALL (primary case)
+        if (payload?.data) {
             state.isLoading = false;
+
             state.error.status = false;
-            state.error.message = null
+            state.error.message = null;
             state.error.content = null;
-            state.data = action.payload.data;
-            state.fetchData = false
-            state.success.status = false
-            state.success.message = null
-            state.success.content = null
+
+            // 🔥 Normalize data safely
+            const rawData = payload.data;
+
+            state.data = Array.isArray(rawData)
+                ? rawData
+                : rawData?.departments || [];
+
+            state.fetchData = false;
+
+            state.success.status = false;
+            state.success.message = null;
+            state.success.content = null;
         }
-        else if (action.payload.type === "CreateDepartment" || 
-            action.payload.type === "DepartmentDelete" || 
-            action.payload.type === "DepartmentEMUpdate" || 
-            action.payload.type === "RemoveEmployeeDE") 
-            {
+
+        // ✅ 2. Handle single department fetch
+        else if (payload?.type === "GetDepartment") {
             state.isLoading = false;
+
             state.error.status = false;
-            state.error.message = null
+            state.error.message = null;
             state.error.content = null;
-            state.success.status = action.payload.success;
-            state.success.message = action.payload.message;
-            state.success.content = action.payload;
-            state.fetchData = true
+
+            state.departmentData = payload.data;
         }
-        else if (action.payload.type === "GetDepartment") {
+
+        // ✅ 3. Handle mutations (create/update/delete)
+        else if (
+            payload?.type === "CreateDepartment" ||
+            payload?.type === "DepartmentDelete" ||
+            payload?.type === "DepartmentEMUpdate" ||
+            payload?.type === "DepartmentDEUpdate" ||
+            payload?.type === "RemoveEmployeeDE"
+        ) {
             state.isLoading = false;
+
             state.error.status = false;
-            state.error.message = null
+            state.error.message = null;
             state.error.content = null;
-            state.departmentData = action.payload.data
+
+            state.success.status = payload.success;
+            state.success.message = payload.message;
+            state.success.content = payload;
+
+            // 🔁 trigger refetch
+            state.fetchData = true;
         }
-    })
+
+        // ✅ 4. Fallback (VERY IMPORTANT)
+        else {
+            state.isLoading = false;
+        }
+    });
+
     builder.addCase(thunk.rejected, (state, action) => {
         state.isLoading = false;
+
         state.error.status = true;
-        state.error.message = action.payload.message
-        state.success = action.payload.success;
+        state.error.message = action.payload?.message || "Something went wrong";
         state.error.content = action.payload;
-    })
-}
+
+        state.success = {
+            status: false,
+            message: null,
+            content: null
+        };
+    });
+};
 
 
 export const EmployeesIDsAsyncReducer = (builder, thunk) => {
@@ -247,7 +284,7 @@ export const EmployeesIDsAsyncReducer = (builder, thunk) => {
         state.error.message = null;
         state.error.content = null
         state.error.status = false;
-        state.data = action.payload.data;
+        state.data = action.payload.data?.departments || action.payload.data || [];
     })
     builder.addCase(thunk.rejected, (state, action) => {
         state.isLoading = false;

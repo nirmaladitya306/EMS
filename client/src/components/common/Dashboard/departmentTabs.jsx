@@ -111,7 +111,7 @@ export const HRDepartmentTabs = () => {
     const { toast } = useToast()
     const HRDepartmentState = useSelector((state) => state.HRDepartmentPageReducer)
     const dispatch = useDispatch()
-    const [department, setDepartment] = useState("All Departments")
+   const [department, setDepartment] = useState("ALL")
 
     useEffect(() => {
         if (HRDepartmentState.fetchData) {
@@ -131,10 +131,21 @@ export const HRDepartmentTabs = () => {
 
     if (HRDepartmentState.isLoading) return <Loading />
 
-    const departments = HRDepartmentState.data || []
-    const currentDept = department !== "All Departments"
-        ? departments.find(d => d.name === department)
-        : null
+    const rawData = HRDepartmentState.data;
+
+const departments = Array.isArray(rawData)
+  ? rawData
+      .map(d => d?.data || d)
+      .filter(d => d && d.name)
+      .map(d => ({
+          ...d,
+          employees: Array.isArray(d.employees) ? d.employees : [],
+          notice: Array.isArray(d.notice) ? d.notice : []
+      }))
+  : [];
+    const currentDept = department !== "ALL"
+  ? departments.find(d => d._id === department)
+  : null
 
     return (
         <>
@@ -150,21 +161,21 @@ export const HRDepartmentTabs = () => {
                             value={department}
                             onChange={e => setDepartment(e.target.value)}
                         >
-                            <option value="All Departments">All Departments</option>
+                            <option value="ALL">All Departments</option>
                             {departments.map(d => (
-                                <option key={d._id} value={d.name}>{d.name}</option>
+                                <option key={d._id} value={d._id}>{d.name}</option>
                             ))}
                         </select>
                     </div>
                     {department !== "All Departments" && (
-                        <button className="dept-settings-btn" onClick={() => setDepartment("All Departments")}>
+                        <button className="dept-settings-btn" onClick={() => setDepartment("ALL")}>
                             ← Back to all
                         </button>
                     )}
                 </div>
 
                 {/* ── All departments view ── */}
-                {department === "All Departments" && (
+                {department === "ALL" && (
                     <div className="dept-grid">
                         {departments.length === 0 ? (
                             <div className="dept-empty">
@@ -184,7 +195,7 @@ export const HRDepartmentTabs = () => {
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
                                     <ModifyDepartmentDialogBox dept={dept} />
-                                    <button className="dept-view-btn" onClick={() => setDepartment(dept.name)}>View →</button>
+                                    <button className="dept-view-btn" onClick={() => setDepartment(dept._id)}>View →</button>
                                 </div>
                             </div>
                         ))}
@@ -192,7 +203,7 @@ export const HRDepartmentTabs = () => {
                 )}
 
                 {/* ── Single department detail ── */}
-                {department !== "All Departments" && currentDept && (
+                {department !== "ALL" && currentDept && (
                     <DepartmentDetail dept={currentDept} />
                 )}
             </div>
