@@ -127,6 +127,9 @@ export const HRAsyncReducer = (builder, thunk) => {
 }
 
 
+// ─── FIX 1: Dashboard reducer — store the full data object as-is ──────────────
+// The API returns { employees, departments, leaves, requestes, balance, notices }
+// Previously `?.departments` was stripping all fields except departments, causing zeros.
 export const HRDashboardAsyncReducer = (builder, thunk) => {
     builder.addCase(thunk.pending, (state) => {
         state.isLoading = true;
@@ -135,7 +138,7 @@ export const HRDashboardAsyncReducer = (builder, thunk) => {
     builder.addCase(thunk.fulfilled, (state, action) => {
         state.isLoading = false;
         state.error.status = false;
-        state.data = action.payload.data?.departments || action.payload.data || [];
+        state.data = action.payload.data || {};   // store the full flat object
         state.success = action.payload.success
     })
     builder.addCase(thunk.rejected, (state, action) => {
@@ -157,7 +160,7 @@ export const HREmployeesPageAsyncReducer = (builder, thunk) => {
             state.error.status = false;
             state.error.message = null
             state.error.content = null;
-            state.data = action.payload.data?.departments || action.payload.data || [];
+            state.data = action.payload.data;
             state.success = action.payload.success
             state.fetchData = false
         }
@@ -166,7 +169,7 @@ export const HREmployeesPageAsyncReducer = (builder, thunk) => {
             state.error.status = false;
             state.error.message = null
             state.error.content = null;
-            state.data = action.payload.data?.departments || action.payload.data || [];
+            state.data = action.payload.data;
             state.success = action.payload.success;
             state.fetchData = true
         }
@@ -188,6 +191,10 @@ export const HREmployeesPageAsyncReducer = (builder, thunk) => {
     })
 }
 
+// ─── FIX 2: Department reducer — check type BEFORE checking data ──────────────
+// CreateDepartment, DepartmentDEUpdate etc. return both `data` AND `type`.
+// The old code hit `if (payload?.data)` first, treating mutations as GET ALL,
+// setting fetchData = false and never refetching. Now type is checked first.
 export const HRDepartmentPageAsyncReducer = (builder, thunk) => {
     builder.addCase(thunk.pending, (state) => {
         state.isLoading = true;
@@ -197,41 +204,8 @@ export const HRDepartmentPageAsyncReducer = (builder, thunk) => {
     builder.addCase(thunk.fulfilled, (state, action) => {
         const payload = action.payload;
 
-        // ✅ 1. Handle GET ALL (primary case)
-        if (payload?.data) {
-            state.isLoading = false;
-
-            state.error.status = false;
-            state.error.message = null;
-            state.error.content = null;
-
-            // 🔥 Normalize data safely
-            const rawData = payload.data;
-
-            state.data = Array.isArray(rawData)
-                ? rawData
-                : rawData?.departments || [];
-
-            state.fetchData = false;
-
-            state.success.status = false;
-            state.success.message = null;
-            state.success.content = null;
-        }
-
-        // ✅ 2. Handle single department fetch
-        else if (payload?.type === "GetDepartment") {
-            state.isLoading = false;
-
-            state.error.status = false;
-            state.error.message = null;
-            state.error.content = null;
-
-            state.departmentData = payload.data;
-        }
-
-        // ✅ 3. Handle mutations (create/update/delete)
-        else if (
+        // 1. Mutations — checked FIRST because they also have a `data` field
+        if (
             payload?.type === "CreateDepartment" ||
             payload?.type === "DepartmentDelete" ||
             payload?.type === "DepartmentEMUpdate" ||
@@ -239,20 +213,41 @@ export const HRDepartmentPageAsyncReducer = (builder, thunk) => {
             payload?.type === "RemoveEmployeeDE"
         ) {
             state.isLoading = false;
-
             state.error.status = false;
             state.error.message = null;
             state.error.content = null;
-
             state.success.status = payload.success;
             state.success.message = payload.message;
             state.success.content = payload;
-
-            // 🔁 trigger refetch
-            state.fetchData = true;
+            state.fetchData = true;   // triggers refetch
         }
 
-        // ✅ 4. Fallback (VERY IMPORTANT)
+        // 2. Single department fetch
+        else if (payload?.type === "GetDepartment") {
+            state.isLoading = false;
+            state.error.status = false;
+            state.error.message = null;
+            state.error.content = null;
+            state.departmentData = payload.data;
+        }
+
+        // 3. GET ALL — array of departments
+        else if (payload?.data) {
+            state.isLoading = false;
+            state.error.status = false;
+            state.error.message = null;
+            state.error.content = null;
+            const rawData = payload.data;
+            state.data = Array.isArray(rawData)
+                ? rawData
+                : rawData?.departments || [];
+            state.fetchData = false;
+            state.success.status = false;
+            state.success.message = null;
+            state.success.content = null;
+        }
+
+        // 4. Fallback
         else {
             state.isLoading = false;
         }
@@ -260,11 +255,9 @@ export const HRDepartmentPageAsyncReducer = (builder, thunk) => {
 
     builder.addCase(thunk.rejected, (state, action) => {
         state.isLoading = false;
-
         state.error.status = true;
         state.error.message = action.payload?.message || "Something went wrong";
         state.error.content = action.payload;
-
         state.success = {
             status: false,
             message: null,
@@ -284,7 +277,7 @@ export const EmployeesIDsAsyncReducer = (builder, thunk) => {
         state.error.message = null;
         state.error.content = null
         state.error.status = false;
-        state.data = action.payload.data?.departments || action.payload.data || [];
+        state.data = action.payload.data || [];
     })
     builder.addCase(thunk.rejected, (state, action) => {
         state.isLoading = false;
