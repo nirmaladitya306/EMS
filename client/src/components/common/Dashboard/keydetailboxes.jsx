@@ -14,8 +14,8 @@ export const KeyDetailsBox = ({ image, dataname, data }) => {
 
       <style>{`
         .kd-box {
-          background: rgba(0,0,0,0.012);
-          border: 1px solid rgba(0,0,0,0.06);
+          background: var(--ems-bg-secondary, rgba(0,0,0,0.012));
+          border: 1px solid var(--ems-border, rgba(0,0,0,0.06));
           border-radius: 14px;
           padding: 16px 18px;
           display: flex;
@@ -24,49 +24,45 @@ export const KeyDetailsBox = ({ image, dataname, data }) => {
           transition: all 0.2s ease;
           cursor: pointer;
         }
-
         .kd-box:hover {
           border-color: rgba(99,102,241,0.25);
-          background: rgba(99,102,241,0.025);
+          background: rgba(99,102,241,0.035);
         }
-
         .kd-text {
           display: flex;
           flex-direction: column;
           gap: 2px;
         }
-
         .kd-value {
           font-family: 'DM Serif Display', serif;
           font-size: 2rem;
-          color: #0f172a;
+          color: var(--ems-text-primary, #0f172a);
           line-height: 1;
+          transition: color 0.2s;
         }
-
         .kd-name {
           font-size: 11px;
           font-weight: 500;
           text-transform: uppercase;
           letter-spacing: 0.08em;
-          color: rgba(0,0,0,0.4);
+          color: var(--ems-label-color, rgba(0,0,0,0.4));
+          transition: color 0.2s;
         }
-
         .kd-icon-wrap {
           width: 42px;
           height: 42px;
           border-radius: 10px;
-          background: rgba(0,0,0,0.04);
-          border: 1px solid rgba(0,0,0,0.06);
+          background: rgba(99,102,241,0.07);
+          border: 1px solid rgba(99,102,241,0.12);
           display: flex;
           align-items: center;
           justify-content: center;
         }
-
         .kd-icon {
           width: 20px;
           height: 20px;
           object-fit: contain;
-          opacity: 0.7;
+          opacity: 0.75;
         }
       `}</style>
     </div>

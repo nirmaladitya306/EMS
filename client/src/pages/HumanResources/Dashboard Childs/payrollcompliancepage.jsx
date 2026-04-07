@@ -125,15 +125,16 @@ const DetailDrawer = ({ record, onClose }) => {
         >
             <div
                 style={{
-                    background: '#ffffff', width: '100%', maxWidth: 480,
+                    background: 'var(--ems-drawer-bg, #ffffff)', width: '100%', maxWidth: 480,
                     height: '100%', overflowY: 'auto', boxShadow: '-24px 0 64px rgba(0,0,0,0.12)',
                     display: 'flex', flexDirection: 'column',
                     fontFamily: "'DM Sans', sans-serif",
                 }}
                 onClick={e => e.stopPropagation()}
+                className="ems-drawer"
             >
                 {/* Drawer header */}
-                <div style={{
+                <div className="ems-drawer-header" style={{
                     padding: '20px 24px', borderBottom: '1px solid rgba(0,0,0,0.06)',
                     display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
                     flexShrink: 0,
@@ -405,13 +406,13 @@ export const PayrollCompliancePage = () => {
                     <div>
                         <div style={{
                             fontFamily: "'DM Serif Display', serif",
-                            fontSize: '1.4rem', color: '#0f172a',
+                            fontSize: '1.4rem', color: 'var(--ems-text-primary, #0f172a)',
                             letterSpacing: '-0.02em', marginBottom: 8,
                         }}>
                             Ready to check payroll compliance
                         </div>
                         <p style={{
-                            fontSize: 13, color: 'rgba(0,0,0,0.38)',
+                            fontSize: 13, color: 'var(--ems-text-muted, rgba(0,0,0,0.38))',
                             lineHeight: 1.7, maxWidth: 400, margin: '0 auto',
                         }}>
                             Run the compliance engine to analyse all employees against your

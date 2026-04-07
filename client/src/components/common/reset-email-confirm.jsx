@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-  .auth-root { min-height: 100vh; background-color: #ffffff; background-image: linear-gradient(rgba(99,102,241,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.05) 1px, transparent 1px); background-size: 60px 60px; display: flex; flex-direction: column; font-family: 'DM Sans', sans-serif; overflow: hidden; position: relative; }
+  .auth-root { min-height: 100vh; background-color: var(--ems-bg, #ffffff); background-image: linear-gradient(rgba(99,102,241,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.05) 1px, transparent 1px); background-size: 60px 60px; display: flex; flex-direction: column; font-family: 'DM Sans', sans-serif; overflow: hidden; position: relative; }
   .auth-root::before { content: ''; position: absolute; top: -20%; left: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%); pointer-events: none; }
   .auth-root::after  { content: ''; position: absolute; bottom: -20%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%); pointer-events: none; }
   .auth-topbar { display: flex; align-items: center; justify-content: space-between; padding: 24px 40px; position: relative; z-index: 10; border-bottom: 1px solid rgba(0,0,0,0.06); }
@@ -11,7 +11,7 @@ const styles = `
   .auth-logo-text { font-size: 13px; font-weight: 500; color: rgba(0,0,0,0.4); letter-spacing: 0.05em; text-transform: uppercase; }
   .auth-badge { font-size: 11px; font-weight: 500; color: rgba(99,102,241,0.9); background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); padding: 4px 12px; border-radius: 100px; letter-spacing: 0.04em; }
   .auth-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px; position: relative; z-index: 10; }
-  .auth-card { width: 100%; max-width: 440px; background: rgba(0,0,0,0.015); border: 1px solid rgba(0,0,0,0.07); border-radius: 24px; padding: 40px 36px; display: flex; flex-direction: column; gap: 28px; align-items: center; text-align: center; animation: fadeUp 0.6s ease both; }
+  .auth-card { width: 100%; max-width: 440px; background: var(--ems-bg-secondary, rgba(0,0,0,0.015)); border: 1px solid var(--ems-border, rgba(0,0,0,0.07)); border-radius: 24px; padding: 40px 36px; display: flex; flex-direction: column; gap: 28px; align-items: center; text-align: center; animation: fadeUp 0.6s ease both; }
   .auth-success-icon { width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12)); border: 1px solid rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: center; font-size: 32px; }
   .auth-title { font-family: 'DM Serif Display', serif; font-size: 1.75rem; color: #0f172a; line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
   .auth-subtitle { font-size: 13px; color: rgba(0,0,0,0.45); line-height: 1.7; font-weight: 300; max-width: 320px; }
