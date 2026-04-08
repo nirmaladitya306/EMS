@@ -24,6 +24,7 @@ import RBACReducer from '../Slices/RBACSlice.js'
 import PermissionReducer from "../Slices/PermissionSlice.js"
 import OrgStructureReducer from '../Slices/OrgStructureSlices.js'
 import AnalyticsReducer from '../Slices/AnalyticsSlice.js'
+import ChatReducer       from '../Slices/ChatSlice.js'
 
 export const store = configureStore({
     reducer: {
@@ -54,5 +55,6 @@ export const store = configureStore({
         permissions:                PermissionReducer,
         OrgStructureReducer:        OrgStructureReducer,
         AnalyticsReducer:           AnalyticsReducer,
+        chat:                       ChatReducer,
     }
 })

@@ -1,6 +1,7 @@
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar"
 import { NavLink, Link } from "react-router-dom"
 import { useTheme } from "../../context/ThemeContext.jsx"
+import { ChatWidget } from "../common/Chat/ChatWidget.jsx"
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -101,6 +102,7 @@ export function HRdashboardSidebar() {
           </div>
         </SidebarContent>
       </Sidebar>
-    </>
+    <ChatWidget role="hr" />
+  </>
   )
 }
