@@ -8,14 +8,19 @@ import {
 } from '../Slices/ChatSlice'
 
 /**
- * Send a message. role is injected by the calling sidebar ('hr' | 'employee').
+ * Send a message for a specific role. The role determines:
+ *  - which API endpoint to call
+ *  - which Redux namespace (hr / employee) to read/write
+ *
  * @param {{ text: string, role: 'hr'|'employee' }} payload
  */
 export const sendChatMessage = ({ text, role }) => async (dispatch, getState) => {
     if (!text?.trim()) return
-    dispatch(addUserMessage(text))
 
-    const { sessionId } = getState().chat
+    dispatch(addUserMessage({ role, text }))
+
+    // Read sessionId from the role-specific namespace
+    const { sessionId } = getState().chat[role] ?? {}
     const endpoint = role === 'hr' ? ChatEndpoints.HR_CHAT : ChatEndpoints.EMPLOYEE_CHAT
 
     try {
@@ -25,24 +30,26 @@ export const sendChatMessage = ({ text, role }) => async (dispatch, getState) =>
         }, { withCredentials: true })
 
         dispatch(addAssistantMessage({
+            role,
             reply:     res.data.reply,
             sessionId: res.data.sessionId,
         }))
     } catch (err) {
-        const msg = err.response?.data?.message || 'AI service unavailable. Please try again.'
-        dispatch(setError(msg))
+        const message = err.response?.data?.message || 'AI service unavailable. Please try again.'
+        dispatch(setError({ role, message }))
     }
 }
 
 /**
- * Clear conversation history (both local state + server session).
+ * Clear conversation for a specific role (local state + server session).
+ * @param {{ role: 'hr'|'employee' }} payload
  */
-export const clearChat = () => async (dispatch, getState) => {
-    const { sessionId } = getState().chat
+export const clearChat = ({ role }) => async (dispatch, getState) => {
+    const { sessionId } = getState().chat[role] ?? {}
     if (sessionId) {
         try {
             await apiService.delete(ChatEndpoints.CLEAR_SESSION(sessionId), { withCredentials: true })
         } catch { /* silent fail — local clear still happens */ }
     }
-    dispatch(clearMessages())
+    dispatch(clearMessages(role))
 }

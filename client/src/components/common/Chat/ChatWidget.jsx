@@ -3,31 +3,22 @@ import { useDispatch, useSelector }    from 'react-redux'
 import { sendChatMessage, clearChat }  from '../../../redux/Thunks/ChatThunk'
 import { toggleChat, openChat }        from '../../../redux/Slices/ChatSlice'
 
-// ─── Markdown-to-safe-HTML renderer (no external dep) ────────────────────────
-// Converts bold, italic, inline code, code blocks, bullets, and line breaks.
+// ─── Markdown renderer (no external dep) ─────────────────────────────────────
 function renderMarkdown(text) {
     if (!text) return ''
     let html = text
-        // code blocks
         .replace(/```[\s\S]*?```/g, m => {
             const code = m.replace(/^```\w*\n?/, '').replace(/```$/, '')
             return `<pre><code>${_esc(code)}</code></pre>`
         })
-        // inline code
         .replace(/`([^`]+)`/g, (_, c) => `<code>${_esc(c)}</code>`)
-        // bold
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        // italic
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        // headers (##, ###)
-        .replace(/^###\s(.+)/gm, '<p class="chat-md-h3">$1</p>')
-        .replace(/^##\s(.+)/gm,  '<p class="chat-md-h2">$1</p>')
-        // tables — strip | lines into a simple layout
-        .replace(/^\|.+\|$/gm, m => `<span class="chat-md-table-row">${m.replace(/\|/g, ' · ')}</span>`)
-        // bullets
-        .replace(/^[-*]\s(.+)/gm, '<li>$1</li>')
+        .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+        .replace(/^###\s(.+)/gm,   '<p class="chat-md-h3">$1</p>')
+        .replace(/^##\s(.+)/gm,    '<p class="chat-md-h2">$1</p>')
+        .replace(/^\|.+\|$/gm,     m => `<span class="chat-md-table-row">${m.replace(/\|/g, ' · ')}</span>`)
+        .replace(/^[-*]\s(.+)/gm,  '<li>$1</li>')
         .replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>')
-        // line breaks
         .replace(/\n\n/g, '</p><p>')
         .replace(/\n/g,   '<br/>')
     return `<p>${html}</p>`
@@ -36,15 +27,13 @@ function _esc(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
 }
 
-// ─── Single message bubble ────────────────────────────────────────────────────
+// ─── Message bubble ───────────────────────────────────────────────────────────
 const Bubble = ({ msg }) => {
     const isUser = msg.role === 'user'
     return (
         <div className={`chat-bubble-wrap ${isUser ? 'chat-bubble-wrap--user' : ''}`}>
             {!isUser && (
-                <div className="chat-avatar">
-                    <span>AI</span>
-                </div>
+                <div className="chat-avatar"><span>AI</span></div>
             )}
             <div
                 className={`chat-bubble ${isUser ? 'chat-bubble--user' : 'chat-bubble--ai'}`}
@@ -69,25 +58,30 @@ const TypingDots = () => (
 // ─── Main widget ──────────────────────────────────────────────────────────────
 /**
  * @param {{ role: 'hr'|'employee' }} props
+ *
+ * Each role reads from its OWN isolated slice namespace:
+ *   state.chat.hr       — HR admin conversation
+ *   state.chat.employee — Employee conversation
+ *
+ * They never cross-contaminate.
  */
 export const ChatWidget = ({ role }) => {
-    const dispatch  = useDispatch()
-    const { messages, isOpen, isLoading, error, sessionId } = useSelector(s => s.chat)
+    const dispatch = useDispatch()
 
-    const [text,     setText]     = useState('')
-    const [mounted,  setMounted]  = useState(false)
+    // ✅ Select ONLY this role's namespace — the other role is invisible
+    const { messages, isOpen, isLoading, error } = useSelector(s => s.chat[role] ?? s.chat.hr)
+
+    const [text,    setText]    = useState('')
+    const [mounted, setMounted] = useState(false)
     const bottomRef = useRef(null)
     const inputRef  = useRef(null)
 
-    // Animate in on mount
     useEffect(() => { setMounted(true) }, [])
 
-    // Auto-scroll to latest message
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages, isLoading])
 
-    // Focus input when chat opens
     useEffect(() => {
         if (isOpen) setTimeout(() => inputRef.current?.focus(), 120)
     }, [isOpen])
@@ -102,7 +96,20 @@ export const ChatWidget = ({ role }) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
     }
 
-    const handleClear = () => dispatch(clearChat())
+    // ✅ clearChat now receives role so it clears only this role's session
+    const handleClear = () => dispatch(clearChat({ role }))
+
+    const SUGGESTIONS = role === 'hr'
+        ? [
+            'How many pending leave requests are there?',
+            'Summarise employee headcount by department',
+            'What is our leave approval process?',
+          ]
+        : [
+            'How many leave days do I have left?',
+            'What is the process to apply for leave?',
+            'When will my salary be processed?',
+          ]
 
     return (
         <>
@@ -111,7 +118,7 @@ export const ChatWidget = ({ role }) => {
             {/* ── Floating trigger button ── */}
             <button
                 className={`chat-fab ${isOpen ? 'chat-fab--open' : ''}`}
-                onClick={() => dispatch(toggleChat())}
+                onClick={() => dispatch(toggleChat(role))}
                 aria-label="Toggle AI assistant"
             >
                 {isOpen ? '✕' : '✦'}
@@ -126,7 +133,9 @@ export const ChatWidget = ({ role }) => {
                         <div className="chat-header-icon">✦</div>
                         <div>
                             <p className="chat-header-title">HR Assistant</p>
-                            <p className="chat-header-sub">Powered by {role === 'hr' ? 'HR Admin' : 'Employee'} context</p>
+                            <p className="chat-header-sub">
+                                {role === 'hr' ? 'HR Admin context' : 'Employee context'}
+                            </p>
                         </div>
                     </div>
                     <button className="chat-clear-btn" onClick={handleClear} title="Clear conversation">
@@ -146,12 +155,9 @@ export const ChatWidget = ({ role }) => {
                                     : 'Ask about your leave balance, salary, notices, or HR processes.'}
                             </p>
                             <div className="chat-suggestions">
-                                {(role === 'hr'
-                                    ? ['How many pending leave requests are there?', 'Summarise employee headcount by department', 'What is our leave approval process?']
-                                    : ['How many leave days do I have left?', 'What is the process to apply for leave?', 'When will my salary be processed?']
-                                ).map(s => (
+                                {SUGGESTIONS.map(s => (
                                     <button key={s} className="chat-suggestion" onClick={() => {
-                                        dispatch(openChat())
+                                        dispatch(openChat(role))
                                         dispatch(sendChatMessage({ text: s, role }))
                                     }}>
                                         {s}
@@ -163,9 +169,7 @@ export const ChatWidget = ({ role }) => {
 
                     {messages.map(m => <Bubble key={m.id} msg={m} />)}
                     {isLoading && <TypingDots />}
-                    {error && (
-                        <div className="chat-error">⚠ {error}</div>
-                    )}
+                    {error && <div className="chat-error">⚠ {error}</div>}
                     <div ref={bottomRef} />
                 </div>
 
@@ -200,7 +204,6 @@ export const ChatWidget = ({ role }) => {
 const STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-/* ── FAB trigger ── */
 .chat-fab {
   position: fixed; bottom: 28px; right: 28px; z-index: 999;
   width: 52px; height: 52px; border-radius: 50%;
@@ -214,7 +217,6 @@ const STYLES = `
 .chat-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(99,102,241,0.55); }
 .chat-fab--open { font-size: 16px; }
 
-/* ── Panel ── */
 .chat-panel {
   position: fixed; bottom: 92px; right: 28px; z-index: 998;
   width: 380px; max-width: calc(100vw - 40px);
@@ -230,13 +232,11 @@ const STYLES = `
   transition: opacity 0.22s ease, transform 0.22s ease;
   overflow: hidden;
 }
-.chat-panel--mounted { }
 .chat-panel--open {
   opacity: 1; pointer-events: all;
   transform: translateY(0) scale(1);
 }
 
-/* ── Header ── */
 .chat-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 16px;
@@ -260,16 +260,14 @@ const STYLES = `
 }
 .chat-clear-btn:hover { background: rgba(255,255,255,0.25); }
 
-/* ── Messages ── */
 .chat-messages {
   flex: 1; overflow-y: auto; padding: 14px 14px 8px;
   display: flex; flex-direction: column; gap: 10px;
   scroll-behavior: smooth;
 }
 .chat-messages::-webkit-scrollbar { width: 4px; }
-.chat-messages::-webkit-scrollbar-thumb { background: var(--ems-border, rgba(0,0,0,0.1)); border-radius: 99px; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 99px; }
 
-/* ── Empty state ── */
 .chat-empty {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -289,24 +287,20 @@ const STYLES = `
 }
 .chat-suggestion:hover { border-color: rgba(99,102,241,0.3); background: rgba(99,102,241,0.04); color: #6366f1; }
 
-/* ── Bubbles ── */
-.chat-bubble-wrap {
-  display: flex; align-items: flex-end; gap: 7px;
-}
+.chat-bubble-wrap { display: flex; align-items: flex-end; gap: 7px; }
 .chat-bubble-wrap--user { flex-direction: row-reverse; }
 
 .chat-avatar {
   width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   display: flex; align-items: center; justify-content: center;
-  font-size: 9px; font-weight: 700; color: white; letter-spacing: 0.02em;
+  font-size: 9px; font-weight: 700; color: white;
   font-family: 'DM Serif Display', serif;
 }
 
 .chat-bubble {
   max-width: 82%; padding: 10px 13px; border-radius: 14px;
-  font-size: 13px; line-height: 1.55;
-  word-break: break-word;
+  font-size: 13px; line-height: 1.55; word-break: break-word;
 }
 .chat-bubble--user {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -319,7 +313,6 @@ const STYLES = `
   border-bottom-left-radius: 4px;
 }
 
-/* AI bubble markdown */
 .chat-bubble--ai p   { margin: 0 0 6px; }
 .chat-bubble--ai p:last-child { margin-bottom: 0; }
 .chat-bubble--ai ul  { margin: 4px 0; padding-left: 16px; }
@@ -339,10 +332,7 @@ const STYLES = `
 .chat-bubble--ai .chat-md-h3 { font-weight: 600; font-size: 13px; margin: 6px 0 3px; }
 .chat-bubble--ai .chat-md-table-row { display: block; font-size: 12px; color: var(--ems-text-muted, rgba(0,0,0,0.5)); padding: 2px 0; }
 
-/* ── Typing indicator ── */
-.chat-typing {
-  display: flex; align-items: center; gap: 4px; padding: 12px 14px;
-}
+.chat-typing { display: flex; align-items: center; gap: 4px; padding: 12px 14px; }
 .chat-typing span {
   width: 6px; height: 6px; border-radius: 50%;
   background: rgba(99,102,241,0.5);
@@ -355,16 +345,13 @@ const STYLES = `
   40%         { transform: translateY(-5px); opacity: 1; }
 }
 
-/* ── Error ── */
 .chat-error {
   font-size: 12px; color: #dc2626;
   background: rgba(239,68,68,0.07);
   border: 1px solid rgba(220,38,38,0.18);
-  border-radius: 10px; padding: 8px 12px;
-  margin: 2px 0;
+  border-radius: 10px; padding: 8px 12px; margin: 2px 0;
 }
 
-/* ── Input row ── */
 .chat-input-row {
   display: flex; align-items: flex-end; gap: 8px;
   padding: 10px 12px 8px;
@@ -404,13 +391,17 @@ const STYLES = `
   flex-shrink: 0;
 }
 
-/* ── Dark mode overrides ── */
-[data-theme="dark"] .chat-panel  { background: var(--ems-surface, #161922); border-color: var(--ems-border); }
-[data-theme="dark"] .chat-bubble--ai { background: var(--ems-bg-secondary); border-color: var(--ems-border); color: var(--ems-text-primary); }
+[data-theme="dark"] .chat-panel  { background: #161922; border-color: rgba(255,255,255,0.08); }
+[data-theme="dark"] .chat-bubble--ai { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); color: #f1f5f9; }
 [data-theme="dark"] .chat-bubble--ai code { background: rgba(99,102,241,0.15); }
 [data-theme="dark"] .chat-bubble--ai pre  { background: rgba(255,255,255,0.05); }
-[data-theme="dark"] .chat-bubble--ai strong { color: var(--ems-text-primary); }
-[data-theme="dark"] .chat-suggestion { background: var(--ems-bg-secondary); border-color: var(--ems-border); color: var(--ems-text-muted); }
-[data-theme="dark"] .chat-empty-title { color: var(--ems-text-primary); }
-[data-theme="dark"] .chat-empty-sub   { color: var(--ems-text-faint); }
+[data-theme="dark"] .chat-bubble--ai strong { color: #f1f5f9; }
+[data-theme="dark"] .chat-suggestion { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.55); }
+[data-theme="dark"] .chat-suggestion:hover { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.3); color: #a5b4fc; }
+[data-theme="dark"] .chat-empty-title { color: #f1f5f9; }
+[data-theme="dark"] .chat-empty-sub   { color: rgba(255,255,255,0.4); }
+[data-theme="dark"] .chat-input { background: #1e2130; border-color: rgba(255,255,255,0.1); color: #e2e8f0; }
+[data-theme="dark"] .chat-input::placeholder { color: rgba(255,255,255,0.28); }
+[data-theme="dark"] .chat-input-row { border-top-color: rgba(255,255,255,0.07); }
+[data-theme="dark"] .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
 `

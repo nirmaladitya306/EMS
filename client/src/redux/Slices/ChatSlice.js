@@ -1,50 +1,59 @@
 import { createSlice } from '@reduxjs/toolkit'
 
+// ─── Per-role initial state factory ──────────────────────────────────────────
+const chatState = () => ({
+    messages:  [],   // [{ id, role: 'user'|'assistant', text, ts }]
+    sessionId: null,
+    isOpen:    false,
+    isLoading: false,
+    error:     null,
+})
+
+// ─── Helper: mutate the correct role bucket ───────────────────────────────────
+// Every action payload carries { role: 'hr'|'employee', ... }
+// This keeps reducers DRY while keeping state fully isolated.
+const forRole = (state, role) => state[role] ?? state.hr
+
 const ChatSlice = createSlice({
     name: 'chat',
     initialState: {
-        messages:   [],   // [{ id, role: 'user'|'assistant', text, ts }]
-        sessionId:  null,
-        isOpen:     false,
-        isLoading:  false,
-        error:      null,
+        hr:       chatState(),
+        employee: chatState(),
     },
     reducers: {
-        openChat:  (state) => { state.isOpen = true  },
-        closeChat: (state) => { state.isOpen = false },
-        toggleChat:(state) => { state.isOpen = !state.isOpen },
-
-        addUserMessage: (state, action) => {
-            state.messages.push({
-                id:   Date.now(),
-                role: 'user',
-                text: action.payload,
-                ts:   new Date().toISOString(),
-            })
-            state.error   = null
-            state.isLoading = true
+        openChat: (state, { payload: role }) => {
+            forRole(state, role).isOpen = true
+        },
+        closeChat: (state, { payload: role }) => {
+            forRole(state, role).isOpen = false
+        },
+        toggleChat: (state, { payload: role }) => {
+            const r = forRole(state, role)
+            r.isOpen = !r.isOpen
         },
 
-        addAssistantMessage: (state, action) => {
-            state.isLoading = false
-            state.messages.push({
-                id:   Date.now() + 1,
-                role: 'assistant',
-                text: action.payload.reply,
-                ts:   new Date().toISOString(),
-            })
-            if (action.payload.sessionId) state.sessionId = action.payload.sessionId
+        addUserMessage: (state, { payload: { role, text } }) => {
+            const r = forRole(state, role)
+            r.messages.push({ id: Date.now(), role: 'user', text, ts: new Date().toISOString() })
+            r.error     = null
+            r.isLoading = true
         },
 
-        setError: (state, action) => {
-            state.isLoading = false
-            state.error     = action.payload
+        addAssistantMessage: (state, { payload: { role, reply, sessionId } }) => {
+            const r = forRole(state, role)
+            r.isLoading = false
+            r.messages.push({ id: Date.now() + 1, role: 'assistant', text: reply, ts: new Date().toISOString() })
+            if (sessionId) r.sessionId = sessionId
         },
 
-        clearMessages: (state) => {
-            state.messages  = []
-            state.sessionId = null
-            state.error     = null
+        setError: (state, { payload: { role, message } }) => {
+            const r = forRole(state, role)
+            r.isLoading = false
+            r.error     = message
+        },
+
+        clearMessages: (state, { payload: role }) => {
+            state[role] = chatState()
         },
     },
 })
