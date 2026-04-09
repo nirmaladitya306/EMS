@@ -34,6 +34,8 @@ import AnalyticsRouter from './routes/Analytics.routes.js';
 import RBACRouter from './routes/RBAC.route.js';
 import PermissionRouter from './routes/Permission.route.js'
 import OrgStructureRouter from './routes/OrgStructure.route.js'
+import ChatRouter from "./routes/Chat.route.js";
+
 
 dotenv.config();
 
@@ -112,6 +114,7 @@ app.use("/v1/exit-clearance",       ExitClearanceRouter);
 app.use('/v1/analytics',            AnalyticsRouter);
 app.use('/v1/rbac',                 RBACRouter);
 app.use('/v1/org-structure',        OrgStructureRouter);
+app.use("/v1/chat", ChatRouter);
 
 // global error handler
 app.use((err, req, res, next) => {
