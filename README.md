@@ -7,35 +7,6 @@
 The Employees Management System (EMS) is a robust, full-stack web application designed to streamline and optimize employee management processes for small- to medium-sized organizations. 
 Built on the MERN stack (MongoDB, Express.js, React.js, Node.js), the EMS provides a seamless, user-friendly experience for employees and HR professionals alike.
 
-## Early Screenshots
-
-### EMS Entry Page : 
-
-![EMS Entry](https://github.com/user-attachments/assets/75dc7a8d-d816-4597-b89c-6ade8998afd9)
-
-### EMS HR Sign Up : 
-
-![EMS HR-Sign up](https://github.com/user-attachments/assets/3f576691-78fb-4e66-b409-bd9ed9a1eb2c)
-
-### EMS HR Login : 
-
-![EMS HR-login](https://github.com/user-attachments/assets/c9156026-cd16-4423-a7da-ddc2bdad053e)
-
-### EMS HR Dashboard : 
-
-![HR-Dashboard](https://github.com/user-attachments/assets/ca4c14e0-dcfd-41b2-83cd-1ad67a474142)
-
-### EMS HR Employees Page : 
-
-![Employees-Data](https://github.com/user-attachments/assets/b84d5027-1cc2-4083-aa89-770db32a2b39)
-
-### EMS HR Departments Page : 
-
-![Department-Data](https://github.com/user-attachments/assets/30606767-745a-4898-bb44-4dd453a5db24)
-
-### EMS HR Departments Data : 
-
-![Department-Data](https://github.com/user-attachments/assets/b21a4de2-1993-463f-99e2-c699ea07e0ec)
 
 
 ## 🌟 Key Features
