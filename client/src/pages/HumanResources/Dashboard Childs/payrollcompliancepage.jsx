@@ -1,8 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleRunComplianceCheck } from '../../../redux/Thunks/PayrollComplianceThunk'
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
+
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --pc-card-bg: #18181b;
+    --pc-modal-bg: #18181b;
+    --pc-drawer-bg: #09090b;
+    --pc-border: #27272a;
+    --pc-text-main: #fafafa;
+    --pc-text-muted: #a1a1aa;
+    --pc-text-faint: #71717a;
+    --pc-score-track: rgba(255,255,255,0.1);
+    --pc-subtle-bg: rgba(255,255,255,0.03);
+    
+    /* Semantic Colors Boost */
+    --pc-green-bg: rgba(34, 197, 94, 0.15);
+    --pc-green-text: #4ade80;
+    --pc-yellow-bg: rgba(234, 179, 8, 0.15);
+    --pc-yellow-text: #fbbf24;
+    --pc-red-bg: rgba(239, 68, 68, 0.15);
+    --pc-red-text: #f87171;
+    --pc-indigo-bg: rgba(99, 102, 241, 0.15);
+    --pc-indigo-text: #818cf8;
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--pc-modal-bg) !important;
+    border: 1px solid var(--pc-border) !important;
+  }
+`
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmt = (n, cur) =>
@@ -34,13 +64,13 @@ const Avatar = ({ name, size = 30, fontSize = 11 }) => (
 
 // ─── Eligibility pill ─────────────────────────────────────────────────────────
 const ELIGIBILITY = {
-    Eligible:          { bg: 'rgba(22,163,74,0.08)',  color: '#15803d', border: 'rgba(22,163,74,0.22)'  },
-    'Review Required': { bg: 'rgba(234,179,8,0.09)',  color: '#854d0e', border: 'rgba(234,179,8,0.3)'   },
-    Ineligible:        { bg: 'rgba(220,38,38,0.07)', color: '#dc2626', border: 'rgba(220,38,38,0.2)'   },
+    Eligible:          { bg: 'var(--pc-green-bg, rgba(22,163,74,0.08))',  color: 'var(--pc-green-text, #15803d)', border: 'rgba(22,163,74,0.22)'  },
+    'Review Required': { bg: 'var(--pc-yellow-bg, rgba(234,179,8,0.09))',  color: 'var(--pc-yellow-text, #854d0e)', border: 'rgba(234,179,8,0.3)'   },
+    Ineligible:        { bg: 'var(--pc-red-bg, rgba(220,38,38,0.07))', color: 'var(--pc-red-text, #dc2626)', border: 'rgba(220,38,38,0.2)'   },
 }
 
 const EligibilityPill = ({ status }) => {
-    const s = ELIGIBILITY[status] || { bg: 'rgba(0,0,0,0.04)', color: 'rgba(0,0,0,0.45)', border: 'rgba(0,0,0,0.1)' }
+    const s = ELIGIBILITY[status] || { bg: 'var(--pc-subtle-bg, rgba(0,0,0,0.04))', color: 'var(--pc-text-muted, rgba(0,0,0,0.45))', border: 'var(--pc-border, rgba(0,0,0,0.1))' }
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -56,13 +86,13 @@ const EligibilityPill = ({ status }) => {
 
 // ─── Score ring (SVG donut) ───────────────────────────────────────────────────
 const ScoreRing = ({ score }) => {
-    const colour = score >= 75 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'
+    const colour = score >= 75 ? 'var(--pc-green-text, #16a34a)' : score >= 50 ? 'var(--pc-yellow-text, #d97706)' : 'var(--pc-red-text, #dc2626)'
     const r = 22, cx = 28, cy = 28, strokeW = 5
     const circ = 2 * Math.PI * r
     const dash  = (score / 100) * circ
     return (
         <svg width={56} height={56} viewBox="0 0 56 56" style={{ flexShrink: 0 }}>
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth={strokeW} />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--pc-score-track, rgba(0,0,0,0.07))" strokeWidth={strokeW} />
             <circle cx={cx} cy={cy} r={r} fill="none" stroke={colour} strokeWidth={strokeW}
                 strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
                 transform="rotate(-90 28 28)" />
@@ -75,9 +105,9 @@ const ScoreRing = ({ score }) => {
 
 // ─── Severity flag row ────────────────────────────────────────────────────────
 const SEVERITY = {
-    critical: { bg: 'rgba(220,38,38,0.07)',  color: '#dc2626', border: 'rgba(220,38,38,0.2)',  dot: '#dc2626' },
-    warning:  { bg: 'rgba(234,179,8,0.08)',  color: '#854d0e', border: 'rgba(234,179,8,0.25)', dot: '#d97706' },
-    info:     { bg: 'rgba(99,102,241,0.07)', color: '#4f46e5', border: 'rgba(99,102,241,0.2)', dot: '#6366f1' },
+    critical: { bg: 'var(--pc-red-bg, rgba(220,38,38,0.07))',  color: 'var(--pc-red-text, #dc2626)', border: 'rgba(220,38,38,0.2)',  dot: 'var(--pc-red-text, #dc2626)' },
+    warning:  { bg: 'var(--pc-yellow-bg, rgba(234,179,8,0.08))',  color: 'var(--pc-yellow-text, #854d0e)', border: 'rgba(234,179,8,0.25)', dot: '#d97706' },
+    info:     { bg: 'var(--pc-indigo-bg, rgba(99,102,241,0.07))', color: 'var(--pc-indigo-text, #4f46e5)', border: 'rgba(99,102,241,0.2)', dot: '#6366f1' },
 }
 
 const FlagRow = ({ flag }) => {
@@ -125,7 +155,7 @@ const DetailDrawer = ({ record, onClose }) => {
         >
             <div
                 style={{
-                    background: 'var(--ems-drawer-bg, #ffffff)', width: '100%', maxWidth: 480,
+                    background: 'var(--pc-drawer-bg, #ffffff)', width: '100%', maxWidth: 480,
                     height: '100%', overflowY: 'auto', boxShadow: '-24px 0 64px rgba(0,0,0,0.12)',
                     display: 'flex', flexDirection: 'column',
                     fontFamily: "'DM Sans', sans-serif",
@@ -135,7 +165,7 @@ const DetailDrawer = ({ record, onClose }) => {
             >
                 {/* Drawer header */}
                 <div className="ems-drawer-header" style={{
-                    padding: '20px 24px', borderBottom: '1px solid rgba(0,0,0,0.06)',
+                    padding: '20px 24px', borderBottom: '1px solid var(--pc-border, rgba(0,0,0,0.06))',
                     display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
                     flexShrink: 0,
                 }}>
@@ -144,12 +174,12 @@ const DetailDrawer = ({ record, onClose }) => {
                         <div>
                             <div style={{
                                 fontFamily: "'DM Serif Display', serif",
-                                fontSize: '1.1rem', color: '#0f172a',
+                                fontSize: '1.1rem', color: 'var(--pc-text-main, #0f172a)',
                                 letterSpacing: '-0.02em', lineHeight: 1.2,
                             }}>
                                 {record.name}
                             </div>
-                            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 3 }}>
+                            <div style={{ fontSize: 12, color: 'var(--pc-text-muted, rgba(0,0,0,0.38))', marginTop: 3 }}>
                                 {record.email}
                             </div>
                         </div>
@@ -158,7 +188,7 @@ const DetailDrawer = ({ record, onClose }) => {
                         onClick={onClose}
                         style={{
                             background: 'none', border: 'none', cursor: 'pointer',
-                            fontSize: 18, color: 'rgba(0,0,0,0.35)', lineHeight: 1,
+                            fontSize: 18, color: 'var(--pc-text-faint, rgba(0,0,0,0.35))', lineHeight: 1,
                             padding: 4, marginTop: 2,
                         }}
                     >
@@ -172,14 +202,14 @@ const DetailDrawer = ({ record, onClose }) => {
                     {/* Score + eligibility */}
                     <div style={{
                         display: 'flex', alignItems: 'center', gap: 16,
-                        background: 'rgba(0,0,0,0.012)', border: '1px solid rgba(0,0,0,0.07)',
+                        background: 'var(--pc-subtle-bg, rgba(0,0,0,0.012))', border: '1px solid var(--pc-border, rgba(0,0,0,0.07))',
                         borderRadius: 14, padding: '14px 18px',
                     }}>
                         <ScoreRing score={record.complianceScore} />
                         <div>
                             <EligibilityPill status={record.eligibilityStatus} />
-                            <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.38)', marginTop: 6 }}>
-                                Compliance score: <strong style={{ color: '#0f172a' }}>{record.complianceScore}</strong> / 100
+                            <div style={{ fontSize: 11, color: 'var(--pc-text-muted, rgba(0,0,0,0.38))', marginTop: 6 }}>
+                                Compliance score: <strong style={{ color: 'var(--pc-text-main, #0f172a)' }}>{record.complianceScore}</strong> / 100
                             </div>
                         </div>
                         {(criticals > 0 || warnings > 0) && (
@@ -187,8 +217,8 @@ const DetailDrawer = ({ record, onClose }) => {
                                 {criticals > 0 && (
                                     <span style={{
                                         fontSize: 11, fontWeight: 600, padding: '3px 9px',
-                                        borderRadius: 100, background: 'rgba(220,38,38,0.08)',
-                                        color: '#dc2626', border: '1px solid rgba(220,38,38,0.2)',
+                                        borderRadius: 100, background: 'var(--pc-red-bg, rgba(220,38,38,0.08))',
+                                        color: 'var(--pc-red-text, #dc2626)', border: '1px solid rgba(220,38,38,0.2)',
                                     }}>
                                         {criticals} critical
                                     </span>
@@ -196,8 +226,8 @@ const DetailDrawer = ({ record, onClose }) => {
                                 {warnings > 0 && (
                                     <span style={{
                                         fontSize: 11, fontWeight: 600, padding: '3px 9px',
-                                        borderRadius: 100, background: 'rgba(234,179,8,0.09)',
-                                        color: '#854d0e', border: '1px solid rgba(234,179,8,0.3)',
+                                        borderRadius: 100, background: 'var(--pc-yellow-bg, rgba(234,179,8,0.09))',
+                                        color: 'var(--pc-yellow-text, #854d0e)', border: '1px solid rgba(234,179,8,0.3)',
                                     }}>
                                         {warnings} warning
                                     </span>
@@ -210,7 +240,7 @@ const DetailDrawer = ({ record, onClose }) => {
                     <div>
                         <div style={{
                             fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
-                            textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
+                            textTransform: 'uppercase', color: 'var(--pc-text-faint, rgba(0,0,0,0.35))',
                             marginBottom: 10,
                         }}>
                             Payroll Summary
@@ -218,13 +248,13 @@ const DetailDrawer = ({ record, onClose }) => {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                             {summaryRows.map(({ label, value }) => (
                                 <div key={label} style={{
-                                    background: 'rgba(0,0,0,0.012)', border: '1px solid rgba(0,0,0,0.07)',
+                                    background: 'var(--pc-subtle-bg, rgba(0,0,0,0.012))', border: '1px solid var(--pc-border, rgba(0,0,0,0.07))',
                                     borderRadius: 10, padding: '10px 12px',
                                 }}>
-                                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)', marginBottom: 4 }}>
+                                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--pc-text-muted, rgba(0,0,0,0.35))', marginBottom: 4 }}>
                                         {label}
                                     </div>
-                                    <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--pc-text-main, #0f172a)' }}>
                                         {value}
                                     </div>
                                 </div>
@@ -237,7 +267,7 @@ const DetailDrawer = ({ record, onClose }) => {
                         <div>
                             <div style={{
                                 fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
-                                textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
+                                textTransform: 'uppercase', color: 'var(--pc-text-faint, rgba(0,0,0,0.35))',
                                 marginBottom: 10,
                             }}>
                                 Compliance Flags ({record.flags.length})
@@ -253,7 +283,7 @@ const DetailDrawer = ({ record, onClose }) => {
                         <div>
                             <div style={{
                                 fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
-                                textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
+                                textTransform: 'uppercase', color: 'var(--pc-text-faint, rgba(0,0,0,0.35))',
                                 marginBottom: 10,
                             }}>
                                 Recommendations
@@ -263,11 +293,11 @@ const DetailDrawer = ({ record, onClose }) => {
                                     <div key={i} style={{
                                         display: 'flex', alignItems: 'flex-start', gap: 10,
                                         padding: '9px 12px', borderRadius: 10,
-                                        background: 'rgba(99,102,241,0.05)',
+                                        background: 'var(--pc-indigo-bg, rgba(99,102,241,0.05))',
                                         border: '1px solid rgba(99,102,241,0.15)',
                                     }}>
                                         <span style={{ fontSize: 13, flexShrink: 0, marginTop: 1 }}>💡</span>
-                                        <span style={{ fontSize: 12, color: '#4f46e5', lineHeight: 1.5 }}>{rec}</span>
+                                        <span style={{ fontSize: 12, color: 'var(--pc-indigo-text, #4f46e5)', lineHeight: 1.5 }}>{rec}</span>
                                     </div>
                                 ))}
                             </div>
@@ -286,12 +316,12 @@ const RulesModal = ({ rules, onClose }) => (
             <div>
                 <div style={{
                     fontFamily: "'DM Serif Display', serif",
-                    fontSize: '1.25rem', color: '#0f172a',
+                    fontSize: '1.25rem', color: 'var(--pc-text-main, #0f172a)',
                     letterSpacing: '-0.02em', marginBottom: 4,
                 }}>
                     Compliance Rules
                 </div>
-                <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', margin: 0 }}>
+                <p style={{ fontSize: 12, color: 'var(--pc-text-muted, rgba(0,0,0,0.38))', margin: 0 }}>
                     Thresholds applied during the last compliance check.
                 </p>
             </div>
@@ -303,17 +333,17 @@ const RulesModal = ({ rules, onClose }) => (
                     <div key={key} style={{
                         display: 'flex', justifyContent: 'space-between',
                         alignItems: 'center', gap: 16, padding: '9px 0',
-                        borderBottom: i < arr.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                        borderBottom: i < arr.length - 1 ? '1px solid var(--pc-border, rgba(0,0,0,0.05))' : 'none',
                     }}>
                         <span style={{
-                            fontSize: 12, color: 'rgba(0,0,0,0.55)',
+                            fontSize: 12, color: 'var(--pc-text-muted, rgba(0,0,0,0.55))',
                             textTransform: 'capitalize',
                         }}>
                             {key.replace(/_/g, ' ').toLowerCase()}
                         </span>
                         <span style={{
-                            fontSize: 13, fontWeight: 700, color: '#4f46e5',
-                            background: 'rgba(99,102,241,0.07)',
+                            fontSize: 13, fontWeight: 700, color: 'var(--pc-indigo-text, #4f46e5)',
+                            background: 'var(--pc-indigo-bg, rgba(99,102,241,0.07))',
                             border: '1px solid rgba(99,102,241,0.18)',
                             borderRadius: 8, padding: '2px 10px',
                         }}>
@@ -335,11 +365,11 @@ export const PayrollCompliancePage = () => {
     const dispatch = useDispatch()
     const { data, orgSummary, isLoading, error } = useSelector(s => s.PayrollComplianceReducer || {})
 
-    const [search,         setSearch]         = useState('')
-    const [filterStatus,   setFilterStatus]   = useState('All')
+    const [search,          setSearch]         = useState('')
+    const [filterStatus,    setFilterStatus]   = useState('All')
     const [selectedRecord, setSelectedRecord] = useState(null)
-    const [showRules,      setShowRules]       = useState(false)
-    const [hasRun,         setHasRun]         = useState(false)
+    const [showRules,       setShowRules]      = useState(false)
+    const [hasRun,          setHasRun]         = useState(false)
 
     const handleRun = () => {
         dispatch(HandleRunComplianceCheck())
@@ -356,6 +386,7 @@ export const PayrollCompliancePage = () => {
 
     return (
         <PageShell>
+            <style>{styles}</style>
 
             {/* ── Page header ── */}
             <PageHeader
@@ -378,8 +409,8 @@ export const PayrollCompliancePage = () => {
             {/* ── Error ── */}
             {error?.status && (
                 <div style={{
-                    background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.2)',
-                    borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#dc2626',
+                    background: 'var(--pc-red-bg, rgba(220,38,38,0.06))', border: '1px solid var(--pc-red-border, rgba(220,38,38,0.2))',
+                    borderRadius: 12, padding: '12px 16px', fontSize: 13, color: 'var(--pc-red-text, #dc2626)',
                 }}>
                     {error.message}
                 </div>
@@ -395,8 +426,8 @@ export const PayrollCompliancePage = () => {
                     {/* Icon tile */}
                     <div style={{
                         width: 72, height: 72, borderRadius: 18,
-                        background: 'rgba(99,102,241,0.07)',
-                        border: '1px solid rgba(99,102,241,0.18)',
+                        background: 'var(--pc-indigo-bg, rgba(99,102,241,0.07))',
+                        border: '1px solid var(--pc-border, rgba(99,102,241,0.18))',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 32,
                     }}>
@@ -406,13 +437,13 @@ export const PayrollCompliancePage = () => {
                     <div>
                         <div style={{
                             fontFamily: "'DM Serif Display', serif",
-                            fontSize: '1.4rem', color: 'var(--ems-text-primary, #0f172a)',
+                            fontSize: '1.4rem', color: 'var(--pc-text-main, #0f172a)',
                             letterSpacing: '-0.02em', marginBottom: 8,
                         }}>
                             Ready to check payroll compliance
                         </div>
                         <p style={{
-                            fontSize: 13, color: 'var(--ems-text-muted, rgba(0,0,0,0.38))',
+                            fontSize: 13, color: 'var(--pc-text-muted, rgba(0,0,0,0.38))',
                             lineHeight: 1.7, maxWidth: 400, margin: '0 auto',
                         }}>
                             Run the compliance engine to analyse all employees against your
@@ -448,7 +479,7 @@ export const PayrollCompliancePage = () => {
 
                     {/* Last checked */}
                     {orgSummary?.checkedAt && (
-                        <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)', marginTop: -8 }}>
+                        <p style={{ fontSize: 11, color: 'var(--pc-text-faint, rgba(0,0,0,0.3))', marginTop: -8 }}>
                             Last checked: {new Date(orgSummary.checkedAt).toLocaleString('en-IN')}
                         </p>
                     )}
@@ -472,7 +503,7 @@ export const PayrollCompliancePage = () => {
                                 {s}
                             </button>
                         ))}
-                        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>
+                        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--pc-text-muted, rgba(0,0,0,0.3))' }}>
                             {filtered.length} employee{filtered.length !== 1 ? 's' : ''}
                         </span>
                     </div>
@@ -534,7 +565,7 @@ export const PayrollCompliancePage = () => {
 
                                     {/* Latest pay */}
                                     <div>
-                                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--pc-text-main, #0f172a)' }}>
                                             {fmt(r.summary.latestNetPay, r.summary.latestCurrency)}
                                         </div>
                                         <div className="pg-td-sub">{r.summary.latestStatus ?? '—'}</div>
@@ -546,8 +577,8 @@ export const PayrollCompliancePage = () => {
                                             <span style={{
                                                 fontSize: 11, fontWeight: 600, padding: '3px 9px',
                                                 borderRadius: 100,
-                                                background: 'rgba(22,163,74,0.08)',
-                                                color: '#15803d',
+                                                background: 'var(--pc-green-bg, rgba(22,163,74,0.08))',
+                                                color: 'var(--pc-green-text, #15803d)',
                                                 border: '1px solid rgba(22,163,74,0.22)',
                                             }}>
                                                 ✓ Clean
@@ -558,22 +589,22 @@ export const PayrollCompliancePage = () => {
                                                     <span style={{
                                                         fontSize: 11, fontWeight: 600, padding: '3px 9px',
                                                         borderRadius: 100,
-                                                        background: 'rgba(220,38,38,0.08)',
-                                                        color: '#dc2626',
+                                                        background: 'var(--pc-red-bg, rgba(220,38,38,0.08))',
+                                                        color: 'var(--pc-red-text, #dc2626)',
                                                         border: '1px solid rgba(220,38,38,0.2)',
                                                     }}>
-                                                        {criticals} critical
+                                                        {criticals} crit
                                                     </span>
                                                 )}
                                                 {warnings > 0 && (
                                                     <span style={{
                                                         fontSize: 11, fontWeight: 600, padding: '3px 9px',
                                                         borderRadius: 100,
-                                                        background: 'rgba(234,179,8,0.09)',
-                                                        color: '#854d0e',
+                                                        background: 'var(--pc-yellow-bg, rgba(234,179,8,0.09))',
+                                                        color: 'var(--pc-yellow-text, #854d0e)',
                                                         border: '1px solid rgba(234,179,8,0.3)',
                                                     }}>
-                                                        {warnings} warning
+                                                        {warnings} warn
                                                     </span>
                                                 )}
                                             </>

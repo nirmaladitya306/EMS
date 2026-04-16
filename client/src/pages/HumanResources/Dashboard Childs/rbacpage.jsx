@@ -1,677 +1,532 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-    HandleGetAllDriftEvents,
-    HandleGetDriftSummary,
-    HandleResolveDrift,
-    HandleDismissDrift,
-} from '../../../redux/Thunks/AccessDriftThunk'
+    HandleGetAllRoles,
+    HandleCreateRole,
+    HandleUpdateRole,
+    HandleDeleteRole,
+    HandleGetHRAssignments,
+    HandleAssignRole,
+    HandleGetPermissionCatalogue,
+    // Add this to your Thunk imports (we will build it below)
+    HandleCreateDrift 
+} from '../../../redux/Thunks/RBACThunk'
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const relativeTime = (dateStr) => {
-    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000)
-    if (diff < 60)    return `${diff}s ago`
-    if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-    return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --rbac-bg: #18181b;
+    --rbac-border: #27272a;
+    --rbac-text-main: #fafafa;
+    --rbac-text-muted: #a1a1aa;
+    --rbac-text-faint: #71717a;
+    
+    --rbac-input-bg: #09090b;
+    --rbac-panel-bg: #18181b;
+    --rbac-hover: rgba(255,255,255,0.04);
+    
+    --rbac-active-bg: rgba(99,102,241,0.15);
+    --rbac-active-border: rgba(99,102,241,0.4);
+    --rbac-active-text: #818cf8;
+    
+    --rbac-th-bg: rgba(255,255,255,0.05);
+    --rbac-row-alt: rgba(255,255,255,0.02);
+    --rbac-modal-bg: #18181b;
+  }
 
-const initials = (name) =>
-    (name || '').split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
+  .rbac-text-main { color: var(--rbac-text-main, #1f2937); }
+  .rbac-text-muted { color: var(--rbac-text-muted, #6b7280); }
+  .rbac-text-faint { color: var(--rbac-text-faint, #9ca3af); }
 
-// ─── Drift type metadata ───────────────────────────────────────────────────────
-const DRIFT_TYPES = {
-    UNUSUAL_LOGIN_TIME:        { label: 'Unusual Login Time',        icon: '🕐' },
-    HIGH_FREQUENCY_ACTIONS:    { label: 'High Frequency Actions',    icon: '⚡' },
-    SENSITIVE_ENDPOINT_ACCESS: { label: 'Sensitive Endpoint Access', icon: '🔐' },
-    BULK_OPERATION:            { label: 'Bulk Operation',            icon: '📦' },
-    OFF_HOURS_ACTIVITY:        { label: 'Off-Hours Activity',        icon: '🌙' },
-    REPEATED_FAILED_ACCESS:    { label: 'Repeated Failed Access',    icon: '🚫' },
-    UNUSUAL_ACTION_PATTERN:    { label: 'Unusual Action Pattern',    icon: '⚠️' },
-}
+  .rbac-panel { background: var(--rbac-panel-bg, #ffffff); border-color: var(--rbac-border, #e5e7eb); }
+  
+  .rbac-card { 
+    background: var(--rbac-panel-bg, #ffffff); 
+    border-color: var(--rbac-border, #e5e7eb); 
+    transition: all 0.2s; 
+  }
+  .rbac-card:hover { border-color: var(--rbac-active-border, #a5b4fc); background: var(--rbac-hover, #eef2ff); }
+  .rbac-card.active { border-color: var(--rbac-active-border, #818cf8); background: var(--rbac-active-bg, #eef2ff); }
 
-// ─── Design-system colour tokens ──────────────────────────────────────────────
-const SEVERITY_TOKENS = {
-    CRITICAL: { bg: 'rgba(220,38,38,0.08)',  color: '#dc2626', border: 'rgba(220,38,38,0.25)',  rowBorder: 'rgba(220,38,38,0.2)'  },
-    HIGH:     { bg: 'rgba(234,88,12,0.08)',  color: '#c2410c', border: 'rgba(234,88,12,0.25)',  rowBorder: 'rgba(234,88,12,0.18)' },
-    MEDIUM:   { bg: 'rgba(217,119,6,0.08)',  color: '#b45309', border: 'rgba(217,119,6,0.25)',  rowBorder: 'rgba(217,119,6,0.18)' },
-    LOW:      { bg: 'rgba(99,102,241,0.07)', color: '#4f46e5', border: 'rgba(99,102,241,0.2)',  rowBorder: 'rgba(99,102,241,0.15)' },
-}
+  .rbac-input { 
+    background: var(--rbac-input-bg, #ffffff); 
+    border: 1px solid var(--rbac-border, #d1d5db); 
+    color: var(--rbac-text-main, #1f2937); 
+  }
+  .rbac-input:focus { border-color: rgba(99,102,241,0.5); outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+  .rbac-input:disabled { opacity: 0.6; cursor: not-allowed; }
 
-const STATUS_TOKENS = {
-    OPEN:      { bg: 'rgba(220,38,38,0.07)',  color: '#dc2626', border: 'rgba(220,38,38,0.2)'  },
-    RESOLVED:  { bg: 'rgba(22,163,74,0.08)',  color: '#15803d', border: 'rgba(22,163,74,0.22)' },
-    DISMISSED: { bg: 'rgba(0,0,0,0.04)',      color: 'rgba(0,0,0,0.4)', border: 'rgba(0,0,0,0.1)' },
-}
+  .rbac-tab { border-bottom: 2px solid transparent; color: var(--rbac-text-muted, #6b7280); }
+  .rbac-tab:hover { color: var(--rbac-text-main, #374151); }
+  .rbac-tab.active { border-color: var(--rbac-active-text, #4f46e5); color: var(--rbac-active-text, #4f46e5); }
 
-// ─── Severity pill ────────────────────────────────────────────────────────────
-const SeverityPill = ({ severity }) => {
-    const t = SEVERITY_TOKENS[severity] || SEVERITY_TOKENS.LOW
+  /* Permissions styling */
+  .rbac-perm-group { border: 1px solid var(--rbac-border, #e5e7eb); border-radius: 0.75rem; overflow: hidden; }
+  .rbac-perm-header { color: var(--rbac-text-main, #111827); transition: background 0.2s; }
+  .rbac-perm-header-all { background: var(--rbac-active-bg, #eef2ff); }
+  .rbac-perm-header-some { background: var(--rbac-hover, #f5f3ff); }
+  .rbac-perm-header-none { background: var(--rbac-th-bg, #f9fafb); }
+  .rbac-perm-header:hover:not(:disabled) { background: var(--rbac-hover, #eef2ff); }
+  
+  .rbac-perm-item { color: var(--rbac-text-main, #111827); transition: background 0.2s; }
+  .rbac-perm-item:hover:not(.disabled) { background: var(--rbac-hover, #f3f4f6); }
+  .rbac-perm-item.selected { background: var(--rbac-active-bg, #e0e7ff); }
+
+  .rbac-th { background: var(--rbac-th-bg, #f9fafb); color: var(--rbac-text-muted, #6b7280); border-bottom: 1px solid var(--rbac-border, #e5e7eb); }
+  .rbac-row { background: var(--rbac-panel-bg, #ffffff); border-bottom: 1px solid var(--rbac-border, #f3f4f6); }
+  .rbac-row-alt { background: var(--rbac-row-alt, #f9fafb); border-bottom: 1px solid var(--rbac-border, #f3f4f6); }
+  
+  .rbac-sys-badge { background: var(--rbac-active-bg, #dbeafe); color: var(--rbac-active-text, #1d4ed8); border: 1px solid var(--rbac-active-border, #bfdbfe); }
+  .rbac-modal { background: var(--rbac-modal-bg, #ffffff); border: 1px solid var(--rbac-border, transparent); }
+`
+
+const label = (p) => p.split('.').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' › ')
+
+const SystemBadge = () => (
+    <span className="px-2 py-0.5 rounded-full text-xs font-semibold rbac-sys-badge">System</span>
+)
+
+const PermCount = ({ role }) => (
+    <span className="text-xs rbac-text-faint">{role.permissions.length} permissions</span>
+)
+
+const ErrorBanner = ({ message, onDismiss }) =>
+    message ? (
+        <div style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)', color: '#ef4444' }} className="text-sm rounded-xl px-4 py-3 flex justify-between items-center">
+            <span>{message}</span>
+            <button onClick={onDismiss} className="hover:opacity-70 text-lg leading-none ml-4">×</button>
+        </div>
+    ) : null
+
+// ─── Initiate Drift Modal ─────────────────────────────────────────────────────
+const InitiateDriftModal = ({ hrUser, roles, onClose, onSave }) => {
+    const [roleID, setRoleID] = useState('')
+    const [reason, setReason] = useState('')
+    const [expiresAt, setExpiresAt] = useState('')
+    const [saving, setSaving] = useState(false)
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setSaving(true)
+        await onSave({ hrUserID: hrUser._id, driftRoleID: roleID, reason, expiresAt })
+        setSaving(false)
+    }
+
+    // Don't let them select their existing base role or system roles
+    const selectableRoles = roles.filter(r => r._id !== hrUser.rbacRole?._id && !r.isSystem)
+
     return (
-        <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            padding: '3px 9px', borderRadius: 100, fontSize: 11, fontWeight: 700,
-            background: t.bg, color: t.color, border: `1px solid ${t.border}`,
-            whiteSpace: 'nowrap', letterSpacing: '0.03em',
-        }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: t.color, flexShrink: 0 }} />
-            {severity}
-        </span>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="rounded-2xl shadow-xl p-6 w-full max-w-md mx-4 rbac-modal">
+                <h2 className="text-xl font-bold mb-1 rbac-text-main">Grant Temporary Access</h2>
+                <p className="text-sm mb-5 rbac-text-muted">
+                    Elevate <strong className="rbac-text-main">{hrUser.firstname} {hrUser.lastname}</strong>'s privileges for a limited time.
+                </p>
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div>
+                        <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase">Temporary Role</label>
+                        <select 
+                            required value={roleID} onChange={e => setRoleID(e.target.value)}
+                            className="w-full rounded-lg px-3 py-2 text-sm rbac-input"
+                        >
+                            <option value="">— Select a role —</option>
+                            {selectableRoles.map(r => (
+                                <option key={r._id} value={r._id}>{r.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase">Reason for Access</label>
+                        <input 
+                            required type="text" value={reason} onChange={e => setReason(e.target.value)}
+                            placeholder="e.g. Covering for Sarah's maternity leave"
+                            className="w-full rounded-lg px-3 py-2 text-sm rbac-input"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase">Expiry Date</label>
+                        <input 
+                            required type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-full rounded-lg px-3 py-2 text-sm rbac-input"
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--rbac-border)' }}>
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm border rounded-lg hover:opacity-70 rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>
+                            Cancel
+                        </button>
+                        <button type="submit" disabled={saving || !roleID || !expiresAt} className="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-medium shadow-sm">
+                            {saving ? 'Processing...' : 'Grant Access'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     )
 }
 
-// ─── Status pill ──────────────────────────────────────────────────────────────
-const StatusPill = ({ status }) => {
-    const t = STATUS_TOKENS[status] || STATUS_TOKENS.DISMISSED
+const PermissionPicker = ({ groups = {}, selected = [], onChange, disabled }) => {
+    const groupNames = Object.keys(groups)
+    const toggleAll = (perms) => {
+        const allIn = perms.every(p => selected.includes(p))
+        if (allIn) onChange(selected.filter(s => !perms.includes(s)))
+        else onChange([...new Set([...selected, ...perms])])
+    }
+    const toggle = (perm) => {
+        if (selected.includes(perm)) onChange(selected.filter(p => p !== perm))
+        else onChange([...selected, perm])
+    }
     return (
-        <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            padding: '3px 9px', borderRadius: 100, fontSize: 11, fontWeight: 600,
-            background: t.bg, color: t.color, border: `1px solid ${t.border}`,
-            whiteSpace: 'nowrap',
-        }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: t.color, flexShrink: 0 }} />
-            {status}
-        </span>
+        <div className="flex flex-col gap-4">
+            {groupNames.length === 0 && <div className="rbac-text-muted">No permissions available</div>}
+            {groupNames.map(groupName => {
+                const perms = groups[groupName] || []
+                const allIn = perms.length > 0 && perms.every(p => selected.includes(p))
+                const someIn = perms.some(p => selected.includes(p))
+                return (
+                    <div key={groupName} className="rbac-perm-group">
+                        <button type="button" disabled={disabled} onClick={() => toggleAll(perms)}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold rbac-perm-header ${allIn ? 'rbac-perm-header-all' : someIn ? 'rbac-perm-header-some' : 'rbac-perm-header-none'} ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                            <span>{groupName}</span>
+                            <span className="text-xs opacity-70 font-medium">
+                                {perms.filter(p => selected.includes(p)).length}/{perms.length}
+                            </span>
+                        </button>
+                        <div className="flex flex-col gap-1 p-2 rbac-panel">
+                            {perms.map((perm) => (
+                                <label key={perm} className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md rbac-perm-item ${selected.includes(perm) ? 'selected' : ''} ${disabled ? 'disabled opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
+                                    <input type="checkbox" disabled={disabled} checked={selected.includes(perm)} onChange={() => toggle(perm)} className="accent-indigo-600 w-4 h-4" />
+                                    <span className="font-medium" style={{ fontSize: "13px" }}>{perm.split('.').join(' → ')}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
     )
 }
 
-// ─── Avatar ───────────────────────────────────────────────────────────────────
-const Avatar = ({ name, size = 30, fontSize = 11 }) => (
-    <div style={{
-        width: size, height: size, borderRadius: '50%', flexShrink: 0,
-        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'white', fontWeight: 700, fontSize,
-        fontFamily: "'DM Serif Display', serif", letterSpacing: '0.03em',
-    }}>
-        {initials(name)}
+const RoleForm = ({ initial, groups, onSave, onCancel, saving, error }) => {
+    const [name,        setName]        = useState(initial?.name        || '')
+    const [description, setDescription] = useState(initial?.description || '')
+    const [permissions, setPermissions] = useState(initial?.permissions || [])
+
+    const isEdit   = !!initial?._id
+    const isSystem = initial?.isSystem
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        if (!name.trim()) return
+        onSave({ name: name.trim(), description, permissions })
+    }
+
+    return (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 relative h-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase tracking-wide">Role Name *</label>
+                    <input value={name} onChange={e => setName(e.target.value)} disabled={isSystem} required placeholder="e.g. Recruiter, Finance HR" className="w-full rounded-lg px-3 py-2 text-sm rbac-input" />
+                </div>
+                <div>
+                    <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase tracking-wide">Description</label>
+                    <input value={description} onChange={e => setDescription(e.target.value)} placeholder="What does this role do?" className="w-full rounded-lg px-3 py-2 text-sm rbac-input" />
+                </div>
+            </div>
+
+            <div className="flex-1 overflow-auto pb-16">
+                <label className="block text-xs font-semibold rbac-text-muted mb-2 mt-2 uppercase tracking-wide">
+                    Permissions — {permissions.length} selected
+                </label>
+                {Object.keys(groups).length > 0 ? (
+                    <PermissionPicker groups={groups} selected={permissions} onChange={setPermissions} disabled={isSystem} />
+                ) : (
+                    <div className="text-sm text-red-400">No permissions loaded (check backend / API)</div>
+                )}
+            </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <div className="absolute bottom-0 left-0 right-0 flex gap-3 justify-end pt-3 pb-1 rbac-panel border-t mt-4" style={{ borderTop: '1px solid var(--rbac-border)' }}>
+                <button type="button" onClick={onCancel} className="px-4 py-2 text-sm border rounded-lg hover:opacity-70 rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>Cancel</button>
+                {!isSystem && (
+                    <button type="submit" disabled={saving || !name.trim()} className="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium rounded-lg shadow-sm">
+                        {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Role'}
+                    </button>
+                )}
+            </div>
+        </form>
+    )
+}
+
+const RoleCard = ({ role, isSelected, onSelect, onEdit, onDelete }) => (
+    <div onClick={() => onSelect(role)} className={`border rounded-xl p-4 cursor-pointer rbac-card ${isSelected ? 'active shadow-sm' : ''}`}>
+        <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold rbac-text-main text-sm truncate">{role.name}</p>
+                    {role.isSystem && <SystemBadge />}
+                </div>
+                {role.description && <p className="text-xs rbac-text-muted mt-0.5 line-clamp-1">{role.description}</p>}
+            </div>
+            <PermCount role={role} />
+        </div>
+        <div className="flex gap-2 mt-3 justify-end">
+            <button onClick={e => { e.stopPropagation(); onEdit(role) }} className="px-3 py-1 text-xs border rounded-lg hover:opacity-70 transition-opacity rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>Edit</button>
+            {!role.isSystem && (
+                <button onClick={e => { e.stopPropagation(); onDelete(role) }} className="px-3 py-1 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50/20 transition-colors">Delete</button>
+            )}
+        </div>
     </div>
 )
 
-// ─── Resolution modal ─────────────────────────────────────────────────────────
-const ResolutionModal = ({ drift, mode, onConfirm, onClose }) => {
-    const [note, setNote] = useState('')
-    const isResolve = mode === 'resolve'
+const AssignmentTable = ({ hrList, roles, onAssign, assigning, onInitDrift }) => {
+    const [search, setSearch] = useState('')
+
+    const filtered = hrList.filter(hr => {
+        const name = `${hr.firstname} ${hr.lastname} ${hr.email}`.toLowerCase()
+        return name.includes(search.toLowerCase())
+    })
 
     return (
-        <div className="pg-modal-overlay">
-            <div className="pg-modal">
-
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <Avatar name={drift.employeeName} size={48} fontSize={16} />
-                    <div>
-                        <div style={{
-                            fontFamily: "'DM Serif Display', serif",
-                            fontSize: '1.2rem', color: '#0f172a',
-                            letterSpacing: '-0.02em', lineHeight: 1.2,
-                        }}>
-                            {isResolve ? 'Resolve Drift Event' : 'Dismiss Drift Event'}
-                        </div>
-                        <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 3 }}>
-                            {drift.employeeName} · {DRIFT_TYPES[drift.driftType]?.label}
-                        </div>
-                    </div>
+        <div className="flex flex-col gap-3">
+            <input type="text" placeholder="Search HR users…" value={search} onChange={e => setSearch(e.target.value)} className="rounded-lg px-3 py-2 text-sm w-64 rbac-input" />
+            <div className="flex flex-col gap-0 border rounded-xl overflow-hidden" style={{ borderColor: 'var(--rbac-border)' }}>
+                <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide rbac-th">
+                    <span className="col-span-4">HR User</span>
+                    <span className="col-span-3">Email</span>
+                    <span className="col-span-3">Assigned Role</span>
+                    <span className="col-span-2 text-right">Change</span>
                 </div>
-
-                <div className="pg-divider" />
-
-                {/* Context strip */}
-                <div style={{
-                    background: 'rgba(0,0,0,0.012)', border: '1px solid rgba(0,0,0,0.07)',
-                    borderRadius: 10, padding: '10px 14px',
-                    fontSize: 13, color: 'rgba(0,0,0,0.6)', lineHeight: 1.5,
-                }}>
-                    {drift.description}
-                </div>
-
-                {/* Note field */}
-                <div className="pg-field">
-                    <label className="pg-label">
-                        {isResolve ? 'Resolution Note' : 'Dismissal Note'}
-                        <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: 4, color: 'rgba(0,0,0,0.3)' }}>
-                            (optional)
-                        </span>
-                    </label>
-                    <textarea
-                        className="pg-textarea"
-                        value={note}
-                        onChange={e => setNote(e.target.value)}
-                        rows={3}
-                        placeholder={
-                            isResolve
-                                ? 'e.g. Confirmed with employee — legitimate activity.'
-                                : 'e.g. Employee was on call, this was expected.'
-                        }
-                    />
-                </div>
-
-                {/* Actions */}
-                <div className="pg-modal-actions">
-                    <button className="pg-btn-ghost" onClick={onClose}>Cancel</button>
-                    <button
-                        onClick={() => onConfirm(note)}
-                        style={{
-                            padding: '9px 18px', borderRadius: 10, border: 'none',
-                            fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                            fontFamily: "'DM Sans', sans-serif",
-                            background: isResolve
-                                ? 'rgba(22,163,74,0.12)'
-                                : 'rgba(0,0,0,0.07)',
-                            color: isResolve ? '#15803d' : 'rgba(0,0,0,0.5)',
-                            border: isResolve
-                                ? '1px solid rgba(22,163,74,0.25)'
-                                : '1px solid rgba(0,0,0,0.12)',
-                        }}
-                    >
-                        {isResolve ? '✓ Mark Resolved' : 'Dismiss'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-// ─── Evidence drawer (slides from right) ─────────────────────────────────────
-const EvidenceDrawer = ({ drift, onClose }) => {
-    if (!drift) return null
-
-    const sevToken = SEVERITY_TOKENS[drift.severity] || SEVERITY_TOKENS.LOW
-
-    return (
-        <div
-            style={{
-                position: 'fixed', inset: 0,
-                background: 'rgba(0,0,0,0.3)', zIndex: 50,
-                display: 'flex', justifyContent: 'flex-end',
-            }}
-            onClick={onClose}
-        >
-            <div
-                style={{
-                    background: '#ffffff', width: '100%', maxWidth: 500,
-                    height: '100%', overflowY: 'auto',
-                    boxShadow: '-24px 0 64px rgba(0,0,0,0.12)',
-                    display: 'flex', flexDirection: 'column',
-                    fontFamily: "'DM Sans', sans-serif",
-                }}
-                onClick={e => e.stopPropagation()}
-            >
-                {/* Drawer header */}
-                <div style={{
-                    padding: '20px 24px', borderBottom: '1px solid rgba(0,0,0,0.06)',
-                    display: 'flex', alignItems: 'flex-start',
-                    justifyContent: 'space-between', gap: 12, flexShrink: 0,
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <Avatar name={drift.employeeName} size={44} fontSize={15} />
-                        <div>
-                            <div style={{
-                                fontFamily: "'DM Serif Display', serif",
-                                fontSize: '1.1rem', color: '#0f172a',
-                                letterSpacing: '-0.02em', lineHeight: 1.2,
-                            }}>
-                                {drift.employeeName}
-                            </div>
-                            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 3 }}>
-                                {drift.employeeDepartment}
-                            </div>
+                {filtered.length === 0 && <div className="text-center py-8 text-sm rbac-text-muted">No HR users found.</div>}
+                {filtered.map((hr, i) => (
+                    <div key={hr._id} className={`grid grid-cols-12 px-4 py-3 text-sm items-center ${i % 2 === 0 ? 'rbac-row' : 'rbac-row-alt'}`}>
+                        <div className="col-span-4">
+                            <p className="font-medium rbac-text-main">{hr.firstname} {hr.lastname}</p>
+                            {!hr.rbacRole && <span className="text-xs font-medium" style={{ color: 'var(--rbac-active-text)' }}>Unrestricted</span>}
                         </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            background: 'none', border: 'none', cursor: 'pointer',
-                            fontSize: 18, color: 'rgba(0,0,0,0.35)', lineHeight: 1,
-                            padding: 4, marginTop: 2,
-                        }}
-                    >
-                        ✕
-                    </button>
-                </div>
-
-                {/* Body */}
-                <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 22, flex: 1 }}>
-
-                    {/* Type + pills */}
-                    <div style={{
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        flexWrap: 'wrap',
-                        background: 'rgba(0,0,0,0.012)',
-                        border: '1px solid rgba(0,0,0,0.07)',
-                        borderRadius: 14, padding: '14px 16px',
-                    }}>
-                        <span style={{ fontSize: 22 }}>
-                            {DRIFT_TYPES[drift.driftType]?.icon}
-                        </span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', marginBottom: 6 }}>
-                                {DRIFT_TYPES[drift.driftType]?.label}
-                            </div>
-                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                <SeverityPill severity={drift.severity} />
-                                <StatusPill   status={drift.status} />
-                            </div>
-                        </div>
-                        <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.35)', textAlign: 'right', flexShrink: 0 }}>
-                            {relativeTime(drift.createdAt)}
-                        </div>
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                        <div style={{
-                            fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
-                            textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
-                            marginBottom: 8,
-                        }}>
-                            Description
-                        </div>
-                        <p style={{
-                            fontSize: 13, color: 'rgba(0,0,0,0.65)',
-                            lineHeight: 1.65, margin: 0,
-                            background: sevToken.bg, border: `1px solid ${sevToken.border}`,
-                            borderRadius: 10, padding: '12px 14px',
-                        }}>
-                            {drift.description}
-                        </p>
-                    </div>
-
-                    {/* Evidence log */}
-                    <div>
-                        <div style={{
-                            fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
-                            textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
-                            marginBottom: 10,
-                        }}>
-                            Evidence Log
-                            {drift.evidence?.length > 0 && (
-                                <span style={{ marginLeft: 6, fontWeight: 400, textTransform: 'none', color: 'rgba(0,0,0,0.28)' }}>
-                                    ({drift.evidence.length} {drift.evidence.length === 1 ? 'entry' : 'entries'})
+                        <p className="col-span-3 text-xs truncate pr-2 rbac-text-muted">{hr.email}</p>
+                        <div className="col-span-3">
+                            {hr.rbacRole ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold rbac-sys-badge">
+                                    {hr.rbacRole.isSystem && '⭐ '}{hr.rbacRole.name}
                                 </span>
+                            ) : (
+                                <span className="text-xs italic rbac-text-faint">No role (full access)</span>
                             )}
                         </div>
-
-                        {!drift.evidence?.length ? (
-                            <div style={{
-                                textAlign: 'center', padding: '24px 0',
-                                fontSize: 13, color: 'rgba(0,0,0,0.3)',
-                            }}>
-                                No detailed evidence captured for this event.
-                            </div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                {drift.evidence.map((ev, i) => (
-                                    <div key={i} style={{
-                                        background: 'rgba(0,0,0,0.012)',
-                                        border: '1px solid rgba(0,0,0,0.07)',
-                                        borderRadius: 10, padding: '10px 14px',
-                                    }}>
-                                        <div style={{
-                                            display: 'flex', justifyContent: 'space-between',
-                                            alignItems: 'center', marginBottom: 4,
-                                        }}>
-                                            <span style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>
-                                                {ev.action?.replace(/_/g, ' ')}
-                                            </span>
-                                            <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.35)' }}>
-                                                {relativeTime(ev.timestamp)}
-                                            </span>
-                                        </div>
-                                        {ev.endpoint && (
-                                            <div style={{
-                                                fontFamily: 'monospace', fontSize: 11,
-                                                color: '#4f46e5', marginBottom: 2,
-                                            }}>
-                                                {ev.endpoint}
-                                            </div>
-                                        )}
-                                        {ev.description && (
-                                            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)', lineHeight: 1.5 }}>
-                                                {ev.description}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Resolution info (if not open) */}
-                    {drift.status !== 'OPEN' && drift.resolvedByName && (
-                        <div style={{
-                            background: 'rgba(22,163,74,0.06)',
-                            border: '1px solid rgba(22,163,74,0.18)',
-                            borderRadius: 10, padding: '12px 14px',
-                        }}>
-                            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#15803d', marginBottom: 4 }}>
-                                {drift.status === 'RESOLVED' ? 'Resolved' : 'Dismissed'}
-                            </div>
-                            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>
-                                By {drift.resolvedByName}
-                            </div>
-                            {drift.resolutionNote && (
-                                <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', fontStyle: 'italic', marginTop: 4 }}>
-                                    "{drift.resolutionNote}"
-                                </div>
-                            )}
+                        <div className="col-span-2 flex justify-end gap-2 items-center">
+                            <select
+                                disabled={assigning === hr._id} value={hr.rbacRole?._id || ''}
+                                onChange={e => onAssign(hr._id, e.target.value || null)}
+                                className="rounded-lg px-2 py-1 text-xs max-w-[130px] rbac-input"
+                            >
+                                <option value="">— Full Access —</option>
+                                {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
+                            </select>
+                            
+                            {/* THE NEW DRIFT BUTTON */}
+                            <button 
+                                onClick={() => onInitDrift(hr)}
+                                title="Grant Temporary Access (Drift)"
+                                className="rounded-lg px-2 py-1 text-xs border hover:opacity-70 transition-opacity"
+                                style={{ borderColor: 'var(--rbac-active-border)', background: 'var(--rbac-active-bg)', color: 'var(--rbac-active-text)' }}
+                            >
+                                ⏳
+                            </button>
                         </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    )
-}
-
-// ─── Main page ────────────────────────────────────────────────────────────────
-export const RBACPage = () => {
-    const dispatch = useDispatch()
-    const state    = useSelector(s => s.AccessDriftReducer)
-
-    const [filterStatus,   setFilterStatus]   = useState('ALL')
-    const [filterSeverity, setFilterSeverity] = useState('ALL')
-    const [filterType,     setFilterType]     = useState('ALL')
-    const [currentPage,    setCurrentPage]    = useState(1)
-    const [modalDrift,     setModalDrift]     = useState(null)
-    const [modalMode,      setModalMode]      = useState(null)
-    const [evidenceDrift,  setEvidenceDrift]  = useState(null)
-
-    const fetchDrifts = (page = 1) => {
-        dispatch(HandleGetAllDriftEvents({
-            page, limit: 20,
-            status:    filterStatus   === 'ALL' ? undefined : filterStatus,
-            severity:  filterSeverity === 'ALL' ? undefined : filterSeverity,
-            driftType: filterType     === 'ALL' ? undefined : filterType,
-        }))
-    }
-
-    useEffect(() => {
-        dispatch(HandleGetDriftSummary())
-        fetchDrifts(1)
-    }, [dispatch])
-
-    const handleApply = () => { setCurrentPage(1); fetchDrifts(1) }
-    const handleClear = () => {
-        setFilterStatus('ALL'); setFilterSeverity('ALL'); setFilterType('ALL')
-        setCurrentPage(1)
-        dispatch(HandleGetAllDriftEvents({ page: 1, limit: 20 }))
-    }
-
-    const handleConfirmModal = (note) => {
-        if (!modalDrift) return
-        const thunk = modalMode === 'resolve' ? HandleResolveDrift : HandleDismissDrift
-        dispatch(thunk({ driftID: modalDrift._id, resolutionNote: note })).then(() => {
-            setModalDrift(null); setModalMode(null)
-            dispatch(HandleGetDriftSummary())
-            fetchDrifts(currentPage)
-        })
-    }
-
-    const drifts     = state?.drifts     || []
-    const pagination = state?.pagination || { totalPages: 0, total: 0, limit: 20 }
-    const summary    = state?.summary    || { total: 0, open: 0, resolved: 0, dismissed: 0, critical: 0, high: 0 }
-
-    return (
-        <PageShell>
-
-            {/* ── Page header ── */}
-            <PageHeader
-                eyebrow="Security"
-                title="Access Drift"
-                subtitle="Monitor and investigate unusual or out-of-policy employee access patterns"
-            />
-
-            {/* ── Stats strip ── */}
-            <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
-                {[
-                    { label: 'Total Events', value: summary.total     },
-                    { label: 'Open',         value: summary.open      },
-                    { label: 'Resolved',     value: summary.resolved  },
-                    { label: 'Dismissed',    value: summary.dismissed },
-                    { label: 'Critical',     value: summary.critical  },
-                    { label: 'High',         value: summary.high      },
-                ].map(s => (
-                    <div key={s.label} className="pg-stat-card">
-                        <span className="pg-stat-value" style={{ fontSize: '1.5rem' }}>{s.value}</span>
-                        <span className="pg-stat-label">{s.label}</span>
                     </div>
                 ))}
             </div>
+        </div>
+    )
+}
 
-            {/* ── Filter panel ── */}
-            <div className="pg-filter-panel">
-                <div className="pg-filter-group">
-                    <label className="pg-filter-label">Status</label>
-                    <select
-                        className="pg-select"
-                        value={filterStatus}
-                        onChange={e => setFilterStatus(e.target.value)}
-                    >
-                        <option value="ALL">All statuses</option>
-                        <option value="OPEN">Open</option>
-                        <option value="RESOLVED">Resolved</option>
-                        <option value="DISMISSED">Dismissed</option>
-                    </select>
-                </div>
+export const RBACPage = () => {
+    const dispatch = useDispatch()
+    const state = useSelector(s => s.RBACReducer) || { roles: [], catalogue: {}, hrAssignments: [], error: {} }
 
-                <div className="pg-filter-group">
-                    <label className="pg-filter-label">Severity</label>
-                    <select
-                        className="pg-select"
-                        value={filterSeverity}
-                        onChange={e => setFilterSeverity(e.target.value)}
-                    >
-                        <option value="ALL">All severities</option>
-                        <option value="CRITICAL">Critical</option>
-                        <option value="HIGH">High</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="LOW">Low</option>
-                    </select>
-                </div>
+    const [tab,           setTab]           = useState('roles')
+    const [formMode,      setFormMode]      = useState(null)
+    const [selectedRole,  setSelectedRole]  = useState(null)
+    const [saving,        setSaving]        = useState(false)
+    const [assigning,     setAssigning]     = useState(null)
+    const [formError,     setFormError]     = useState(null)
+    const [globalError,   setGlobalError]   = useState(null)
+    const [confirmDelete, setConfirmDelete] = useState(null)
+    const [driftModalUser,setDriftModalUser]= useState(null) // New State for Drift Modal
 
-                <div className="pg-filter-group">
-                    <label className="pg-filter-label">Drift Type</label>
-                    <select
-                        className="pg-select"
-                        value={filterType}
-                        onChange={e => setFilterType(e.target.value)}
-                    >
-                        <option value="ALL">All types</option>
-                        {Object.entries(DRIFT_TYPES).map(([k, v]) => (
-                            <option key={k} value={k}>{v.label}</option>
-                        ))}
-                    </select>
-                </div>
+    useEffect(() => {
+        dispatch(HandleGetAllRoles())
+        dispatch(HandleGetHRAssignments())
+        dispatch(HandleGetPermissionCatalogue())
+    }, [dispatch])
 
-                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-                    <button className="pg-btn-primary" onClick={handleApply}
-                        style={{ padding: '8px 18px' }}>
-                        Apply
+    useEffect(() => {
+        if (state.error?.status) setGlobalError(state.error.message)
+    }, [state.error])
+
+    const handleSaveRole = async (data) => {
+        setSaving(true); setFormError(null)
+        try {
+            let action = formMode === 'create' ? await dispatch(HandleCreateRole(data)) : await dispatch(HandleUpdateRole({ roleID: formMode._id, ...data }))
+            if (action.payload?.success === false) setFormError(action.payload.message)
+            else setFormMode(null)
+        } finally { setSaving(false) }
+    }
+
+    const handleDeleteRole = async (role) => {
+        const action = await dispatch(HandleDeleteRole(role._id))
+        if (action.payload?.success === false) setGlobalError(action.payload.message)
+        setConfirmDelete(null)
+        if (selectedRole?._id === role._id) setSelectedRole(null)
+    }
+
+    const handleAssign = async (hrID, roleID) => {
+        setAssigning(hrID)
+        await dispatch(HandleAssignRole({ hrID, roleID }))
+        setAssigning(null)
+    }
+
+    const handleCreateDrift = async (driftData) => {
+        // Calls the new thunk we are creating next
+        const res = await dispatch(HandleCreateDrift(driftData))
+        if(res.payload?.success) {
+            setDriftModalUser(null)
+            alert("Temporary access granted successfully!")
+        } else {
+            alert(res.payload?.message || "Failed to grant access")
+        }
+    }
+
+    if (state.isLoading && state.roles.length === 0) return <Loading />
+
+    const groups = state.catalogue?.groups || {}
+    const roles  = state.roles || []
+
+    return (
+        <PageShell>
+            <style>{styles}</style>
+            
+            <PageHeader eyebrow="Security" title="Role-Based Access Control" subtitle="Define roles, assign permissions, and control what each HR user can access">
+                {tab === 'roles' && !formMode && (
+                    <button onClick={() => { setFormMode('create'); setFormError(null) }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm">
+                        + New Role
                     </button>
-                    <button className="pg-btn-ghost" onClick={handleClear}
-                        style={{ padding: '8px 14px' }}>
-                        Clear
+                )}
+            </PageHeader>
+
+            <ErrorBanner message={globalError} onDismiss={() => setGlobalError(null)} />
+
+            <div className="flex gap-1 border-b mb-5" style={{ borderColor: 'var(--rbac-border)' }}>
+                {[
+                    { key: 'roles',  label: `Roles (${roles.length})` },
+                    { key: 'assign', label: `Assign to HR Users (${state.hrAssignments.length})` },
+                ].map(t => (
+                    <button key={t.key} onClick={() => { setTab(t.key); setFormMode(null) }} className={`px-5 py-3 text-sm font-medium transition-colors rbac-tab ${tab === t.key ? 'active' : ''}`}>
+                        {t.label}
                     </button>
-                </div>
+                ))}
             </div>
 
-            {/* ── Events table ── */}
-            <div className="pg-table-wrap">
-
-                {/* Header */}
-                <div
-                    className="pg-table-head"
-                    style={{ gridTemplateColumns: '130px 1.8fr 1.4fr 2.5fr 120px 160px' }}
-                >
-                    <span className="pg-th">Severity</span>
-                    <span className="pg-th">Employee</span>
-                    <span className="pg-th">Drift Type</span>
-                    <span className="pg-th">Description</span>
-                    <span className="pg-th">Status</span>
-                    <span className="pg-th">Actions</span>
-                </div>
-
-                {/* Loading */}
-                {state.isLoading && (
-                    <div style={{ padding: '32px 0' }}><Loading /></div>
-                )}
-
-                {/* Empty */}
-                {!state.isLoading && drifts.length === 0 && (
-                    <div className="pg-empty">
-                        <span className="pg-empty-icon">🛡️</span>
-                        <p className="pg-empty-title">No drift events found</p>
-                        <p className="pg-empty-sub">
-                            Access drift events are automatically detected and will appear here.
-                            Try adjusting the filters above.
-                        </p>
-                    </div>
-                )}
-
-                {/* Rows */}
-                {!state.isLoading && drifts.map((drift) => {
-                    const sevToken = SEVERITY_TOKENS[drift.severity] || SEVERITY_TOKENS.LOW
-                    const isOpen   = drift.status === 'OPEN'
-
-                    return (
-                        <div
-                            key={drift._id}
-                            className="pg-table-row"
-                            style={{
-                                gridTemplateColumns: '130px 1.8fr 1.4fr 2.5fr 120px 160px',
-                                borderLeft: isOpen ? `3px solid ${sevToken.rowBorder}` : '3px solid transparent',
-                            }}
-                        >
-                            {/* Severity */}
-                            <span>
-                                <SeverityPill severity={drift.severity} />
-                            </span>
-
-                            {/* Employee */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                                <Avatar name={drift.employeeName} />
-                                <div>
-                                    <div className="pg-td-name">{drift.employeeName}</div>
-                                    <div className="pg-td-sub">{drift.employeeDepartment}</div>
-                                </div>
+            {tab === 'roles' && (
+                <>
+                    {formMode && (
+                        <div className="border rounded-2xl shadow-sm flex flex-col overflow-hidden rbac-panel" style={{ height: 'calc(100vh - 220px)' }}>
+                            <div className="px-6 pt-5 pb-3 border-b shrink-0" style={{ borderColor: 'var(--rbac-border)' }}>
+                                <h2 className="text-lg font-bold rbac-text-main">{formMode === 'create' ? 'Create New Role' : `Edit: ${formMode.name}`}</h2>
                             </div>
-
-                            {/* Drift type */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 15, flexShrink: 0 }}>
-                                    {DRIFT_TYPES[drift.driftType]?.icon}
-                                </span>
-                                <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.6)', fontWeight: 500 }}>
-                                    {DRIFT_TYPES[drift.driftType]?.label}
-                                </span>
+                            <div className="flex-1 px-6 py-4 overflow-hidden relative">
+                                <RoleForm initial={formMode === 'create' ? null : formMode} groups={groups} onSave={handleSaveRole} onCancel={() => setFormMode(null)} saving={saving} error={formError} />
                             </div>
-
-                            {/* Description + time */}
-                            <div>
-                                <div className="pg-td-muted" style={{
-                                    overflow: 'hidden', textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap', maxWidth: 260,
-                                    fontSize: 12,
-                                }}>
-                                    {drift.description}
-                                </div>
-                                <div className="pg-td-sub">{relativeTime(drift.createdAt)}</div>
+                        </div>
+                    )}
+                    {!formMode && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                            <div className="lg:col-span-1 flex flex-col gap-3">
+                                {roles.length === 0 ? <div className="text-center py-16 border-2 border-dashed rounded-xl text-sm rbac-text-muted" style={{ borderColor: 'var(--rbac-border)' }}>No roles yet. Create one to get started.</div> : roles.map(role => (
+                                    <RoleCard key={role._id} role={role} isSelected={selectedRole?._id === role._id} onSelect={setSelectedRole} onEdit={r => { setFormMode(r); setFormError(null) }} onDelete={setConfirmDelete} />
+                                ))}
                             </div>
-
-                            {/* Status */}
-                            <span>
-                                <StatusPill status={drift.status} />
-                            </span>
-
-                            {/* Actions */}
-                            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                                <button
-                                    className="pg-action-btn indigo"
-                                    onClick={() => setEvidenceDrift(drift)}
-                                >
-                                    Details
-                                </button>
-                                {isOpen && (
-                                    <>
-                                        <button
-                                            className="pg-action-btn green"
-                                            onClick={() => { setModalDrift(drift); setModalMode('resolve') }}
-                                        >
-                                            Resolve
-                                        </button>
-                                        <button
-                                            className="pg-action-btn"
-                                            onClick={() => { setModalDrift(drift); setModalMode('dismiss') }}
-                                        >
-                                            Dismiss
-                                        </button>
-                                    </>
+                            <div className="lg:col-span-2">
+                                {!selectedRole ? (
+                                    <div className="flex flex-col items-center justify-center h-full py-24 gap-2 border-2 border-dashed rounded-xl rbac-text-faint" style={{ borderColor: 'var(--rbac-border)' }}>
+                                        <span className="text-4xl">🔐</span><p className="font-medium">Select a role to view its permissions</p>
+                                    </div>
+                                ) : (
+                                    <div className="border rounded-2xl p-5 flex flex-col gap-4 rbac-panel shadow-sm">
+                                        <div className="flex items-center gap-3 border-b pb-3" style={{ borderColor: 'var(--rbac-border)' }}>
+                                            <div>
+                                                <div className="flex items-center gap-2"><h3 className="text-lg font-bold rbac-text-main">{selectedRole.name}</h3>{selectedRole.isSystem && <SystemBadge />}</div>
+                                                {selectedRole.description && <p className="text-sm mt-0.5 rbac-text-muted">{selectedRole.description}</p>}
+                                            </div>
+                                            <span className="ml-auto text-sm font-semibold" style={{ color: 'var(--rbac-active-text)' }}>{selectedRole.permissions.length} / {state.catalogue.all?.length || 0} permissions</span>
+                                        </div>
+                                        <div className="flex flex-col gap-4 overflow-auto max-h-[500px] pr-1">
+                                            {Object.entries(groups).map(([groupName, rawPerms]) => {
+                                                const perms = Array.isArray(rawPerms) ? rawPerms : Object.values(rawPerms || {})
+                                                const granted = perms.filter(p => selectedRole.permissions.includes(p))
+                                                if (granted.length === 0) return null
+                                                return (
+                                                    <div key={groupName}>
+                                                        <p className="text-xs font-semibold uppercase tracking-wide mb-2 rbac-text-faint">{groupName}</p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {granted.map(p => <span key={p} className="px-3 py-1.5 rounded-md text-xs font-medium rbac-sys-badge">{typeof p === "string" ? label(p) : ""}</span>)}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                            {selectedRole.permissions.length === 0 && <p className="text-sm italic rbac-text-faint">This role has no permissions assigned yet.</p>}
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
-                    )
-                })}
-            </div>
+                    )}
+                </>
+            )}
 
-            {/* ── Pagination ── */}
-            {pagination?.totalPages > 1 && (
-                <div className="pg-pagination">
-                    <span className="pg-pagination-info">
-                        Showing {((currentPage - 1) * pagination.limit) + 1}–{Math.min(currentPage * pagination.limit, pagination.total)} of {pagination.total} events
-                    </span>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                        <button
-                            className="pg-page-btn"
-                            disabled={currentPage === 1}
-                            onClick={() => { setCurrentPage(p => p - 1); fetchDrifts(currentPage - 1) }}
-                        >
-                            ← Prev
-                        </button>
-                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                            const p = Math.max(1, currentPage - 2) + i
-                            if (p > pagination.totalPages) return null
-                            return (
-                                <button
-                                    key={p}
-                                    className={`pg-page-btn${p === currentPage ? ' active' : ''}`}
-                                    onClick={() => { setCurrentPage(p); fetchDrifts(p) }}
-                                >
-                                    {p}
-                                </button>
-                            )
-                        })}
-                        <button
-                            className="pg-page-btn"
-                            disabled={currentPage === pagination.totalPages}
-                            onClick={() => { setCurrentPage(p => p + 1); fetchDrifts(currentPage + 1) }}
-                        >
-                            Next →
-                        </button>
+            {tab === 'assign' && (
+                <div className="border rounded-2xl p-5 rbac-panel shadow-sm">
+                    <div className="mb-4">
+                        <h2 className="text-base font-bold rbac-text-main">Assign Roles to HR Users</h2>
+                        <p className="text-sm mt-0.5 rbac-text-muted">HR users without a role have unrestricted access to all modules.</p>
+                    </div>
+                    <AssignmentTable hrList={state.hrAssignments} roles={roles} onAssign={handleAssign} assigning={assigning} onInitDrift={setDriftModalUser} />
+                </div>
+            )}
+
+            {/* Delete Modal */}
+            {confirmDelete && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4 rbac-modal">
+                        <h2 className="text-lg font-bold mb-2 rbac-text-main">Delete Role</h2>
+                        <p className="text-sm mb-1 rbac-text-muted">Are you sure you want to delete <strong className="rbac-text-main">{confirmDelete.name}</strong>?</p>
+                        <p className="text-xs mb-5" style={{ color: '#ea580c' }}>All HR users assigned this role will lose it and revert to full access.</p>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm border rounded-lg hover:opacity-70 rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>Cancel</button>
+                            <button onClick={() => handleDeleteRole(confirmDelete)} className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-sm">Delete</button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* ── Resolution modal ── */}
-            {modalDrift && (
-                <ResolutionModal
-                    drift={modalDrift}
-                    mode={modalMode}
-                    onConfirm={handleConfirmModal}
-                    onClose={() => { setModalDrift(null); setModalMode(null) }}
+            {/* Initiate Drift Modal */}
+            {driftModalUser && (
+                <InitiateDriftModal 
+                    hrUser={driftModalUser} 
+                    roles={roles} 
+                    onClose={() => setDriftModalUser(null)} 
+                    onSave={handleCreateDrift} 
                 />
             )}
-
-            {/* ── Evidence drawer ── */}
-            {evidenceDrift && (
-                <EvidenceDrawer
-                    drift={evidenceDrift}
-                    onClose={() => setEvidenceDrift(null)}
-                />
-            )}
-
         </PageShell>
     )
 }

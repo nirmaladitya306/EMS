@@ -73,15 +73,9 @@ export const HRSignupPage = () => {
   }, [HRState.error?.status]);
 
   return (
-    <div className="HRsignup-page-container h-screen flex justify-center min-[900px]:justify-center min-[900px]:items-center">
-      <LoadingBar ref={loadingbar} />
-
-      <SignUP
-        stateformdata={signupform}
-        handlesignupform={handlesignupform}
-        handlesubmitform={handlesubmitform}
-        errorpopup={errorpopup}
-      />
-    </div>
-  );
+    <>
+        <LoadingBar ref={loadingbar} color="#6366f1" />
+        <SignUP stateformdata={signupform} handlesignupform={handlesignupform} handlesubmitform={handlesubmitform} errorpopup={errorpopup} />
+    </>
+)
 };

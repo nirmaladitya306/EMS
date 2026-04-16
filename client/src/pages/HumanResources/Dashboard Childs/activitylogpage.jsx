@@ -117,6 +117,33 @@ const styles = `
     padding: 48px 20px; font-size: 13px; color: rgba(0,0,0,0.3);
     font-family: 'DM Sans', sans-serif; text-align: center; flex: 1;
   }
+
+  /* ═══════════════════════════════════════════════════════
+     DARK MODE OVERRIDES
+  ═══════════════════════════════════════════════════════ */
+  [data-theme='dark'] .al-modal {
+    background: #18181b; 
+    border: 1px solid #27272a;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8);
+  }
+  [data-theme='dark'] .al-modal-title { color: #fafafa; }
+  [data-theme='dark'] .al-modal-body { color: #a1a1aa; }
+  
+  [data-theme='dark'] .al-role-emp { 
+    background: rgba(255,255,255,0.1); 
+    color: rgba(255,255,255,0.8); 
+  }
+  
+  [data-theme='dark'] .al-filter-label,
+  [data-theme='dark'] .al-pagination-info,
+  [data-theme='dark'] .al-empty {
+    color: #a1a1aa;
+  }
+  
+  [data-theme='dark'] .al-pagination,
+  [data-theme='dark'] .al-modal-actions {
+    border-top-color: #27272a;
+  }
 `
 
 // ─── Action badge ─────────────────────────────────────────────────────────────

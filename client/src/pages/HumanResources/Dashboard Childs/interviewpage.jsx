@@ -4,6 +4,25 @@ import { HandleGetAllInterviews, HandleUpdateInterview, HandleDeleteInterview } 
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --int-text-main: #fafafa;
+    --int-text-muted: #a1a1aa;
+    --int-border: #27272a;
+    --int-modal-bg: #18181b;
+    --int-pill-bg: rgba(255,255,255,0.08);
+    --int-pill-border: rgba(255,255,255,0.12);
+    --int-pill-text: #a1a1aa;
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--int-modal-bg) !important;
+    border: 1px solid var(--int-border) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8) !important;
+  }
+`
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtDate = (d) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
@@ -32,7 +51,7 @@ const STATUS = {
 }
 
 const StatusPill = ({ status }) => {
-    const s = STATUS[status] || { bg: 'rgba(0,0,0,0.04)', color: 'rgba(0,0,0,0.45)', border: 'rgba(0,0,0,0.1)' }
+    const s = STATUS[status] || { bg: 'var(--int-pill-bg, rgba(0,0,0,0.04))', color: 'var(--int-pill-text, rgba(0,0,0,0.45))', border: 'var(--int-pill-border, rgba(0,0,0,0.1))' }
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -86,12 +105,12 @@ const UpdateModal = ({ interview, onClose, onSubmit }) => {
                     <div>
                         <div style={{
                             fontFamily: "'DM Serif Display', serif",
-                            fontSize: '1.2rem', color: '#0f172a',
+                            fontSize: '1.2rem', color: 'var(--int-text-main, #0f172a)',
                             letterSpacing: '-0.02em', lineHeight: 1.2,
                         }}>
                             Update Interview
                         </div>
-                        <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 3 }}>
+                        <div style={{ fontSize: 12, color: 'var(--int-text-muted, rgba(0,0,0,0.38))', marginTop: 3 }}>
                             {interview.applicant?.firstname} {interview.applicant?.lastname}
                             {interview.applicant?.email && (
                                 <span style={{ marginLeft: 6 }}>· {interview.applicant.email}</span>
@@ -121,9 +140,9 @@ const UpdateModal = ({ interview, onClose, onSubmit }) => {
                                             fontSize: 12, fontWeight: 500, cursor: 'pointer',
                                             fontFamily: "'DM Sans', sans-serif",
                                             transition: 'all 0.15s',
-                                            border: active ? `1px solid ${s.border}` : '1px solid rgba(0,0,0,0.1)',
+                                            border: active ? `1px solid ${s.border}` : '1px solid var(--int-border, rgba(0,0,0,0.1))',
                                             background: active ? s.bg : 'transparent',
-                                            color: active ? s.color : 'rgba(0,0,0,0.45)',
+                                            color: active ? s.color : 'var(--int-text-muted, rgba(0,0,0,0.45))',
                                         }}
                                     >
                                         {opt}
@@ -217,6 +236,7 @@ export const InterviewPage = () => {
 
     return (
         <PageShell>
+            <style>{styles}</style>
 
             {/* ── Page header ── */}
             <PageHeader
@@ -323,7 +343,7 @@ export const InterviewPage = () => {
 
                         {/* Interview date + response date */}
                         <div>
-                            <div style={{ fontSize: 12, color: '#0f172a', fontWeight: 500 }}>
+                            <div style={{ fontSize: 12, color: 'var(--int-text-main, #0f172a)', fontWeight: 500 }}>
                                 {fmtDate(i.interviewdate)}
                             </div>
                             {i.responsedate && (

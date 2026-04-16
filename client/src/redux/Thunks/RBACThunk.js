@@ -130,3 +130,55 @@ export const HandleAssignRole = createAsyncThunk(
         }
     }
 )
+
+// ═══════════════════════════════════════════════════════
+// NEW: PRIVILEGE DRIFT THUNKS (Temporary Roles & Expiry)
+// ═══════════════════════════════════════════════════════
+
+export const HandleGetRoleDrifts = createAsyncThunk(
+    'rbac/getRoleDrifts',
+    async (_, { rejectWithValue }) => {
+        try {
+            // TODO: Replace with actual API call: await axios.get('/api/rbac/drifts')
+            return { success: true, data: [] }; 
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Failed to fetch privilege drifts" });
+        }
+    }
+);
+
+export const HandleRevokeDrift = createAsyncThunk(
+    'rbac/revokeDrift',
+    async ({ driftID }, { rejectWithValue }) => {
+        try {
+            // TODO: Replace with actual API call: await axios.post(`/api/rbac/drifts/${driftID}/revoke`)
+            return { success: true, message: "Privilege revoked successfully" };
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Failed to revoke privilege" });
+        }
+    }
+);
+
+export const HandleExtendDrift = createAsyncThunk(
+    'rbac/extendDrift',
+    async ({ driftID, newExpiry }, { rejectWithValue }) => {
+        try {
+            // TODO: Replace with actual API call: await axios.post(`/api/rbac/drifts/${driftID}/extend`, { newExpiry })
+            return { success: true, message: "Privilege extended successfully" };
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Failed to extend privilege" });
+        }
+    }
+);
+
+export const HandleCreateDrift = createAsyncThunk(
+    'rbac/createDrift',
+    async (driftData, { rejectWithValue }) => {
+        try {
+            const response = await apiService.post('/v1/rbac/drifts', driftData, { withCredentials: true });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Failed to create drift" });
+        }
+    }
+);

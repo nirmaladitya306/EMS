@@ -4,20 +4,30 @@ import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetMySalaries } from '../../../redux/Thunks/EmployeeDashboardThunk'
 import { Loading } from '../../../components/common/loading'
 
-const fmtDate = (d) => d ? 
-    new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
-
-const fmt = (amount, currency) =>
-    new Intl.NumberFormat('en-IN', { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(amount)
-
-const STATUS_CONFIG = {
-    Pending: { bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.28)', color: '#b45309' },
-    Paid:    { bg: 'rgba(16,185,129,0.07)',  border: 'rgba(16,185,129,0.25)', color: '#059669' },
-    Delayed: { bg: 'rgba(239,68,68,0.07)',   border: 'rgba(239,68,68,0.25)',  color: '#dc2626' },
-}
-
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+  
+  [data-theme='dark'] {
+    --sl-card-bg: rgba(99,102,241,0.06);
+    --sl-card-border: rgba(99,102,241,0.2);
+    --sl-text-main: #fafafa;
+    --sl-text-muted: #a1a1aa;
+    --sl-total-text: #818cf8;
+    
+    /* Brighter currency colors */
+    --sl-green: #4ade80;
+    --sl-red: #f87171;
+    
+    /* Status overrides */
+    --sl-pend-bg: rgba(245,158,11,0.15);
+    --sl-pend-text: #fbbf24;
+    --sl-paid-bg: rgba(16,185,129,0.15);
+    --sl-paid-text: #4ade80;
+    --sl-delay-bg: rgba(239,68,68,0.15);
+    --sl-delay-text: #f87171;
+  }
+
   .sl-status-badge {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 10px; border-radius: 100px; border: 1px solid;
@@ -25,16 +35,37 @@ const styles = `
     font-family: 'DM Sans', sans-serif; white-space: nowrap;
   }
   .sl-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  
   .sl-total-card {
-    background: linear-gradient(135deg, #f5f7ff 0%, #eeefff 100%);
-    border: 1px solid #e0e4ff; border-radius: 12px; padding: 16px 20px;
+    background: var(--sl-card-bg, linear-gradient(135deg, #f5f7ff 0%, #eeefff 100%));
+    border: 1px solid var(--sl-card-border, #e0e4ff); 
+    border-radius: 12px; padding: 16px 20px;
     margin-bottom: 20px;
+  }
+  
+  .sl-total-val {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--sl-total-text, #4338ca);
+    margin-top: 4px;
   }
 `
 
+const fmtDate = (d) => d ? 
+    new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
+const fmt = (amount, currency) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(amount)
+
+const STATUS_CONFIG = {
+    Pending: { bg: 'var(--sl-pend-bg, rgba(245,158,11,0.08))',  border: 'rgba(245,158,11,0.28)', color: 'var(--sl-pend-text, #b45309)' },
+    Paid:    { bg: 'var(--sl-paid-bg, rgba(16,185,129,0.07))',  border: 'rgba(16,185,129,0.25)', color: 'var(--sl-paid-text, #059669)' },
+    Delayed: { bg: 'var(--sl-delay-bg, rgba(239,68,68,0.07))',   border: 'rgba(239,68,68,0.25)',  color: 'var(--sl-delay-text, #dc2626)' },
+}
+
 const StatusBadge = ({ status }) => {
     const cfg = STATUS_CONFIG[status]
-    if (!cfg) return <span style={{ fontSize: '12px', color: 'rgba(0,0,0,0.4)' }}>{status}</span>
+    if (!cfg) return <span style={{ fontSize: '12px', color: 'var(--sl-text-muted, rgba(0,0,0,0.4))' }}>{status}</span>
     return (
         <span className="sl-status-badge" style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.color }}>
             <span className="sl-status-dot" style={{ background: cfg.color }} />
@@ -86,8 +117,8 @@ export const MySalaryPage = () => {
                 {/* Summary Card */}
                 {salaries.length > 0 && (
                     <div className="sl-total-card">
-                        <p className="pg-td-sub" style={{ color: '#64748b', fontSize: '13px' }}>Total Net Pay (all time)</p>
-                        <p className="text-2xl font-bold text-indigo-700 mt-1">
+                        <p style={{ color: 'var(--sl-text-muted, #64748b)', fontSize: '13px', margin: 0 }}>Total Net Pay (all time)</p>
+                        <p className="sl-total-val">
                             {fmt(totalNet, salaries[0]?.currency)}
                         </p>
                     </div>
@@ -113,10 +144,10 @@ export const MySalaryPage = () => {
                     ) : (
                         salaries.map(s => (
                             <div key={s._id} className="pg-table-row grid grid-cols-6 items-center">
-                                <span className="pg-td-name">{fmt(s.basicpay, s.currency)}</span>
-                                <span className="text-green-600 font-medium">+{fmt(s.bonuses, s.currency)}</span>
-                                <span className="text-red-500 font-medium">-{fmt(s.deductions, s.currency)}</span>
-                                <span className="font-bold text-indigo-700">{fmt(s.netpay, s.currency)}</span>
+                                <span className="pg-td-name" style={{ color: 'var(--sl-text-main)' }}>{fmt(s.basicpay, s.currency)}</span>
+                                <span style={{ color: 'var(--sl-green, #16a34a)', fontWeight: 500 }}>+{fmt(s.bonuses, s.currency)}</span>
+                                <span style={{ color: 'var(--sl-red, #dc2626)', fontWeight: 500 }}>-{fmt(s.deductions, s.currency)}</span>
+                                <span className="font-bold" style={{ color: 'var(--sl-total-text, #4338ca)' }}>{fmt(s.netpay, s.currency)}</span>
                                 <span className="pg-td-muted">{fmtDate(s.duedate)}</span>
                                 <StatusBadge status={s.status} />
                             </div>

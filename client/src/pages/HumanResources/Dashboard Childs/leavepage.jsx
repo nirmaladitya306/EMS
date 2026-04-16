@@ -4,6 +4,27 @@ import { HandleGetAllLeaves, HandleHRUpdateLeave } from '../../../redux/Thunks/L
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --lv-modal-bg: #18181b;
+    --lv-border: #27272a;
+    --lv-text-main: #fafafa;
+    --lv-text-muted: #a1a1aa;
+    
+    /* Fallback pill colors if status is unknown */
+    --lv-pill-bg: rgba(255,255,255,0.08);
+    --lv-pill-text: #a1a1aa;
+    --lv-pill-border: rgba(255,255,255,0.12);
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--lv-modal-bg) !important;
+    border: 1px solid var(--lv-border) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8) !important;
+  }
+`
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtDate = (d) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
@@ -32,7 +53,7 @@ const STATUS = {
 }
 
 const StatusPill = ({ status }) => {
-    const s = STATUS[status] || { bg: 'rgba(0,0,0,0.04)', color: 'rgba(0,0,0,0.5)', border: 'rgba(0,0,0,0.1)' }
+    const s = STATUS[status] || { bg: 'var(--lv-pill-bg, rgba(0,0,0,0.04))', color: 'var(--lv-pill-text, rgba(0,0,0,0.5))', border: 'var(--lv-pill-border, rgba(0,0,0,0.1))' }
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -66,12 +87,12 @@ const ReviewModal = ({ leave, onClose, onSubmit, HRID }) => {
                 <div>
                     <div style={{
                         fontFamily: "'DM Serif Display', serif",
-                        fontSize: '1.25rem', color: '#0f172a',
+                        fontSize: '1.25rem', color: 'var(--lv-text-main, #0f172a)',
                         letterSpacing: '-0.02em', marginBottom: 4,
                     }}>
                         Review Leave Request
                     </div>
-                    <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', margin: 0 }}>
+                    <p style={{ fontSize: 12, color: 'var(--lv-text-muted, rgba(0,0,0,0.38))', margin: 0 }}>
                         Approve or reject this request. The employee will be notified.
                     </p>
                 </div>
@@ -84,15 +105,15 @@ const ReviewModal = ({ leave, onClose, onSubmit, HRID }) => {
                         <div key={label} style={{
                             display: 'flex', justifyContent: 'space-between',
                             alignItems: 'flex-start', gap: 16, padding: '9px 0',
-                            borderBottom: i < rows.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                            borderBottom: i < rows.length - 1 ? '1px solid var(--lv-border, rgba(0,0,0,0.05))' : 'none',
                         }}>
                             <span style={{
                                 fontSize: 11, fontWeight: 600, letterSpacing: '0.09em',
-                                textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)', flexShrink: 0,
+                                textTransform: 'uppercase', color: 'var(--lv-text-muted, rgba(0,0,0,0.35))', flexShrink: 0,
                             }}>
                                 {label}
                             </span>
-                            <span style={{ fontSize: 13, color: '#0f172a', fontWeight: 500, textAlign: 'right' }}>
+                            <span style={{ fontSize: 13, color: 'var(--lv-text-main, #0f172a)', fontWeight: 500, textAlign: 'right' }}>
                                 {value}
                             </span>
                         </div>
@@ -116,13 +137,13 @@ const ReviewModal = ({ leave, onClose, onSubmit, HRID }) => {
                                     transition: 'all 0.15s',
                                     border: decision === opt
                                         ? (opt === 'Approved' ? '1px solid rgba(22,163,74,0.35)' : '1px solid rgba(220,38,38,0.3)')
-                                        : '1px solid rgba(0,0,0,0.1)',
+                                        : '1px solid var(--lv-border, rgba(0,0,0,0.1))',
                                     background: decision === opt
                                         ? (opt === 'Approved' ? 'rgba(22,163,74,0.08)' : 'rgba(220,38,38,0.07)')
                                         : 'transparent',
                                     color: decision === opt
                                         ? (opt === 'Approved' ? '#15803d' : '#dc2626')
-                                        : 'rgba(0,0,0,0.45)',
+                                        : 'var(--lv-text-muted, rgba(0,0,0,0.45))',
                                 }}
                             >
                                 {opt === 'Approved' ? '✓ Approve' : '✕ Reject'}
@@ -180,6 +201,7 @@ export const LeavePage = () => {
 
     return (
         <PageShell>
+            <style>{styles}</style>
 
             {/* ── Page header ── */}
             <PageHeader
@@ -289,7 +311,7 @@ export const LeavePage = () => {
 
                         {/* Duration */}
                         <div>
-                            <div style={{ fontSize: 12, color: '#0f172a', fontWeight: 500 }}>
+                            <div style={{ fontSize: 12, color: 'var(--lv-text-main, #0f172a)', fontWeight: 500 }}>
                                 {fmtDate(l.startdate)}
                             </div>
                             <div className="pg-td-sub">→ {fmtDate(l.enddate)}</div>

@@ -17,6 +17,9 @@ let _instance = null
 export function getProvider() {
     if (_instance) return _instance
     const key     = (process.env.AI_PROVIDER || 'ollama').toLowerCase()
+    
+    console.log("ENV AI_PROVIDER =", process.env.AI_PROVIDER);
+
     const factory = PROVIDERS[key]
     if (!factory) throw new Error(`Unknown AI_PROVIDER "${key}". Options: ${Object.keys(PROVIDERS).join(', ')}`)
     _instance = factory()

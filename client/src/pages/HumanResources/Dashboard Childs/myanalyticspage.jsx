@@ -19,9 +19,34 @@ const TEAL   = '#14b8a6'
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+  /* ═══════════════════════════════════════════════════════
+     DARK MODE OVERRIDES
+  ═══════════════════════════════════════════════════════ */
+  [data-theme='dark'] {
+    --ma-section-bg: #18181b;
+    --ma-border: #27272a;
+    --ma-text-main: #fafafa;
+    --ma-text-muted: #a1a1aa;
+    --ma-text-faint: #71717a;
+    
+    --ma-kpi-bg: rgba(255,255,255,0.02);
+    --ma-kpi-border: rgba(255,255,255,0.06);
+    --ma-mini-bg: rgba(255,255,255,0.04);
+    --ma-track-bg: rgba(255,255,255,0.08);
+
+    /* Recharts Tooltip Overrides */
+    --ma-tooltip-bg: #18181b;
+    --ma-tooltip-border: #27272a;
+  }
+
+  /* Override Recharts Default Legend Text */
+  [data-theme='dark'] .recharts-legend-item-text {
+    color: var(--ma-text-muted) !important;
+  }
+
   .ma-section {
-    background: var(--ems-surface, #ffffff);
-    border: 1px solid var(--ems-surface-border, rgba(0,0,0,0.07));
+    background: var(--ma-section-bg, #ffffff);
+    border: 1px solid var(--ma-border, rgba(0,0,0,0.07));
     border-radius: 16px; padding: 18px 20px;
     display: flex; flex-direction: column; gap: 14px;
     font-family: 'DM Sans', sans-serif;
@@ -29,8 +54,8 @@ const styles = `
   }
   .ma-section-title {
     font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--ems-label-color, rgba(0,0,0,0.35));
-    border-bottom: 1px solid var(--ems-border, rgba(0,0,0,0.06)); padding-bottom: 10px;
+    text-transform: uppercase; color: var(--ma-text-muted, rgba(0,0,0,0.35));
+    border-bottom: 1px solid var(--ma-border, rgba(0,0,0,0.06)); padding-bottom: 10px;
   }
 
   .ma-kpi {
@@ -38,35 +63,35 @@ const styles = `
     display: flex; flex-direction: column; gap: 3px;
     font-family: 'DM Sans', sans-serif;
   }
-  .ma-kpi-value { font-family: 'DM Serif Display', serif; font-size: 1.5rem; line-height: 1; letter-spacing: -0.02em; color: var(--ems-text-primary, #0f172a); }
-  .ma-kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ems-text-faint, rgba(0,0,0,0.4)); }
-  .ma-kpi-sub   { font-size: 11px; color: var(--ems-text-faint, rgba(0,0,0,0.3)); }
+  .ma-kpi-value { font-family: 'DM Serif Display', serif; font-size: 1.5rem; line-height: 1; letter-spacing: -0.02em; color: var(--ma-text-main, #0f172a); }
+  .ma-kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ma-text-faint, rgba(0,0,0,0.4)); }
+  .ma-kpi-sub   { font-size: 11px; color: var(--ma-text-faint, rgba(0,0,0,0.3)); }
 
   .ma-att-mini {
-    border-radius: 10px; border: 1px solid var(--ems-border, rgba(0,0,0,0.07));
-    background: var(--ems-bg-secondary, rgba(0,0,0,0.02));
+    border-radius: 10px; border: 1px solid var(--ma-border, rgba(0,0,0,0.07));
+    background: var(--ma-mini-bg, rgba(0,0,0,0.02));
     padding: 10px; text-align: center;
   }
   .ma-att-mini-val  { font-size: 1.2rem; font-weight: 700; }
-  .ma-att-mini-label { font-size: 11px; color: var(--ems-text-faint, rgba(0,0,0,0.4)); margin-top: 2px; }
+  .ma-att-mini-label { font-size: 11px; color: var(--ma-text-faint, rgba(0,0,0,0.4)); margin-top: 2px; }
 
-  .ma-gauge-label { font-size: 12px; color: var(--ems-text-faint, rgba(0,0,0,0.38)); font-family: 'DM Sans', sans-serif; }
+  .ma-gauge-label { font-size: 12px; color: var(--ma-text-faint, rgba(0,0,0,0.38)); font-family: 'DM Sans', sans-serif; }
 
-  .ma-activity-label { font-size: 11px; font-weight: 600; color: var(--ems-text-muted, rgba(0,0,0,0.5)); text-transform: capitalize; }
-  .ma-activity-count { font-size: 11px; color: var(--ems-text-faint, rgba(0,0,0,0.35)); }
-  .ma-activity-track { width: 100%; background: var(--ems-bg-secondary, rgba(0,0,0,0.07)); border-radius: 100px; height: 5px; }
+  .ma-activity-label { font-size: 11px; font-weight: 600; color: var(--ma-text-muted, rgba(0,0,0,0.5)); text-transform: capitalize; }
+  .ma-activity-count { font-size: 11px; color: var(--ma-text-faint, rgba(0,0,0,0.35)); }
+  .ma-activity-track { width: 100%; background: var(--ma-track-bg, rgba(0,0,0,0.07)); border-radius: 100px; height: 5px; }
   .ma-activity-fill  { height: 5px; border-radius: 100px; background: #6366f1; transition: width 0.4s; }
 
-  .ma-no-data { text-align: center; font-size: 13px; color: var(--ems-text-faint, rgba(0,0,0,0.3)); padding: 32px 0; font-family: 'DM Sans', sans-serif; }
+  .ma-no-data { text-align: center; font-size: 13px; color: var(--ma-text-faint, rgba(0,0,0,0.3)); padding: 32px 0; font-family: 'DM Sans', sans-serif; }
 
   .ma-tooltip {
-    background: var(--ems-surface, #ffffff);
-    border: 1px solid var(--ems-border, rgba(0,0,0,0.08));
+    background: var(--ma-tooltip-bg, #ffffff);
+    border: 1px solid var(--ma-tooltip-border, rgba(0,0,0,0.08));
     border-radius: 10px; padding: 8px 12px;
     font-size: 12px; font-family: 'DM Sans', sans-serif;
     box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   }
-  .ma-tooltip-label { color: var(--ems-text-muted, rgba(0,0,0,0.5)); margin-bottom: 4px; }
+  .ma-tooltip-label { color: var(--ma-text-muted, rgba(0,0,0,0.5)); margin-bottom: 4px; }
 `
 
 const Section = ({ title, children, className = '' }) => (
@@ -76,7 +101,7 @@ const Section = ({ title, children, className = '' }) => (
     </div>
 )
 
-const KPI = ({ label, value, sub, borderColor = 'var(--ems-border)', bgColor = 'var(--ems-bg-secondary)' }) => (
+const KPI = ({ label, value, sub, borderColor = 'var(--ma-kpi-border)', bgColor = 'var(--ma-kpi-bg)' }) => (
     <div className="ma-kpi" style={{ borderColor, background: bgColor }}>
         <span className="ma-kpi-value">{value ?? '—'}</span>
         <span className="ma-kpi-label">{label}</span>
@@ -105,7 +130,7 @@ const DonutChart = ({ data, colors }) => (
                 dataKey="value" paddingAngle={3}>
                 {data.map((entry, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
             </Pie>
-            <Tooltip formatter={(v) => v.toLocaleString()} />
+            <Tooltip content={<ChartTooltip />} />
             <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
         </PieChart>
     </ResponsiveContainer>
@@ -119,7 +144,7 @@ const AttendanceGauge = ({ rate }) => {
             <ResponsiveContainer width="100%" height={160}>
                 <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="100%"
                     data={data} startAngle={210} endAngle={-30} barSize={14}>
-                    <RadialBar background={{ fill: 'rgba(0,0,0,0.07)' }} dataKey="value" cornerRadius={8} />
+                    <RadialBar background={{ fill: 'var(--ma-track-bg, rgba(0,0,0,0.07))' }} dataKey="value" cornerRadius={8} />
                 </RadialBarChart>
             </ResponsiveContainer>
             <p style={{ fontSize: '1.8rem', fontWeight: 700, marginTop: -44, color, fontFamily: "'DM Serif Display', serif" }}>{rate}%</p>
@@ -199,10 +224,10 @@ export const MyAnalyticsPage = () => {
                     <Section title="Attendance — Last 6 Months" className="lg:col-span-2">
                         <ResponsiveContainer width="100%" height={220}>
                             <BarChart data={d.attPerMonth || []} barSize={20}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
-                                <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'rgba(0,0,0,0.35)' }} axisLine={false} />
-                                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'rgba(0,0,0,0.35)' }} axisLine={false} />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--ma-border, rgba(0,0,0,0.05))" vertical={false} />
+                                <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--ma-text-muted, rgba(0,0,0,0.35))' }} axisLine={false} />
+                                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'var(--ma-text-muted, rgba(0,0,0,0.35))' }} axisLine={false} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--ma-track-bg, rgba(0,0,0,0.02))' }} />
                                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
                                 <Bar dataKey="present" name="Present" fill={GREEN} radius={[4,4,0,0]} />
                                 <Bar dataKey="absent"  name="Absent"  fill={RED}   radius={[4,4,0,0]} />
@@ -227,9 +252,9 @@ export const MyAnalyticsPage = () => {
                             )}
                             <ResponsiveContainer width="100%" height={220}>
                                 <LineChart data={d.salaryTrend}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
-                                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'rgba(0,0,0,0.35)' }} axisLine={false} />
-                                    <YAxis tick={{ fontSize: 11, fill: 'rgba(0,0,0,0.35)' }} tickFormatter={v => v.toLocaleString()} axisLine={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--ma-border, rgba(0,0,0,0.05))" vertical={false} />
+                                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--ma-text-muted, rgba(0,0,0,0.35))' }} axisLine={false} />
+                                    <YAxis tick={{ fontSize: 11, fill: 'var(--ma-text-muted, rgba(0,0,0,0.35))' }} tickFormatter={v => v.toLocaleString()} axisLine={false} />
                                     <Tooltip content={<ChartTooltip />} />
                                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
                                     <Line type="monotone" dataKey="netpay"   name="Net Pay"   stroke={PURPLE} strokeWidth={2} dot={{ r: 3 }} />
@@ -258,9 +283,9 @@ export const MyAnalyticsPage = () => {
                     <Section title="Leave Applications History">
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={d.leavesPerMonth || []} barSize={26}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
-                                <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'rgba(0,0,0,0.35)' }} axisLine={false} />
-                                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'rgba(0,0,0,0.35)' }} axisLine={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--ma-border, rgba(0,0,0,0.05))" vertical={false} />
+                                <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--ma-text-muted, rgba(0,0,0,0.35))' }} axisLine={false} />
+                                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'var(--ma-text-muted, rgba(0,0,0,0.35))' }} axisLine={false} />
                                 <Tooltip content={<ChartTooltip />} />
                                 <Bar dataKey="total" name="Leaves" fill={AMBER} radius={[4,4,0,0]} />
                             </BarChart>

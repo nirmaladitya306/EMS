@@ -178,7 +178,7 @@ const styles = `
     font-size: 14px;
     font-weight: 500;
     border: none;
-    border-radius: 10px;
+    border-radius: 100px;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.15s;
     letter-spacing: 0.02em;
@@ -223,7 +223,7 @@ export const SignIn = ({ handlesigninform, handlesigninsubmit, targetedstate, st
                             <p className="auth-subtitle">Sign in to your {isHR ? 'HR admin' : 'employee'} account to continue.</p>
                         </div>
                         <div className="auth-divider" />
-                        <form className="auth-form" onSubmit={handlesigninsubmit}>
+                        <form className="auth-form" onSubmit={(e) => { e.preventDefault(); handlesigninsubmit(e); }}>
                             <div className="auth-field">
                                 <label className="auth-label" htmlFor="email">Email address</label>
                                 <input className="auth-input" id="email" name="email" type="email" required

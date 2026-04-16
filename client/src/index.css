@@ -461,3 +461,71 @@
 [data-theme="dark"] .sc-sub     { color: var(--ems-text-faint); }
 [data-theme="dark"] .sc-footer  { border-top-color: var(--ems-border); }
 [data-theme="dark"] .sc-balance { color: var(--ems-text-primary); }
+
+
+/* Unified Executive Dark Mode */
+[data-theme='dark'] {
+  --sidebar-bg: #09090b !important; /* Deepest black/gray */
+  --sidebar-border: #27272a !important;
+}
+
+[data-theme='dark'] .hr-sidebar-inner, 
+[data-theme='dark'] .em-sidebar-inner {
+  background-color: #09090b !important; /* Matches main background */
+  border-right: 1px solid #27272a !important;
+}
+
+/* Force main wrapper to match the sidebar */
+[data-theme='dark'] body,
+[data-theme='dark'] #root,
+[data-theme='dark'] main,
+[data-theme='dark'] .flex-1,
+[data-theme='dark'] .dashboard-container,
+[data-theme='dark'] .bg-gray-50,
+[data-theme='dark'] .bg-gray-100 {
+    background-color: #09090b !important; /* Exact match to sidebar */
+    color: #fafafa !important;
+}
+
+/* Make Cards and Tables stand out slightly */
+[data-theme='dark'] .bg-white,
+[data-theme='dark'] .card,
+[data-theme='dark'] .p-6,
+[data-theme='dark'] .rounded-lg,
+[data-theme='dark'] table {
+    background-color: #18181b !important; /* Slightly lighter gray for contrast */
+    border-color: #27272a !important;
+    color: #fafafa !important;
+}
+
+/* Fix text colors inside the main area */
+[data-theme='dark'] h1, 
+[data-theme='dark'] h2, 
+[data-theme='dark'] h3, 
+[data-theme='dark'] p, 
+[data-theme='dark'] span {
+    color: #fafafa !important;
+}
+
+/* Inverts icons */
+[data-theme='dark'] img[src*="icons"] {
+  filter: invert(1) brightness(2);
+}
+/* Universal Dashboard Fix */
+[data-theme='dark'] body,
+[data-theme='dark'] #root,
+[data-theme='dark'] main,
+[data-theme='dark'] .flex-1,
+[data-theme='dark'] .dashboard-container {
+    background-color: #020617 !important; /* Deep Navy/Black */
+    color: #f8fafc !important;
+}
+
+/* Force cards and containers to go dark */
+[data-theme='dark'] .bg-white,
+[data-theme='dark'] .card,
+[data-theme='dark'] .p-6 {
+    background-color: #0f172a !important; /* Slightly lighter navy for cards */
+    border-color: #1e293b !important;
+    color: #f8fafc !important;
+}

@@ -9,6 +9,10 @@ import {
     HandleGetHRAssignments,
     HandleAssignRole,
     HandleGetMyPermissions,
+    HandleGetRoleDrifts, 
+    HandleRevokeDrift, 
+    HandleExtendDrift,
+    HandleCreateDrift // <-- Added missing import
 } from '../controllers/RBAC.controller.js'
 import { VerifyHRToken } from '../middlewares/Auth.middleware.js'
 import { CheckPermission } from '../middlewares/Permission.middleware.js'
@@ -31,5 +35,13 @@ router.delete('/roles/:roleID', VerifyHRToken, CheckPermission('rbac.delete'), H
 // ── HR user → Role assignments ─────────────────────────────────────────────────
 router.get('/hr-assignments',   VerifyHRToken, CheckPermission('rbac.view'),   HandleGetHRAssignments)
 router.patch('/assign',         VerifyHRToken, CheckPermission('rbac.assign'), HandleAssignRole)
+
+
+// ── Access Drift (Temporary Roles) ─────────────────────────────────────────────
+// Notice: Changed verifyHRToken to VerifyHRToken to match your import!
+router.get('/drifts',                 VerifyHRToken, CheckPermission('privilegedrift.view'),   HandleGetRoleDrifts);
+router.post('/drifts',                VerifyHRToken, CheckPermission('privilegedrift.extend'), HandleCreateDrift);
+router.post('/drifts/:driftID/revoke',VerifyHRToken, CheckPermission('privilegedrift.revoke'), HandleRevokeDrift);
+router.post('/drifts/:driftID/extend',VerifyHRToken, CheckPermission('privilegedrift.extend'), HandleExtendDrift);
 
 export default router

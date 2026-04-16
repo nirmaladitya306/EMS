@@ -1,8 +1,64 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { HandleGetAllHRProfiles, HandleDeleteHRProfile } from '../../../redux/Thunks/HRProfileThunk'
+import { HandleGetAllHRProfiles, HandleDeleteHRProfile, HandleCreateHRProfile } from '../../../redux/Thunks/HRProfileThunk'
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
+
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --hr-text-main: #fafafa;
+    --hr-text-muted: #a1a1aa;
+    --hr-border: #27272a;
+    --hr-modal-bg: #18181b;
+    
+    /* Brighter badge colors for dark mode contrast */
+    --hr-pill-verified-bg: rgba(22,163,74,0.15);
+    --hr-pill-verified-color: #4ade80;
+    --hr-pill-unverified-bg: rgba(220,38,38,0.15);
+    --hr-pill-unverified-color: #f87171;
+
+    /* 'You' badge adjustments */
+    --hr-you-text: #818cf8;
+    --hr-you-bg: rgba(99,102,241,0.15);
+    --hr-you-border: rgba(99,102,241,0.3);
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--hr-modal-bg) !important;
+    border: 1px solid var(--hr-border) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8) !important;
+  }
+    
+  .pg-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  
+  .pg-form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--hr-text-main, #0f172a);
+  }
+
+  .pg-form-input, .pg-form-select {
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--hr-border, #e2e8f0);
+    background: transparent;
+    color: var(--hr-text-main, #0f172a);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  
+  .pg-form-input:focus, .pg-form-select:focus {
+    border-color: #6366f1;
+  }
+`
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtDate = (d) =>
@@ -16,13 +72,13 @@ const VerifiedPill = ({ verified }) => (
     <span style={{
         display: 'inline-flex', alignItems: 'center', gap: 5,
         padding: '3px 10px', borderRadius: 100, fontSize: 11, fontWeight: 600,
-        background: verified ? 'rgba(22,163,74,0.08)'        : 'rgba(220,38,38,0.07)',
-        color:      verified ? '#15803d'                      : '#dc2626',
-        border:     verified ? '1px solid rgba(22,163,74,0.2)' : '1px solid rgba(220,38,38,0.18)',
+        background: verified ? 'var(--hr-pill-verified-bg, rgba(22,163,74,0.08))' : 'var(--hr-pill-unverified-bg, rgba(220,38,38,0.07))',
+        color:      verified ? 'var(--hr-pill-verified-color, #15803d)'           : 'var(--hr-pill-unverified-color, #dc2626)',
+        border:     verified ? '1px solid rgba(22,163,74,0.2)'                    : '1px solid rgba(220,38,38,0.18)',
     }}>
         <span style={{
             width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-            background: verified ? '#16a34a' : '#ef4444',
+            background: verified ? 'var(--hr-pill-verified-color, #16a34a)' : 'var(--hr-pill-unverified-color, #ef4444)',
         }} />
         {verified ? 'Verified' : 'Unverified'}
     </span>
@@ -40,6 +96,68 @@ const Avatar = ({ first, last, size = 36, fontSize = 13 }) => (
         {initials(first, last)}
     </div>
 )
+
+// ─── Invite HR Modal ──────────────────────────────────────────────────────────
+const InviteModal = ({ onClose, onSubmit }) => {
+    const [formData, setFormData] = useState({
+        firstname: '',
+        lastname: '',
+        email: '',
+        role: 'HR'
+    })
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    }
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSubmit(formData);
+    }
+
+    return (
+        <div className="pg-modal-overlay">
+            <div className="pg-modal" style={{ maxWidth: 450 }}>
+                <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', color: 'var(--hr-text-main, #0f172a)' }}>Invite Team Member</h2>
+                <p style={{ fontSize: '13px', color: 'var(--hr-text-muted, #64748b)', marginBottom: '24px' }}>
+                    Send an invitation link to a new HR staff member or Administrator.
+                </p>
+
+                <form onSubmit={handleSubmit}>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                        <div className="pg-form-group" style={{ flex: 1 }}>
+                            <label className="pg-form-label">First Name</label>
+                            <input required name="firstname" value={formData.firstname} onChange={handleChange} className="pg-form-input" placeholder="e.g. Jane" />
+                        </div>
+                        <div className="pg-form-group" style={{ flex: 1 }}>
+                            <label className="pg-form-label">Last Name</label>
+                            <input required name="lastname" value={formData.lastname} onChange={handleChange} className="pg-form-input" placeholder="e.g. Doe" />
+                        </div>
+                    </div>
+
+                    <div className="pg-form-group">
+                        <label className="pg-form-label">Email Address</label>
+                        <input required type="email" name="email" value={formData.email} onChange={handleChange} className="pg-form-input" placeholder="jane.doe@company.com" />
+                    </div>
+
+                    <div className="pg-form-group">
+                        <label className="pg-form-label">System Role</label>
+                        <select name="role" value={formData.role} onChange={handleChange} className="pg-form-select">
+                            <option value="HR">Standard HR (Requires RBAC Assignment)</option>
+                            <option value="HR-Admin">Super Admin (Full Access)</option>
+                        </select>
+                    </div>
+
+                    <div className="pg-modal-actions" style={{ marginTop: '32px' }}>
+                        <button type="button" className="pg-btn-ghost" onClick={onClose}>Cancel</button>
+                        <button type="submit" className="pg-action-btn indigo" style={{ padding: '8px 16px' }}>Send Invitation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
+}
 
 // ─── Detail modal ─────────────────────────────────────────────────────────────
 const DetailModal = ({ hr, onClose }) => {
@@ -64,12 +182,12 @@ const DetailModal = ({ hr, onClose }) => {
                     <div>
                         <div style={{
                             fontFamily: "'DM Serif Display', serif",
-                            fontSize: '1.25rem', color: '#0f172a',
+                            fontSize: '1.25rem', color: 'var(--hr-text-main, #0f172a)',
                             letterSpacing: '-0.02em', lineHeight: 1.2,
                         }}>
                             {hr.firstname} {hr.lastname}
                         </div>
-                        <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 3 }}>
+                        <div style={{ fontSize: 12, color: 'var(--hr-text-muted, rgba(0,0,0,0.38))', marginTop: 3 }}>
                             {hr.role}
                         </div>
                     </div>
@@ -90,18 +208,18 @@ const DetailModal = ({ hr, onClose }) => {
                                 display: 'flex', justifyContent: 'space-between',
                                 alignItems: 'flex-start', gap: 16,
                                 padding: '10px 0',
-                                borderBottom: i < rows.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                                borderBottom: i < rows.length - 1 ? '1px solid var(--hr-border, rgba(0,0,0,0.05))' : 'none',
                             }}
                         >
                             <span style={{
                                 fontSize: 11, fontWeight: 600, letterSpacing: '0.09em',
-                                textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
+                                textTransform: 'uppercase', color: 'var(--hr-text-muted, rgba(0,0,0,0.35))',
                                 flexShrink: 0,
                             }}>
                                 {label}
                             </span>
                             <span style={{
-                                fontSize: 13, color: '#0f172a', fontWeight: 500,
+                                fontSize: 13, color: 'var(--hr-text-main, #0f172a)', fontWeight: 500,
                                 textAlign: 'right', wordBreak: 'break-all',
                             }}>
                                 {value}
@@ -123,19 +241,29 @@ const DetailModal = ({ hr, onClose }) => {
 export const HRProfilePage = () => {
     const dispatch  = useDispatch()
     const state     = useSelector(s => s.HRProfileReducer)
-    const currentHR = useSelector(s => s.HRReducer)
-    const currentID = currentHR?.data?.HRid || currentHR?.data?.data?._id || ''
+    
+    // Connect to actual user state to determine if they are Super Admin
+    const hrState = useSelector((state) => state.HRReducer || {});
+    const currentHR = hrState.data;
+    const currentID = currentHR?._id || currentHR?.HRid || '';
+    const isSuperAdmin = currentHR?.role === 'HR-Admin';
 
     const [detail, setDetail] = useState(null)
     const [search, setSearch] = useState('')
+    const [showInvite, setShowInvite] = useState(false)
 
-    useEffect(() => { dispatch(HandleGetAllHRProfiles()) }, [])
-    useEffect(() => { if (state.fetchData) dispatch(HandleGetAllHRProfiles()) }, [state.fetchData])
+    useEffect(() => { dispatch(HandleGetAllHRProfiles()) }, [dispatch])
+    useEffect(() => { if (state.fetchData) dispatch(HandleGetAllHRProfiles()) }, [state.fetchData, dispatch])
 
     const handleDelete = (HRID) => {
         if (HRID === currentID) return alert('You cannot delete your own profile.')
         if (window.confirm('Delete this HR profile? This cannot be undone.'))
             dispatch(HandleDeleteHRProfile({ HRID }))
+    }
+
+    const handleCreateHR = (formData) => {
+        dispatch(HandleCreateHRProfile(formData));
+        setShowInvite(false);
     }
 
     const filtered = (state.data || []).filter(h =>
@@ -150,6 +278,7 @@ export const HRProfilePage = () => {
 
     return (
         <PageShell>
+            <style>{styles}</style>
 
             {/* ── Page header ── */}
             <PageHeader
@@ -172,23 +301,36 @@ export const HRProfilePage = () => {
                 ))}
             </div>
 
-            {/* ── Search bar ── */}
-            <div className="pg-filters">
-                <input
-                    className="pg-search"
-                    type="text"
-                    placeholder="Search by name or email…"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    style={{ minWidth: 260 }}
-                />
-                {search && (
-                    <button
-                        className="pg-btn-ghost"
-                        style={{ padding: '8px 14px', fontSize: 12 }}
-                        onClick={() => setSearch('')}
+            {/* ── Search bar & Invite Button ── */}
+            <div className="pg-filters" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                        className="pg-search"
+                        type="text"
+                        placeholder="Search by name or email…"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        style={{ minWidth: 260 }}
+                    />
+                    {search && (
+                        <button
+                            className="pg-btn-ghost"
+                            style={{ padding: '8px 14px', fontSize: 12 }}
+                            onClick={() => setSearch('')}
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+                
+                {/* Only Super Admins can invite new HRs */}
+                {isSuperAdmin && (
+                    <button 
+                        className="pg-action-btn indigo" 
+                        style={{ padding: '8px 16px', fontSize: '13px' }}
+                        onClick={() => setShowInvite(true)}
                     >
-                        Clear
+                        + Invite HR
                     </button>
                 )}
             </div>
@@ -233,14 +375,14 @@ export const HRProfilePage = () => {
                             <div>
                                 <div style={{
                                     display: 'flex', alignItems: 'center', gap: 6,
-                                    fontWeight: 500, fontSize: 13, color: '#0f172a',
+                                    fontWeight: 500, fontSize: 13, color: 'var(--hr-text-main, #0f172a)',
                                 }}>
                                     {h.firstname} {h.lastname}
                                     {h._id === currentID && (
                                         <span style={{
-                                            fontSize: 10, fontWeight: 600, color: '#6366f1',
-                                            background: 'rgba(99,102,241,0.09)',
-                                            border: '1px solid rgba(99,102,241,0.18)',
+                                            fontSize: 10, fontWeight: 600, color: 'var(--hr-you-text, #6366f1)',
+                                            background: 'var(--hr-you-bg, rgba(99,102,241,0.09))',
+                                            border: '1px solid var(--hr-you-border, rgba(99,102,241,0.18))',
                                             borderRadius: 100, padding: '1px 7px',
                                         }}>
                                             You
@@ -265,13 +407,17 @@ export const HRProfilePage = () => {
                             >
                                 View
                             </button>
-                            <button
-                                className="pg-action-btn red"
-                                disabled={h._id === currentID}
-                                onClick={() => handleDelete(h._id)}
-                            >
-                                Delete
-                            </button>
+                            
+                            {/* Only Super Admins can see the Delete button */}
+                            {isSuperAdmin && (
+                                <button
+                                    className="pg-action-btn red"
+                                    disabled={h._id === currentID}
+                                    onClick={() => handleDelete(h._id)}
+                                >
+                                    Delete
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -279,6 +425,9 @@ export const HRProfilePage = () => {
 
             {/* ── Detail modal ── */}
             {detail && <DetailModal hr={detail} onClose={() => setDetail(null)} />}
+
+            {/* ── Invite modal ── */}
+            {showInvite && <InviteModal onClose={() => setShowInvite(false)} onSubmit={handleCreateHR} />}
 
         </PageShell>
     )

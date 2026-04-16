@@ -4,14 +4,38 @@ import { HandleGetAllRecruitments, HandleCreateRecruitment, HandleDeleteRecruitm
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --rc-modal-bg: #18181b;
+    --rc-border: #27272a;
+    --rc-text-main: #fafafa;
+    --rc-text-muted: #a1a1aa;
+    --rc-text-faint: #71717a;
+    
+    /* Applicant Pill Overrides */
+    --rc-pill-active-bg: rgba(99, 102, 241, 0.15);
+    --rc-pill-active-text: #818cf8;
+    --rc-pill-active-border: rgba(99, 102, 241, 0.4);
+    
+    --rc-pill-empty-bg: rgba(255, 255, 255, 0.05);
+    --rc-pill-empty-text: #71717a;
+    --rc-pill-empty-border: rgba(255, 255, 255, 0.1);
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--rc-modal-bg) !important;
+    border: 1px solid var(--rc-border) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8) !important;
+  }
+`
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const initials = (title) =>
     title?.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('') || '?'
 
 // ─── Job icon tile ────────────────────────────────────────────────────────────
-// Gives each posting a coloured monogram tile — same idea as the Avatar on other pages
 const JobIcon = ({ title, size = 36 }) => {
-    // Cycle through a small palette based on first char code
     const PALETTES = [
         'linear-gradient(135deg, #6366f1, #8b5cf6)',
         'linear-gradient(135deg, #0ea5e9, #6366f1)',
@@ -34,22 +58,25 @@ const JobIcon = ({ title, size = 36 }) => {
 }
 
 // ─── Applicant count chip ─────────────────────────────────────────────────────
-const ApplicantChip = ({ count }) => (
-    <span style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5,
-        padding: '3px 10px', borderRadius: 100, fontSize: 11, fontWeight: 600,
-        background: count > 0 ? 'rgba(99,102,241,0.08)' : 'rgba(0,0,0,0.04)',
-        color:      count > 0 ? '#4f46e5'               : 'rgba(0,0,0,0.35)',
-        border:     count > 0 ? '1px solid rgba(99,102,241,0.2)' : '1px solid rgba(0,0,0,0.08)',
-        whiteSpace: 'nowrap',
-    }}>
+const ApplicantChip = ({ count }) => {
+    const hasApps = count > 0;
+    return (
         <span style={{
-            width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
-            background: count > 0 ? '#6366f1' : 'rgba(0,0,0,0.25)',
-        }} />
-        {count} {count === 1 ? 'applicant' : 'applicants'}
-    </span>
-)
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '3px 10px', borderRadius: 100, fontSize: 11, fontWeight: 600,
+            background: hasApps ? 'var(--rc-pill-active-bg, rgba(99,102,241,0.08))' : 'var(--rc-pill-empty-bg, rgba(0,0,0,0.04))',
+            color:      hasApps ? 'var(--rc-pill-active-text, #4f46e5)'           : 'var(--rc-pill-empty-text, rgba(0,0,0,0.35))',
+            border:     `1px solid ${hasApps ? 'var(--rc-pill-active-border, rgba(99,102,241,0.2))' : 'var(--rc-pill-empty-border, rgba(0,0,0,0.08))'}`,
+            whiteSpace: 'nowrap',
+        }}>
+            <span style={{
+                width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
+                background: hasApps ? 'var(--rc-pill-active-text, #6366f1)' : 'var(--rc-pill-empty-text, rgba(0,0,0,0.25))',
+            }} />
+            {count} {count === 1 ? 'applicant' : 'applicants'}
+        </span>
+    )
+}
 
 // ─── Create posting modal ─────────────────────────────────────────────────────
 const CreateModal = ({ onClose, onSubmit }) => {
@@ -64,17 +91,15 @@ const CreateModal = ({ onClose, onSubmit }) => {
     return (
         <div className="pg-modal-overlay">
             <div className="pg-modal">
-
-                {/* Title */}
                 <div>
                     <div style={{
                         fontFamily: "'DM Serif Display', serif",
-                        fontSize: '1.25rem', color: '#0f172a',
+                        fontSize: '1.25rem', color: 'var(--rc-text-main, #0f172a)',
                         letterSpacing: '-0.02em', marginBottom: 4,
                     }}>
                         New Job Posting
                     </div>
-                    <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', margin: 0 }}>
+                    <p style={{ fontSize: 12, color: 'var(--rc-text-muted, rgba(0,0,0,0.38))', margin: 0 }}>
                         Create a new opening. Applicants can be tracked once the posting is live.
                     </p>
                 </div>
@@ -101,18 +126,14 @@ const CreateModal = ({ onClose, onSubmit }) => {
                             onChange={handle}
                             required
                             rows={5}
-                            placeholder="Describe responsibilities, requirements, and any other relevant details…"
+                            placeholder="Describe responsibilities..."
                             className="pg-textarea"
                         />
                     </div>
 
                     <div className="pg-modal-actions">
-                        <button type="button" className="pg-btn-ghost" onClick={onClose}>
-                            Cancel
-                        </button>
-                        <button type="submit" className="pg-btn-primary">
-                            Create Posting
-                        </button>
+                        <button type="button" className="pg-btn-ghost" onClick={onClose}>Cancel</button>
+                        <button type="submit" className="pg-btn-primary">Create Posting</button>
                     </div>
                 </form>
             </div>
@@ -123,20 +144,17 @@ const CreateModal = ({ onClose, onSubmit }) => {
 // ─── Detail modal ─────────────────────────────────────────────────────────────
 const DetailModal = ({ record, onClose }) => {
     if (!record) return null
-
     const appCount = record.application?.length || 0
 
     return (
         <div className="pg-modal-overlay">
             <div className="pg-modal">
-
-                {/* Header with job icon */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
                     <JobIcon title={record.jobtitle} size={48} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{
                             fontFamily: "'DM Serif Display', serif",
-                            fontSize: '1.2rem', color: '#0f172a',
+                            fontSize: '1.2rem', color: 'var(--rc-text-main, #0f172a)',
                             letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 6,
                         }}>
                             {record.jobtitle}
@@ -147,31 +165,29 @@ const DetailModal = ({ record, onClose }) => {
 
                 <div className="pg-divider" />
 
-                {/* Description */}
                 <div>
                     <div style={{
                         fontSize: 11, fontWeight: 600, letterSpacing: '0.09em',
-                        textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
+                        textTransform: 'uppercase', color: 'var(--rc-text-faint, rgba(0,0,0,0.35))',
                         marginBottom: 8,
                     }}>
                         Description
                     </div>
                     <p style={{
-                        fontSize: 13, color: 'rgba(0,0,0,0.65)',
+                        fontSize: 13, color: 'var(--rc-text-muted, rgba(0,0,0,0.65))',
                         lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap',
                     }}>
                         {record.description}
                     </p>
                 </div>
 
-                {/* Applicants list — if any */}
                 {appCount > 0 && (
                     <>
                         <div className="pg-divider" />
                         <div>
                             <div style={{
                                 fontSize: 11, fontWeight: 600, letterSpacing: '0.09em',
-                                textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
+                                textTransform: 'uppercase', color: 'var(--rc-text-faint, rgba(0,0,0,0.35))',
                                 marginBottom: 10,
                             }}>
                                 Applicants ({appCount})
@@ -183,14 +199,14 @@ const DetailModal = ({ record, onClose }) => {
                                         justifyContent: 'space-between', gap: 12,
                                         padding: '9px 0',
                                         borderBottom: i < record.application.length - 1
-                                            ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                                            ? '1px solid var(--rc-border, rgba(0,0,0,0.05))' : 'none',
                                     }}>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 500, color: '#0f172a' }}>
+                                            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--rc-text-main, #0f172a)' }}>
                                                 {app.firstname} {app.lastname}
                                             </div>
                                             {app.email && (
-                                                <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.38)', marginTop: 1 }}>
+                                                <div style={{ fontSize: 11, color: 'var(--rc-text-muted, rgba(0,0,0,0.38))', marginTop: 1 }}>
                                                     {app.email}
                                                 </div>
                                             )}
@@ -199,9 +215,9 @@ const DetailModal = ({ record, onClose }) => {
                                             <span style={{
                                                 fontSize: 11, fontWeight: 600,
                                                 padding: '2px 9px', borderRadius: 100,
-                                                background: 'rgba(99,102,241,0.07)',
-                                                color: '#4f46e5',
-                                                border: '1px solid rgba(99,102,241,0.18)',
+                                                background: 'var(--rc-pill-active-bg, rgba(99,102,241,0.07))',
+                                                color: 'var(--rc-pill-active-text, #4f46e5)',
+                                                border: '1px solid var(--rc-pill-active-border, rgba(99,102,241,0.18))',
                                                 whiteSpace: 'nowrap',
                                             }}>
                                                 {app.status}
@@ -256,8 +272,7 @@ export const RecruitmentPage = () => {
 
     return (
         <PageShell>
-
-            {/* ── Page header ── */}
+            <style>{styles}</style>
             <PageHeader
                 eyebrow="Recruitment"
                 title="Job Postings"
@@ -268,7 +283,6 @@ export const RecruitmentPage = () => {
                 </button>
             </PageHeader>
 
-            {/* ── Stats strip ── */}
             <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                 {[
                     { label: 'Active Postings',    value: total     },
@@ -282,7 +296,6 @@ export const RecruitmentPage = () => {
                 ))}
             </div>
 
-            {/* ── Search ── */}
             <div className="pg-filters">
                 <input
                     className="pg-search"
@@ -293,109 +306,50 @@ export const RecruitmentPage = () => {
                     style={{ minWidth: 260 }}
                 />
                 {search && (
-                    <button
-                        className="pg-btn-ghost"
-                        style={{ padding: '8px 14px', fontSize: 12 }}
-                        onClick={() => setSearch('')}
-                    >
+                    <button className="pg-btn-ghost" style={{ padding: '8px 14px', fontSize: 12 }} onClick={() => setSearch('')}>
                         Clear
                     </button>
                 )}
             </div>
 
-            {/* ── Table ── */}
             <div className="pg-table-wrap">
-
-                {/* Header */}
-                <div
-                    className="pg-table-head"
-                    style={{ gridTemplateColumns: '2.5fr 3fr 130px 110px' }}
-                >
+                <div className="pg-table-head" style={{ gridTemplateColumns: '2.5fr 3fr 130px 110px' }}>
                     <span className="pg-th">Job Title</span>
                     <span className="pg-th">Description</span>
                     <span className="pg-th">Applicants</span>
                     <span className="pg-th">Actions</span>
                 </div>
 
-                {/* Empty state */}
                 {filtered.length === 0 && (
                     <div className="pg-empty">
                         <span className="pg-empty-icon">📋</span>
-                        <p className="pg-empty-title">
-                            {search ? 'No postings match your search' : 'No job postings yet'}
-                        </p>
-                        <p className="pg-empty-sub">
-                            {search
-                                ? 'Try a different job title.'
-                                : 'Create your first job posting to start tracking applicants.'}
-                        </p>
+                        <p className="pg-empty-title">{search ? 'No postings match your search' : 'No job postings yet'}</p>
+                        <p className="pg-empty-sub">{search ? 'Try a different job title.' : 'Create your first job posting to start tracking applicants.'}</p>
                     </div>
                 )}
 
-                {/* Rows */}
                 {filtered.map(r => (
-                    <div
-                        key={r._id}
-                        className="pg-table-row"
-                        style={{ gridTemplateColumns: '2.5fr 3fr 130px 110px' }}
-                    >
-                        {/* Job title + icon */}
+                    <div key={r._id} className="pg-table-row" style={{ gridTemplateColumns: '2.5fr 3fr 130px 110px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <JobIcon title={r.jobtitle} size={34} />
-                            <div>
-                                <div className="pg-td-name">{r.jobtitle}</div>
-                            </div>
+                            <div className="pg-td-name">{r.jobtitle}</div>
                         </div>
-
-                        {/* Description — truncated */}
-                        <div
-                            className="pg-td-muted"
-                            style={{
-                                overflow: 'hidden', textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap', paddingRight: 16,
-                            }}
-                        >
+                        <div className="pg-td-muted" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 16 }}>
                             {r.description}
                         </div>
-
-                        {/* Applicant chip */}
                         <span>
                             <ApplicantChip count={r.application?.length || 0} />
                         </span>
-
-                        {/* Actions */}
                         <div style={{ display: 'flex', gap: 6 }}>
-                            <button
-                                className="pg-action-btn indigo"
-                                onClick={() => setDetailRec(r)}
-                            >
-                                View
-                            </button>
-                            <button
-                                className="pg-action-btn red"
-                                onClick={() => handleDelete(r._id)}
-                            >
-                                Delete
-                            </button>
+                            <button className="pg-action-btn indigo" onClick={() => setDetailRec(r)}>View</button>
+                            <button className="pg-action-btn red" onClick={() => handleDelete(r._id)}>Delete</button>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* ── Modals ── */}
-            {createOpen && (
-                <CreateModal
-                    onClose={() => setCreateOpen(false)}
-                    onSubmit={handleCreate}
-                />
-            )}
-            {detailRec && (
-                <DetailModal
-                    record={detailRec}
-                    onClose={() => setDetailRec(null)}
-                />
-            )}
-
+            {createOpen && <CreateModal onClose={() => setCreateOpen(false)} onSubmit={handleCreate} />}
+            {detailRec && <DetailModal record={detailRec} onClose={() => setDetailRec(null)} />}
         </PageShell>
     )
 }

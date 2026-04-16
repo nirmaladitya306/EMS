@@ -1,4 +1,3 @@
-
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -7,6 +6,25 @@ import { Loading } from '../../../components/common/loading'
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  /* ═══════════════════════════════════════════════════════
+     DARK MODE OVERRIDES
+  ═══════════════════════════════════════════════════════ */
+  [data-theme='dark'] {
+    --ov-card-bg: rgba(255,255,255,0.03);
+    --ov-border: #27272a;
+    --ov-text-main: #fafafa;
+    --ov-text-muted: #a1a1aa;
+    --ov-text-faint: #71717a;
+    
+    --ov-skill-bg: rgba(99,102,241,0.12);
+    --ov-skill-text: #818cf8;
+    --ov-skill-border: rgba(99,102,241,0.3);
+    
+    --ov-input-bg: #18181b;
+    --ov-kbd-bg: #27272a;
+    --ov-success: #4ade80;
+  }
 
   /* ── Profile header ── */
   .ov-avatar {
@@ -17,30 +35,32 @@ const styles = `
     font-family: 'DM Serif Display', serif; letter-spacing: -0.5px;
   }
   .ov-header-text { display: flex; flex-direction: column; gap: 2px; }
-  .ov-email { font-size: 12px; color: rgba(0,0,0,0.38); font-weight: 300; font-family: 'DM Sans', sans-serif; }
+  .ov-email { font-size: 12px; color: var(--ov-text-muted, rgba(0,0,0,0.38)); font-weight: 300; font-family: 'DM Sans', sans-serif; }
 
   /* ── Section title ── */
   .ov-section-title {
     font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
-    text-transform: uppercase; color: rgba(0,0,0,0.35);
+    text-transform: uppercase; color: var(--ov-text-faint, rgba(0,0,0,0.35));
     margin: 0 0 12px; font-family: 'DM Sans', sans-serif;
   }
 
   /* ── Info card ── */
   .ov-info-card {
-    background: rgba(0,0,0,0.012); border: 1px solid rgba(0,0,0,0.07);
+    background: var(--ov-card-bg, rgba(0,0,0,0.012)); 
+    border: 1px solid var(--ov-border, rgba(0,0,0,0.07));
     border-radius: 12px; padding: 12px 14px;
     display: flex; flex-direction: column; gap: 3px;
     font-family: 'DM Sans', sans-serif;
     transition: border-color 0.2s;
   }
   .ov-info-card:hover { border-color: rgba(99,102,241,0.2); }
-  .ov-info-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(0,0,0,0.3); }
-  .ov-info-value { font-size: 14px; font-weight: 500; color: #0f172a; }
+  .ov-info-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ov-text-faint, rgba(0,0,0,0.3)); }
+  .ov-info-value { font-size: 14px; font-weight: 500; color: var(--ov-text-main, #0f172a); }
 
   /* ── Skills section ── */
   .ov-skills-panel {
-    background: rgba(0,0,0,0.012); border: 1px solid rgba(0,0,0,0.07);
+    background: var(--ov-card-bg, rgba(0,0,0,0.012)); 
+    border: 1px solid var(--ov-border, rgba(0,0,0,0.07));
     border-radius: 14px; padding: 18px 20px;
     font-family: 'DM Sans', sans-serif;
   }
@@ -48,30 +68,32 @@ const styles = `
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
   }
-  .ov-skills-title { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(0,0,0,0.35); }
-  .ov-skills-saved { font-size: 11px; color: #059669; font-weight: 500; }
+  .ov-skills-title { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ov-text-faint, rgba(0,0,0,0.35)); }
+  .ov-skills-saved { font-size: 11px; color: var(--ov-success, #059669); font-weight: 500; }
 
   .ov-skill-tag {
     display: inline-flex; align-items: center; gap: 5px;
-    background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
-    color: #4f46e5; border-radius: 100px; padding: 4px 12px;
+    background: var(--ov-skill-bg, rgba(99,102,241,0.08)); 
+    border: 1px solid var(--ov-skill-border, rgba(99,102,241,0.2));
+    color: var(--ov-skill-text, #4f46e5); border-radius: 100px; padding: 4px 12px;
     font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif;
   }
   .ov-skill-remove {
     background: none; border: none; cursor: pointer;
-    color: rgba(99,102,241,0.4); font-size: 15px; line-height: 1;
-    padding: 0; transition: color 0.15s;
+    color: var(--ov-skill-text, rgba(99,102,241,0.4)); font-size: 15px; line-height: 1;
+    padding: 0; transition: color 0.15s; opacity: 0.6;
   }
-  .ov-skill-remove:hover { color: #6366f1; }
+  .ov-skill-remove:hover { color: var(--ov-skill-text, #6366f1); opacity: 1; }
 
   .ov-skill-input {
-    border: 1px solid rgba(99,102,241,0.25); border-radius: 100px;
+    border: 1px solid var(--ov-skill-border, rgba(99,102,241,0.25)); border-radius: 100px;
     padding: 4px 12px; font-size: 12px; font-family: 'DM Sans', sans-serif;
-    color: #0f172a; outline: none; width: 140px;
+    background: var(--ov-input-bg, #fff);
+    color: var(--ov-text-main, #0f172a); outline: none; width: 140px;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .ov-skill-input:focus { border-color: rgba(99,102,241,0.45); box-shadow: 0 0 0 3px rgba(99,102,241,0.08); }
-  .ov-skill-input::placeholder { color: rgba(0,0,0,0.28); }
+  .ov-skill-input::placeholder { color: var(--ov-text-faint, rgba(0,0,0,0.28)); }
 
   .ov-skill-add {
     width: 24px; height: 24px; border-radius: 50%;
@@ -83,22 +105,22 @@ const styles = `
   }
   .ov-skill-add:hover { opacity: 0.85; }
 
-  .ov-skills-empty { font-size: 13px; color: rgba(0,0,0,0.28); font-style: italic; font-family: 'DM Sans', sans-serif; }
-  .ov-skill-hint { font-size: 11px; color: rgba(0,0,0,0.28); margin-top: 10px; font-family: 'DM Sans', sans-serif; }
+  .ov-skills-empty { font-size: 13px; color: var(--ov-text-faint, rgba(0,0,0,0.28)); font-style: italic; font-family: 'DM Sans', sans-serif; }
+  .ov-skill-hint { font-size: 11px; color: var(--ov-text-faint, rgba(0,0,0,0.28)); margin-top: 10px; font-family: 'DM Sans', sans-serif; }
   .ov-skill-hint kbd {
-    background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1);
-    border-radius: 4px; padding: 1px 5px; font-family: inherit; font-size: 10px;
+    background: var(--ov-kbd-bg, rgba(0,0,0,0.05)); border: 1px solid var(--ov-border, rgba(0,0,0,0.1));
+    border-radius: 4px; padding: 1px 5px; font-family: inherit; font-size: 10px; color: var(--ov-text-muted);
   }
 
   /* ── Account status ── */
   .ov-status-pill {
     display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(0,0,0,0.012); border: 1px solid rgba(0,0,0,0.07);
+    background: var(--ov-card-bg, rgba(0,0,0,0.012)); border: 1px solid var(--ov-border, rgba(0,0,0,0.07));
     border-radius: 100px; padding: 8px 16px;
     font-family: 'DM Sans', sans-serif;
   }
   .ov-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .ov-status-label { font-size: 13px; font-weight: 500; color: #0f172a; }
+  .ov-status-label { font-size: 13px; font-weight: 500; color: var(--ov-text-main, #0f172a); }
 `
 
 const InfoCard = ({ label, value }) => (
@@ -243,7 +265,7 @@ export const EmployeeOverviewPage = () => {
                 </PageHeader>
 
                 {/* ── Profile details ── */}
-                <div>
+                <div style={{ marginBottom: '1.5rem' }}>
                     <p className="ov-section-title">Profile Details</p>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         <InfoCard label="First Name"  value={profile?.firstname}        />
@@ -256,10 +278,12 @@ export const EmployeeOverviewPage = () => {
                 </div>
 
                 {/* ── Skills ── */}
-                <SkillsEditor profile={profile} employeeId={profile?._id} />
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <SkillsEditor profile={profile} employeeId={profile?._id} />
+                </div>
 
                 {/* ── Quick stats ── */}
-                <div>
+                <div style={{ marginBottom: '1.5rem' }}>
                     <p className="ov-section-title">Quick Stats</p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {[
@@ -269,7 +293,7 @@ export const EmployeeOverviewPage = () => {
                             { label: 'My Requests',    value: profile?.generaterequest?.length || 0 },
                         ].map(c => (
                             <div key={c.label} className="pg-stat-card">
-                                <span className="pg-stat-value">{c.value}</span>
+                                <span className="pg-stat-value" style={{ color: 'var(--ov-text-main)' }}>{c.value}</span>
                                 <span className="pg-stat-label">{c.label}</span>
                             </div>
                         ))}
@@ -282,7 +306,7 @@ export const EmployeeOverviewPage = () => {
                     <div className="ov-status-pill" style={{ width: 'fit-content' }}>
                         <div
                             className="ov-status-dot"
-                            style={{ background: profile?.isverified ? '#059669' : '#dc2626' }}
+                            style={{ background: profile?.isverified ? 'var(--ov-success, #059669)' : '#dc2626' }}
                         />
                         <span className="ov-status-label">
                             {profile?.isverified ? 'Email Verified' : 'Email Not Verified'}
@@ -294,4 +318,3 @@ export const EmployeeOverviewPage = () => {
         </>
     )
 }
-

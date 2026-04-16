@@ -9,24 +9,39 @@ import { AddEmployeesDialogBox } from "../../../components/common/Dashboard/dial
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+  /* ═══════════════════════════════════════════════════════
+     DARK MODE OVERRIDES
+  ═══════════════════════════════════════════════════════ */
+  [data-theme='dark'] {
+    --emp-bg: #18181b; /* Zinc-900 */
+    --emp-border: #27272a; /* Zinc-800 */
+    --emp-text-main: #fafafa;
+    --emp-text-muted: #a1a1aa;
+    --emp-text-faint: #71717a;
+    --emp-bg-hover: rgba(255, 255, 255, 0.04);
+    --emp-kbd-bg: #27272a;
+    --emp-kbd-border: #3f3f46;
+  }
+
   /* ── Skill search bar ── */
   .skill-bar {
-    border: 1px solid rgba(0,0,0,0.11); border-radius: 12px;
-    padding: 8px 12px; background: #fff; display: flex;
+    border: 1px solid var(--emp-border, rgba(0,0,0,0.11)); border-radius: 12px;
+    padding: 8px 12px; background: var(--emp-bg, #fff); display: flex;
     flex-wrap: wrap; align-items: center; gap: 6px;
     transition: border-color 0.2s, box-shadow 0.2s;
     font-family: 'DM Sans', sans-serif;
   }
   .skill-bar.has-chips {
     border-color: rgba(99,102,241,0.35);
-    background: rgba(99,102,241,0.02);
+    background: var(--emp-bg-hover, rgba(99,102,241,0.02));
     box-shadow: 0 0 0 3px rgba(99,102,241,0.06);
   }
   .skill-bar-input {
     flex: 1; min-width: 160px; font-size: 13px; background: transparent;
-    outline: none; border: none; color: #0f172a; font-family: 'DM Sans', sans-serif;
+    outline: none; border: none; color: var(--emp-text-main, #0f172a); font-family: 'DM Sans', sans-serif;
   }
-  .skill-bar-input::placeholder { color: rgba(0,0,0,0.3); }
+  .skill-bar-input::placeholder { color: var(--emp-text-muted, rgba(0,0,0,0.3)); }
+  
   .skill-chip {
     display: inline-flex; align-items: center; gap: 5px;
     background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
@@ -34,50 +49,61 @@ const styles = `
     font-size: 12px; font-weight: 500; white-space: nowrap;
     font-family: 'DM Sans', sans-serif;
   }
+  [data-theme='dark'] .skill-chip {
+    background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3);
+  }
+  
   .skill-chip-remove {
     background: none; border: none; cursor: pointer;
     color: rgba(99,102,241,0.5); font-size: 14px; line-height: 1;
     padding: 0; transition: color 0.15s;
   }
   .skill-chip-remove:hover { color: #6366f1; }
+  [data-theme='dark'] .skill-chip-remove:hover { color: #c7d2fe; }
+
   .skill-hint {
-    font-size: 11px; color: rgba(0,0,0,0.3);
-    margin-top: 4px; padding-left: 2px; font-family: 'DM Sans', sans-serif;
+    font-size: 11px; color: var(--emp-text-muted, rgba(0,0,0,0.3));
+    margin-top: 6px; padding-left: 2px; font-family: 'DM Sans', sans-serif;
   }
   .skill-hint kbd {
-    background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1);
+    background: var(--emp-kbd-bg, rgba(0,0,0,0.05)); border: 1px solid var(--emp-kbd-border, rgba(0,0,0,0.1));
     border-radius: 4px; padding: 1px 5px; font-family: inherit; font-size: 10px;
   }
 
   /* ── Skill results section ── */
   .skill-results-label {
-    font-size: 12px; font-weight: 600; color: rgba(0,0,0,0.5);
+    font-size: 12px; font-weight: 600; color: var(--emp-text-muted, rgba(0,0,0,0.5));
     letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px;
     font-family: 'DM Sans', sans-serif;
   }
   .skill-results-count {
-    font-size: 11px; font-weight: 400; color: rgba(0,0,0,0.3);
+    font-size: 11px; font-weight: 400; color: var(--emp-text-faint, rgba(0,0,0,0.3));
   }
   .skill-result-row {
     display: grid; grid-template-columns: repeat(5, 1fr);
-    padding: 10px 16px; border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding: 10px 16px; border-bottom: 1px solid var(--emp-border, rgba(0,0,0,0.05));
     font-size: 13px; font-family: 'DM Sans', sans-serif;
     transition: background 0.12s;
   }
   .skill-result-row:last-child { border-bottom: none; }
-  .skill-result-row:hover { background: rgba(99,102,241,0.03); }
+  .skill-result-row:hover { background: var(--emp-bg-hover, rgba(99,102,241,0.03)); }
+  
   .skill-tag {
     display: inline-flex; background: rgba(99,102,241,0.06);
     border: 1px solid rgba(99,102,241,0.14); color: rgba(99,102,241,0.8);
     border-radius: 100px; padding: 2px 8px; font-size: 11px; font-weight: 500;
     font-family: 'DM Sans', sans-serif;
   }
+  [data-theme='dark'] .skill-tag {
+    background: rgba(99,102,241,0.1); color: #818cf8; border-color: rgba(99,102,241,0.25);
+  }
+
   .skill-divider {
-    height: 1px; background: rgba(0,0,0,0.06); margin: 4px 0;
+    height: 1px; background: var(--emp-border, rgba(0,0,0,0.06)); margin: 4px 0;
   }
   .all-employees-label {
     font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
-    text-transform: uppercase; color: rgba(0,0,0,0.3);
+    text-transform: uppercase; color: var(--emp-text-muted, rgba(0,0,0,0.3));
     padding: 4px 0; font-family: 'DM Sans', sans-serif;
   }
 `
@@ -91,10 +117,10 @@ const SkillChip = ({ skill, onRemove }) => (
 
 const SkillResultRow = ({ emp }) => (
     <div className="skill-result-row">
-        <div style={{ fontWeight: 500, color: '#0f172a' }}>{emp.firstname} {emp.lastname}</div>
-        <div style={{ color: 'rgba(0,0,0,0.45)', fontSize: '12px' }} className="min-[250px]:hidden sm:block truncate">{emp.email}</div>
-        <div style={{ color: 'rgba(0,0,0,0.45)', fontSize: '12px' }} className="min-[250px]:hidden sm:block text-center">{emp.department?.name || 'N/A'}</div>
-        <div style={{ color: 'rgba(0,0,0,0.45)', fontSize: '12px' }} className="min-[250px]:hidden sm:block text-center">{emp.contactnumber}</div>
+        <div style={{ fontWeight: 500, color: 'var(--emp-text-main, #0f172a)' }}>{emp.firstname} {emp.lastname}</div>
+        <div style={{ color: 'var(--emp-text-muted, rgba(0,0,0,0.45))', fontSize: '12px' }} className="min-[250px]:hidden sm:block truncate">{emp.email}</div>
+        <div style={{ color: 'var(--emp-text-muted, rgba(0,0,0,0.45))', fontSize: '12px' }} className="min-[250px]:hidden sm:block text-center">{emp.department?.name || 'N/A'}</div>
+        <div style={{ color: 'var(--emp-text-muted, rgba(0,0,0,0.45))', fontSize: '12px' }} className="min-[250px]:hidden sm:block text-center">{emp.contactnumber}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
             {emp.skills?.map((s, i) => <span key={i} className="skill-tag">{s}</span>)}
         </div>
@@ -139,11 +165,18 @@ export const HREmployeesPage = () => {
             removeSkillChip(activeSkills[activeSkills.length - 1])
     }
 
-    useEffect(() => {
-        if (HREmployeesState.fetchData) dispatch(HandleGetHREmployees({ apiroute: "GETALL" }))
-    }, [HREmployeesState.fetchData])
+    // ─── INITIAL LOAD ───
+    useEffect(() => { 
+        dispatch(HandleGetHREmployees({ apiroute: "GETALL" })) 
+    }, [dispatch])
 
-    useEffect(() => { dispatch(HandleGetHREmployees({ apiroute: "GETALL" })) }, [])
+    // ─── THE FIX: SYNCHRONIZATION ───
+    // This listens for any successful creation/deletion flag from your Thunk
+    useEffect(() => {
+        if (HREmployeesState.fetchData) {
+            dispatch(HandleGetHREmployees({ apiroute: "GETALL" }))
+        }
+    }, [HREmployeesState.fetchData, dispatch])
 
     if (HREmployeesState.isLoading && !HREmployeesState.data) return <Loading />
 
@@ -159,7 +192,7 @@ export const HREmployeesPage = () => {
                 </PageHeader>
 
                 {/* ── Skill search bar ── */}
-                <div>
+                <div style={{ marginBottom: '12px' }}>
                     <div className={`skill-bar ${activeSkills.length > 0 ? 'has-chips' : ''}`}>
                         {activeSkills.map(skill => (
                             <SkillChip key={skill} skill={skill} onRemove={removeSkillChip} />
@@ -193,7 +226,7 @@ export const HREmployeesPage = () => {
 
                 {/* ── Skill search results ── */}
                 {searchMode && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
                         <div className="skill-results-label">
                             Skill Search Results
                             {!searchLoading && (
@@ -204,12 +237,12 @@ export const HREmployeesPage = () => {
                         </div>
 
                         {searchLoading ? <Loading /> : searchResults.length === 0 ? (
-                            <div style={{ border: '1px dashed rgba(0,0,0,0.1)', borderRadius: '12px', padding: '32px', textAlign: 'center', fontSize: '13px', color: 'rgba(0,0,0,0.3)' }}>
+                            <div style={{ border: '1px dashed var(--emp-border, rgba(0,0,0,0.1))', borderRadius: '12px', padding: '32px', textAlign: 'center', fontSize: '13px', color: 'var(--emp-text-muted, rgba(0,0,0,0.3))' }}>
                                 No employees found with {activeSkills.length === 1 ? 'this skill' : 'these skills'}.
                             </div>
                         ) : (
-                            <div className="pg-table-wrap" style={{ flex: 'none' }}>
-                                <div className="pg-table-head grid grid-cols-5">
+                            <div className="pg-table-wrap" style={{ flex: 'none', background: 'var(--emp-bg)', borderColor: 'var(--emp-border)' }}>
+                                <div className="pg-table-head grid grid-cols-5" style={{ background: 'var(--emp-bg-hover)', borderBottom: '1px solid var(--emp-border)' }}>
                                     {['Name', 'Email', 'Department', 'Contact', 'Matching Skills'].map(h => (
                                         <span key={h} className={`pg-th ${h === 'Email' || h === 'Department' || h === 'Contact' ? 'min-[250px]:hidden sm:block' : ''}`}>{h}</span>
                                     ))}
@@ -224,7 +257,7 @@ export const HREmployeesPage = () => {
                 )}
 
                 {/* ── All employees table ── */}
-                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '3rem' }}>
                     <ListWrapper>
                         <HeadingBar table_layout="grid-cols-5" table_headings={table_headings} />
                     </ListWrapper>

@@ -35,13 +35,13 @@ const styles = `
   .doc-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
   /* ── Days remaining ── */
-  .doc-days-overdue { font-size: 11px; font-weight: 600; color: #dc2626; margin-top: 2px; }
-  .doc-days-urgent  { font-size: 11px; font-weight: 600; color: #b45309; margin-top: 2px; }
-  .doc-days-ok      { font-size: 11px; color: rgba(0,0,0,0.3); margin-top: 2px; }
+  .doc-days-overdue { font-size: 11px; font-weight: 600; color: var(--doc-overdue, #dc2626); margin-top: 2px; }
+  .doc-days-urgent  { font-size: 11px; font-weight: 600; color: var(--doc-urgent, #b45309); margin-top: 2px; }
+  .doc-days-ok      { font-size: 11px; color: var(--doc-ok, rgba(0,0,0,0.3)); margin-top: 2px; }
 
   /* ── Alert engine button (amber accent, ghost style) ── */
   .doc-btn-alert {
-    padding: 9px 18px; background: rgba(245,158,11,0.08); color: #b45309;
+    padding: 9px 18px; background: rgba(245,158,11,0.08); color: var(--doc-urgent, #b45309);
     font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
     border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; cursor: pointer;
     transition: background 0.15s; white-space: nowrap;
@@ -53,7 +53,7 @@ const styles = `
   /* ── Toast notification ── */
   .doc-toast {
     position: fixed; bottom: 24px; right: 24px; z-index: 60;
-    background: #ffffff; border: 1px solid rgba(16,185,129,0.3);
+    background: var(--doc-modal-bg, #ffffff); border: 1px solid var(--doc-toast-border, rgba(16,185,129,0.3));
     border-radius: 14px; padding: 14px 18px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.1);
     display: flex; align-items: center; gap: 12px;
@@ -66,13 +66,13 @@ const styles = `
     display: flex; align-items: center; justify-content: center;
     font-size: 15px; flex-shrink: 0;
   }
-  .doc-toast-msg  { font-size: 13px; color: #0f172a; font-weight: 500; flex: 1; }
+  .doc-toast-msg  { font-size: 13px; color: var(--doc-text-main, #0f172a); font-weight: 500; flex: 1; }
   .doc-toast-close {
     background: none; border: none; cursor: pointer;
-    color: rgba(0,0,0,0.3); font-size: 16px; line-height: 1; padding: 0;
+    color: var(--doc-text-muted, rgba(0,0,0,0.3)); font-size: 16px; line-height: 1; padding: 0;
     transition: color 0.15s;
   }
-  .doc-toast-close:hover { color: rgba(0,0,0,0.6); }
+  .doc-toast-close:hover { color: var(--doc-text-main, rgba(0,0,0,0.6)); }
 
   @keyframes toastIn {
     from { opacity: 0; transform: translateY(12px); }
@@ -81,18 +81,39 @@ const styles = `
 
   /* ── Modal wider variant ── */
   .doc-modal {
-    background: #ffffff; border-radius: 20px; padding: 28px 30px;
+    background: var(--doc-modal-bg, #ffffff); 
+    border: 1px solid var(--doc-border, transparent);
+    border-radius: 20px; padding: 28px 30px;
     width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
     box-shadow: 0 24px 64px rgba(0,0,0,0.12);
     display: flex; flex-direction: column; gap: 18px;
     font-family: 'DM Sans', sans-serif;
   }
+
+  /* ═══════════════════════════════════════════════════════
+     DARK MODE OVERRIDES
+  ═══════════════════════════════════════════════════════ */
+  [data-theme='dark'] {
+    --doc-modal-bg: #18181b;
+    --doc-border: #27272a;
+    --doc-toast-border: rgba(16,185,129,0.4);
+    --doc-text-main: #fafafa;
+    --doc-text-muted: #a1a1aa;
+    
+    /* Brighter warning colors to pop on dark backgrounds */
+    --doc-urgent: #fbbf24; 
+    --doc-overdue: #f87171;
+    --doc-ok: #a1a1aa;
+  }
+  [data-theme='dark'] .doc-modal { box-shadow: 0 24px 64px rgba(0,0,0,0.8); }
+  [data-theme='dark'] .doc-toast { box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
+  [data-theme='dark'] .pg-modal-title { color: #fafafa; }
 `
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
     const cfg = STATUS_CONFIG[status]
-    if (!cfg) return <span style={{ fontSize: '12px', color: 'rgba(0,0,0,0.4)' }}>{status}</span>
+    if (!cfg) return <span style={{ fontSize: '12px', color: 'var(--doc-text-muted, rgba(0,0,0,0.4))' }}>{status}</span>
     return (
         <span
             className="doc-status-badge"
@@ -109,7 +130,7 @@ const DaysRemaining = ({ expirydate }) => {
     const days = Math.ceil((new Date(expirydate) - new Date()) / (1000 * 60 * 60 * 24))
     if (days < 0)   return <span className="doc-days-overdue">{Math.abs(days)}d overdue</span>
     if (days <= 7)  return <span className="doc-days-urgent">{days}d left</span>
-    if (days <= 30) return <span className="doc-days-urgent" style={{ color: '#b45309', opacity: 0.7 }}>{days}d left</span>
+    if (days <= 30) return <span className="doc-days-urgent" style={{ opacity: 0.8 }}>{days}d left</span>
     return <span className="doc-days-ok">{days}d left</span>
 }
 
@@ -193,7 +214,7 @@ const DocumentDialog = ({ open, onClose, onSubmit, employeeList, initialData }) 
                     <div className="pg-field">
                         <label className="pg-label">
                             Document Number
-                            <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(0,0,0,0.28)', marginLeft: '6px' }}>(optional)</span>
+                            <span style={{ fontWeight: 400, textTransform: 'none', color: 'var(--doc-text-muted, rgba(0,0,0,0.28))', marginLeft: '6px' }}>(optional)</span>
                         </label>
                         <input name="documentnumber" value={form.documentnumber} onChange={handle}
                             placeholder="e.g. A1234567" className="pg-input" />
@@ -204,7 +225,7 @@ const DocumentDialog = ({ open, onClose, onSubmit, employeeList, initialData }) 
                         <div className="pg-field">
                             <label className="pg-label">
                                 Issue Date
-                                <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(0,0,0,0.28)', marginLeft: '6px' }}>(optional)</span>
+                                <span style={{ fontWeight: 400, textTransform: 'none', color: 'var(--doc-text-muted, rgba(0,0,0,0.28))', marginLeft: '6px' }}>(optional)</span>
                             </label>
                             <input type="date" name="issuedate" value={form.issuedate} onChange={handle} className="pg-input" />
                         </div>
@@ -218,7 +239,7 @@ const DocumentDialog = ({ open, onClose, onSubmit, employeeList, initialData }) 
                     <div className="pg-field">
                         <label className="pg-label">
                             Notes
-                            <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(0,0,0,0.28)', marginLeft: '6px' }}>(optional)</span>
+                            <span style={{ fontWeight: 400, textTransform: 'none', color: 'var(--doc-text-muted, rgba(0,0,0,0.28))', marginLeft: '6px' }}>(optional)</span>
                         </label>
                         <textarea name="notes" value={form.notes} onChange={handle} rows={2}
                             placeholder="Any additional notes…" className="pg-textarea" />
@@ -388,7 +409,7 @@ export const DocumentExpiryPage = () => {
 
                             {/* Expiry date + countdown */}
                             <div>
-                                <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500 }}>{fmtDate(doc.expirydate)}</p>
+                                <p style={{ fontSize: '13px', color: 'var(--doc-text-main, #0f172a)', fontWeight: 500 }}>{fmtDate(doc.expirydate)}</p>
                                 <DaysRemaining expirydate={doc.expirydate} />
                             </div>
 

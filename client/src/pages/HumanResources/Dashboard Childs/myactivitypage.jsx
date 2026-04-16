@@ -24,8 +24,20 @@ const ACTION_CONFIG = {
     'ATTENDANCE_UPDATED':{ bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)', color: '#2563eb' },
 }
 
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+  
+  [data-theme='dark'] {
+    --ma-card-bg: rgba(99,102,241,0.05); /* Very subtle indigo tint */
+    --ma-card-border: rgba(99,102,241,0.2);
+    --ma-card-text: #818cf8; /* Light Indigo */
+    --ma-text-muted: #a1a1aa;
+    --ma-text-faint: #71717a;
+    --ma-border: #27272a;
+    --ma-text-clear: #818cf8;
+  }
+
   .ac-action-badge {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 10px; border-radius: 100px; border: 1px solid;
@@ -34,10 +46,34 @@ const styles = `
     text-transform: uppercase;
   }
   .ac-action-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  
   .ac-summary-card {
-    background: linear-gradient(135deg, #f5f7ff 0%, #eeefff 100%);
-    border: 1px solid #e0e4ff; border-radius: 12px; padding: 16px 20px;
+    background: var(--ma-card-bg, linear-gradient(135deg, #f5f7ff 0%, #eeefff 100%));
+    border: 1px solid var(--ma-card-border, #e0e4ff); 
+    border-radius: 12px; padding: 16px 20px;
     margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;
+  }
+  
+  .ac-summary-title {
+    font-size: 1.5rem; 
+    font-weight: 700; 
+    color: var(--ma-card-text, #4338ca); /* indigo-700 in light mode */
+    margin-top: 4px;
+  }
+  
+  .ac-summary-subtitle {
+    color: var(--ma-text-muted, #64748b); 
+    font-size: 13px;
+  }
+  
+  .ac-clear-btn {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ma-text-muted, #9ca3af); /* gray-400 */
+    transition: color 0.2s;
+  }
+  .ac-clear-btn:hover {
+    color: var(--ma-text-clear, #4f46e5); /* indigo-600 */
   }
 `
 
@@ -108,7 +144,7 @@ export const MyActivityPage = () => {
                     {(filterAction || search) && (
                         <button
                             onClick={() => { setFilterAction(''); setSearch('') }}
-                            className="text-sm text-gray-400 hover:text-indigo-600 font-medium transition-colors"
+                            className="ac-clear-btn"
                         >
                             Clear Filters
                         </button>
@@ -118,14 +154,14 @@ export const MyActivityPage = () => {
                 {/* Summary Card */}
                 <div className="ac-summary-card">
                     <div>
-                        <p className="pg-td-sub" style={{ color: '#64748b', fontSize: '13px' }}>System Audit Log</p>
-                        <p className="text-2xl font-bold text-indigo-700 mt-1">
+                        <p className="pg-td-sub ac-summary-subtitle">System Audit Log</p>
+                        <p className="ac-summary-title">
                             {activitylogs.length} Total Actions
                         </p>
                     </div>
                     <div className="text-right">
-                        <p className="text-xs text-gray-400">Last updated</p>
-                        <p className="text-sm font-medium text-gray-600">{relativeTime(new Date())}</p>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--ma-text-faint, #9ca3af)' }}>Last updated</p>
+                        <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--ma-text-muted, #4b5563)' }}>{relativeTime(new Date())}</p>
                     </div>
                 </div>
 
@@ -160,8 +196,8 @@ export const MyActivityPage = () => {
                     )}
                 </div>
 
-                <p className="text-xs text-gray-400 border-t border-gray-100 pt-4 mt-2">
-                    Showing last 100 security events. Older records are archived automatically. [cite: 223]
+                <p style={{ fontSize: '0.75rem', color: 'var(--ma-text-faint, #9ca3af)', borderTop: '1px solid var(--ma-border, #f3f4f6)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                    Showing last 100 security events. Older records are archived automatically.
                 </p>
             </PageShell>
         </>

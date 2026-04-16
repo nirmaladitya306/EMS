@@ -8,6 +8,28 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --an-tooltip-bg: #18181b;
+    --an-tooltip-border: #27272a;
+    --an-tooltip-text: #fafafa;
+    --an-text-main: #fafafa;
+    --an-text-secondary: #a1a1aa;
+    --an-text-muted: #71717a;
+    --an-axis-text: #a1a1aa;
+    --an-grid-line: #27272a;
+    --an-rank-bg: rgba(255,255,255,0.08);
+    --an-rank-text: #a1a1aa;
+    --an-track-bg: rgba(255,255,255,0.1);
+  }
+
+  /* Override Recharts Default Legend Text */
+  [data-theme='dark'] .recharts-legend-item-text {
+    color: var(--an-text-secondary) !important;
+  }
+`
+
 // ─── Chart colour tokens (match the design system palette) ───────────────────
 const C = {
     indigo:  '#6366f1',
@@ -36,7 +58,7 @@ const KPI = ({ label, value, sub }) => (
         <span className="pg-stat-value" style={{ fontSize: '1.4rem' }}>{value ?? '—'}</span>
         <span className="pg-stat-label">{label}</span>
         {sub && (
-            <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.28)', marginTop: 1 }}>{sub}</span>
+            <span style={{ fontSize: 10, color: 'var(--an-text-muted, rgba(0,0,0,0.28))', marginTop: 1 }}>{sub}</span>
         )}
     </div>
 )
@@ -46,8 +68,8 @@ const ChartTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null
     return (
         <div style={{
-            background: '#ffffff',
-            border: '1px solid rgba(0,0,0,0.08)',
+            background: 'var(--an-tooltip-bg, #ffffff)',
+            border: '1px solid var(--an-tooltip-border, rgba(0,0,0,0.08))',
             borderRadius: 10,
             boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
             padding: '8px 12px',
@@ -55,7 +77,7 @@ const ChartTooltip = ({ active, payload, label }) => {
             fontSize: 12,
         }}>
             {label && (
-                <p style={{ fontWeight: 600, color: '#0f172a', marginBottom: 4 }}>{label}</p>
+                <p style={{ fontWeight: 600, color: 'var(--an-tooltip-text, #0f172a)', marginBottom: 4 }}>{label}</p>
             )}
             {payload.map((p, i) => (
                 <p key={i} style={{ color: p.color, margin: '2px 0' }}>
@@ -81,7 +103,7 @@ const DonutChart = ({ data, colors, height = 200 }) => (
                     <Cell key={i} fill={colors[i % colors.length]} />
                 ))}
             </Pie>
-            <Tooltip formatter={v => v.toLocaleString()} />
+            <Tooltip content={<ChartTooltip />} />
             <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, fontFamily: "'DM Sans', sans-serif" }} />
         </PieChart>
     </ResponsiveContainer>
@@ -91,7 +113,7 @@ const DonutChart = ({ data, colors, height = 200 }) => (
 const NoData = ({ text = 'No data yet.' }) => (
     <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '32px 0', fontSize: 13, color: 'rgba(0,0,0,0.3)',
+        padding: '32px 0', fontSize: 13, color: 'var(--an-text-muted, rgba(0,0,0,0.3))',
         fontFamily: "'DM Sans', sans-serif",
     }}>
         {text}
@@ -99,8 +121,8 @@ const NoData = ({ text = 'No data yet.' }) => (
 )
 
 // ─── Shared axis / grid props ─────────────────────────────────────────────────
-const axisStyle = { fontSize: 11, fontFamily: "'DM Sans', sans-serif", fill: 'rgba(0,0,0,0.4)' }
-const gridProps = { strokeDasharray: '3 3', stroke: 'rgba(0,0,0,0.06)' }
+const axisStyle = { fontSize: 11, fontFamily: "'DM Sans', sans-serif", fill: 'var(--an-axis-text, rgba(0,0,0,0.4))' }
+const gridProps = { strokeDasharray: '3 3', stroke: 'var(--an-grid-line, rgba(0,0,0,0.06))' }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export const HRAnalyticsPage = () => {
@@ -165,6 +187,7 @@ export const HRAnalyticsPage = () => {
 
     return (
         <PageShell>
+            <style>{styles}</style>
 
             {/* ── Page header ── */}
             <PageHeader
@@ -175,9 +198,9 @@ export const HRAnalyticsPage = () => {
 
             {/* ── Overview KPI strip ── */}
             <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-                <KPI label="Total Employees"  value={d.overview.totalEmployees}                                              />
-                <KPI label="Departments"      value={d.overview.totalDepts}                                                  />
-                <KPI label="Attendance Rate"  value={`${d.overview.orgAttendanceRate}%`}                                     />
+                <KPI label="Total Employees"  value={d.overview.totalEmployees}                                      />
+                <KPI label="Departments"      value={d.overview.totalDepts}                                          />
+                <KPI label="Attendance Rate"  value={`${d.overview.orgAttendanceRate}%`}                                 />
                 <KPI label="Total Payroll"    value={d.overview.totalPayroll?.toLocaleString()}    sub="sum of all net pay"  />
                 <KPI label="Avg Salary"       value={d.overview.avgSalary?.toLocaleString()}       sub="per employee"        />
             </div>
@@ -338,8 +361,8 @@ export const HRAnalyticsPage = () => {
                                             {/* Rank badge */}
                                             <span style={{
                                                 width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                                                background: i === 0 ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'rgba(0,0,0,0.06)',
-                                                color: i === 0 ? 'white' : 'rgba(0,0,0,0.4)',
+                                                background: i === 0 ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'var(--an-rank-bg, rgba(0,0,0,0.06))',
+                                                color: i === 0 ? 'white' : 'var(--an-rank-text, rgba(0,0,0,0.4))',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 fontSize: 9, fontWeight: 700,
                                                 fontFamily: "'DM Serif Display', serif",
@@ -349,7 +372,7 @@ export const HRAnalyticsPage = () => {
                                             {/* Action name */}
                                             <span style={{
                                                 width: 150, flexShrink: 0,
-                                                fontSize: 12, color: 'rgba(0,0,0,0.55)',
+                                                fontSize: 12, color: 'var(--an-text-secondary, rgba(0,0,0,0.55))',
                                                 overflow: 'hidden', textOverflow: 'ellipsis',
                                                 whiteSpace: 'nowrap', textTransform: 'capitalize',
                                                 fontFamily: "'DM Sans', sans-serif",
@@ -359,7 +382,7 @@ export const HRAnalyticsPage = () => {
                                             {/* Bar track */}
                                             <div style={{
                                                 flex: 1, height: 6, borderRadius: 100,
-                                                background: 'rgba(0,0,0,0.06)',
+                                                background: 'var(--an-track-bg, rgba(0,0,0,0.06))',
                                             }}>
                                                 <div style={{
                                                     width: `${pct}%`, height: '100%', borderRadius: 100,
@@ -372,7 +395,7 @@ export const HRAnalyticsPage = () => {
                                             {/* Count */}
                                             <span style={{
                                                 width: 28, textAlign: 'right', flexShrink: 0,
-                                                fontSize: 12, fontWeight: 700, color: '#0f172a',
+                                                fontSize: 12, fontWeight: 700, color: 'var(--an-text-main, #0f172a)',
                                                 fontFamily: "'DM Serif Display', serif",
                                             }}>
                                                 {a.count}

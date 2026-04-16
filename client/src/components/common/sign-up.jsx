@@ -36,17 +36,26 @@ const styles = `
   @media (max-width: 640px) { .auth-topbar { padding: 18px 20px; } .signup-card { padding: 28px 20px; border-radius: 18px; } .signup-grid { grid-template-columns: 1fr; } }
 `
 
+// ✅ FIXED: Field component moved OUTSIDE the main component to prevent focus loss
+const Field = ({ id, label, type = 'text', placeholder = '', value, onChange }) => (
+    <div className="auth-field">
+        <label className="auth-label" htmlFor={id}>{label}</label>
+        <input 
+            className="auth-input" 
+            id={id} 
+            name={id} 
+            type={type} 
+            required
+            autoComplete="off" 
+            value={value} 
+            onChange={onChange}
+            placeholder={placeholder} 
+        />
+    </div>
+)
+
 export const SignUP = ({ handlesignupform, handlesubmitform, stateformdata, errorpopup }) => {
     const HRState = useSelector(state => state.HRReducer)
-
-    const Field = ({ id, label, type = 'text', placeholder = '' }) => (
-        <div className="auth-field">
-            <label className="auth-label" htmlFor={id}>{label}</label>
-            <input className="auth-input" id={id} name={id} type={type} required
-                autoComplete="off" value={stateformdata[id]} onChange={handlesignupform}
-                placeholder={placeholder} />
-        </div>
-    )
 
     return (
         <>
@@ -62,7 +71,7 @@ export const SignUP = ({ handlesignupform, handlesubmitform, stateformdata, erro
                     <span className="auth-badge">HR Portal</span>
                 </div>
                 <div className="signup-body">
-                    <div className="signup-card">
+                    <form className="signup-card" onSubmit={(e) => { e.preventDefault(); handlesubmitform(e); }}>
                         <div>
                             <div className="auth-eyebrow">HR Admin Registration</div>
                             <h1 className="auth-title">Create your organisation</h1>
@@ -72,33 +81,33 @@ export const SignUP = ({ handlesignupform, handlesubmitform, stateformdata, erro
                         <div>
                             <p className="signup-section-label">Personal details</p>
                             <div className="signup-grid">
-                                <Field id="firstname"     label="First name"      type="text"     placeholder="Jane" />
-                                <Field id="lastname"      label="Last name"       type="text"     placeholder="Smith" />
-                                <Field id="email"         label="Email address"   type="email"    placeholder="jane@company.com" />
-                                <Field id="contactnumber" label="Contact number"  type="number"   placeholder="+1 555 000 0000" />
-                                <Field id="textpassword"  label="Password"        type="password" placeholder="At least 8 characters" />
-                                <Field id="password"      label="Confirm password" type="password" placeholder="Repeat your password" />
+                                <Field id="firstname"     label="First name"     type="text"     placeholder="Jane" value={stateformdata.firstname} onChange={handlesignupform} />
+                                <Field id="lastname"      label="Last name"       type="text"     placeholder="Smith" value={stateformdata.lastname} onChange={handlesignupform} />
+                                <Field id="email"         label="Email address"   type="email"    placeholder="jane@company.com" value={stateformdata.email} onChange={handlesignupform} />
+                                <Field id="contactnumber" label="Contact number"  type="number"   placeholder="+1 555 000 0000" value={stateformdata.contactnumber} onChange={handlesignupform} />
+                                <Field id="textpassword"  label="Password"        type="password" placeholder="At least 8 characters" value={stateformdata.textpassword} onChange={handlesignupform} />
+                                <Field id="password"      label="Confirm password" type="password" placeholder="Repeat your password" value={stateformdata.password} onChange={handlesignupform} />
                             </div>
                         </div>
                         <div className="auth-divider" />
                         <div>
                             <p className="signup-section-label">Organisation details</p>
                             <div className="signup-grid">
-                                <Field id="name"              label="Organisation name"   type="text"  placeholder="Acme Corp" />
-                                <Field id="description"       label="Description"         type="text"  placeholder="What your organisation does" />
-                                <Field id="OrganizationURL"   label="Organisation URL"    type="text"  placeholder="acmecorp.com" />
-                                <Field id="OrganizationMail"  label="Organisation email"  type="email" placeholder="hr@acmecorp.com" />
+                                <Field id="name"               label="Organisation name"   type="text"  placeholder="Acme Corp" value={stateformdata.name} onChange={handlesignupform} />
+                                <Field id="description"        label="Description"         type="text"  placeholder="What your organisation does" value={stateformdata.description} onChange={handlesignupform} />
+                                <Field id="OrganizationURL"    label="Organisation URL"    type="text"  placeholder="acmecorp.com" value={stateformdata.OrganizationURL} onChange={handlesignupform} />
+                                <Field id="OrganizationMail"   label="Organisation email"  type="email" placeholder="hr@acmecorp.com" value={stateformdata.OrganizationMail} onChange={handlesignupform} />
                             </div>
                         </div>
                         <div className="auth-divider" />
                         <div className="signup-actions">
-                            <button className="auth-submit-btn" onClick={handlesubmitform}>Create account →</button>
+                            <button type="submit" className="auth-submit-btn">Create account →</button>
                             <div className="signup-signin-note">
                                 Already have an account?
                                 <Link to="/auth/hr/login" className="auth-link">Sign in</Link>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </>

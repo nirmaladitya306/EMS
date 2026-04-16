@@ -4,6 +4,34 @@ import { HandleGetAllRequests, HandleUpdateRequestStatus, HandleDeleteRequest } 
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --rq-text-main: #fafafa;
+    --rq-text-muted: #a1a1aa;
+    --rq-text-faint: #71717a;
+    --rq-modal-bg: #18181b;
+    --rq-border: #27272a;
+    --rq-subtle-bg: rgba(255,255,255,0.03);
+    
+    /* Status Variable Boosts */
+    --rq-stat-pending: #fbbf24;
+    --rq-stat-pending-bg: rgba(234,179,8,0.15);
+    --rq-stat-approved: #4ade80;
+    --rq-stat-approved-bg: rgba(22,163,74,0.15);
+    --rq-stat-denied: #f87171;
+    --rq-stat-denied-bg: rgba(220,38,38,0.15);
+
+    --rq-pill-neutral-bg: rgba(255,255,255,0.08);
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--rq-modal-bg) !important;
+    border: 1px solid var(--rq-border) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8) !important;
+  }
+`
+
 const fmtDate = (d) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
@@ -23,13 +51,13 @@ const Avatar = ({ first, last }) => (
 )
 
 const STATUS = {
-    Pending:  { bg: 'rgba(234,179,8,0.09)',  color: '#854d0e', border: 'rgba(234,179,8,0.3)'  },
-    Approved: { bg: 'rgba(22,163,74,0.08)',  color: '#15803d', border: 'rgba(22,163,74,0.22)' },
-    Denied:   { bg: 'rgba(220,38,38,0.07)', color: '#dc2626', border: 'rgba(220,38,38,0.2)'  },
+    Pending:  { bg: 'var(--rq-stat-pending-bg, rgba(234,179,8,0.09))',  color: 'var(--rq-stat-pending, #854d0e)', border: 'rgba(234,179,8,0.3)'   },
+    Approved: { bg: 'var(--rq-stat-approved-bg, rgba(22,163,74,0.08))', color: 'var(--rq-stat-approved, #15803d)', border: 'rgba(22,163,74,0.22)' },
+    Denied:   { bg: 'var(--rq-stat-denied-bg, rgba(220,38,38,0.07))',   color: 'var(--rq-stat-denied, #dc2626)',   border: 'rgba(220,38,38,0.2)'   },
 }
 
 const StatusPill = ({ status }) => {
-    const s = STATUS[status] || { bg: 'rgba(0,0,0,0.04)', color: 'rgba(0,0,0,0.45)', border: 'rgba(0,0,0,0.1)' }
+    const s = STATUS[status] || { bg: 'var(--rq-pill-neutral-bg, rgba(0,0,0,0.04))', color: 'var(--rq-text-muted, rgba(0,0,0,0.45))', border: 'var(--rq-border, rgba(0,0,0,0.1))' }
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -55,10 +83,10 @@ const ReviewModal = ({ request, onClose, onSubmit, HRID }) => {
         <div className="pg-modal-overlay">
             <div className="pg-modal">
                 <div>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', marginBottom: 4 }}>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.25rem', color: 'var(--rq-text-main, #0f172a)', letterSpacing: '-0.02em', marginBottom: 4 }}>
                         Review Request
                     </div>
-                    <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', margin: 0 }}>
+                    <p style={{ fontSize: 12, color: 'var(--rq-text-muted, rgba(0,0,0,0.38))', margin: 0 }}>
                         Approve or deny this employee request.
                     </p>
                 </div>
@@ -68,10 +96,10 @@ const ReviewModal = ({ request, onClose, onSubmit, HRID }) => {
                         <div key={label} style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
                             gap: 16, padding: '9px 0',
-                            borderBottom: i < rows.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                            borderBottom: i < rows.length - 1 ? '1px solid var(--rq-border, rgba(0,0,0,0.05))' : 'none',
                         }}>
-                            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)', flexShrink: 0 }}>{label}</span>
-                            <span style={{ fontSize: 13, color: '#0f172a', fontWeight: 500, textAlign: 'right' }}>{value}</span>
+                            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--rq-text-faint, rgba(0,0,0,0.35))', flexShrink: 0 }}>{label}</span>
+                            <span style={{ fontSize: 13, color: 'var(--rq-text-main, #0f172a)', fontWeight: 500, textAlign: 'right' }}>{value}</span>
                         </div>
                     ))}
                 </div>
@@ -87,9 +115,9 @@ const ReviewModal = ({ request, onClose, onSubmit, HRID }) => {
                                     flex: 1, padding: '9px 0', borderRadius: 10,
                                     fontSize: 13, fontWeight: 500, cursor: 'pointer',
                                     fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s',
-                                    border: active ? `1px solid ${s.border}` : '1px solid rgba(0,0,0,0.1)',
+                                    border: active ? `1px solid ${s.border}` : '1px solid var(--rq-border, rgba(0,0,0,0.1))',
                                     background: active ? s.bg : 'transparent',
-                                    color: active ? s.color : 'rgba(0,0,0,0.45)',
+                                    color: active ? s.color : 'var(--rq-text-muted, rgba(0,0,0,0.45))',
                                 }}>
                                     {opt === 'Approved' ? '✓ Approve' : '✕ Deny'}
                                 </button>
@@ -140,6 +168,7 @@ export const RequestsPage = () => {
 
     return (
         <PageShell>
+            <style>{styles}</style>
             <PageHeader eyebrow="Operations" title="Employee Requests" subtitle="Review and action employee-generated requests" />
 
             <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>

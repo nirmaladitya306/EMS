@@ -31,9 +31,11 @@ const HumanResourcesSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ["HR-Admin", "Employee"],
-        required: true,
-        default: "HR-Admin"
+        role: {
+    type: String,
+    enum: ["HR-Admin", "HR", "Employee"], 
+    default: "HR"
+}
     },
     // ─── RBAC: which Role document this HR user is assigned ──────────────────
     rbacRole: {

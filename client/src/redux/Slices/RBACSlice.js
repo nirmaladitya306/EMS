@@ -153,7 +153,27 @@ export default RBACSlice.reducer
 // ─── Selector helper ──────────────────────────────────────────────────────────
 // Usage in any component: const can = useSelector(selectCan('employee.create'))
 export const selectCan = (permission) => (state) => {
-    const rbac = state.RBACReducer
-    if (rbac.isUnrestricted || rbac.myPermissions === null) return true
-    return rbac.myPermissions.includes(permission)
+    const rbac = state.RBACReducer;
+    
+    // Note: Ensure the name here matches how Access Drift is configured in your store
+    const driftState = state.AccessDriftReducer; 
+
+    // 1. Super-admin or full access
+    if (rbac.isUnrestricted || rbac.myPermissions === null) return true;
+
+    // 2. Base permissions check
+    if (rbac.myPermissions.includes(permission)) return true;
+
+    // 3. Temporary Privilege (Drift) check
+    if (driftState?.myDrifts?.length > 0) {
+        const hasActiveDrift = driftState.myDrifts.some(drift => {
+            // Ignore revoked or expired drifts
+            if (drift.isRevoked || new Date(drift.expiresAt) < new Date()) return false;
+            // Check if the temporary role has the permission
+            return drift.driftRole?.permissions?.includes(permission);
+        });
+        if (hasActiveDrift) return true;
+    }
+
+    return false;
 }

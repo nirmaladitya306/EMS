@@ -8,6 +8,41 @@ import { Loading } from '../../../components/common/loading'
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+  /* ═══════════════════════════════════════════════════════
+     DARK MODE OVERRIDES
+  ═══════════════════════════════════════════════════════ */
+  [data-theme='dark'] {
+    --mlrec-bg: #18181b;
+    --mlrec-border: #27272a;
+    --mlrec-text-main: #fafafa;
+    --mlrec-text-muted: #a1a1aa;
+    --mlrec-text-faint: #71717a;
+    
+    --mlrec-track-bg: rgba(255,255,255,0.1);
+    --mlrec-ring-bg: rgba(255,255,255,0.05);
+    
+    --mlrec-hover: rgba(255,255,255,0.04);
+    
+    --mlrec-green-bg: rgba(22,163,74,0.15);
+    --mlrec-green-text: #4ade80;
+    --mlrec-blue-bg: rgba(37,99,235,0.15);
+    --mlrec-blue-text: #60a5fa;
+    --mlrec-yellow-bg: rgba(234,179,8,0.15);
+    --mlrec-yellow-text: #fbbf24;
+    --mlrec-red-bg: rgba(220,38,38,0.15);
+    --mlrec-red-text: #f87171;
+
+    --mlrec-pos-bg: rgba(16, 185, 129, 0.08);
+    --mlrec-pos-border: rgba(16, 185, 129, 0.2);
+    --mlrec-pos-title: #34d399;
+    --mlrec-pos-text: #a7f3d0;
+
+    --mlrec-cau-bg: rgba(245, 158, 11, 0.08);
+    --mlrec-cau-border: rgba(245, 158, 11, 0.2);
+    --mlrec-cau-title: #fbbf24;
+    --mlrec-cau-text: #fde68a;
+  }
+
   .lrec-panel {
     background: var(--ems-bg-secondary, rgba(0,0,0,0.012));
     border: 1px solid var(--ems-border, rgba(0,0,0,0.07));
@@ -33,37 +68,37 @@ const styles = `
   .lrec-clear-btn:hover { color: var(--ems-text-muted, rgba(0,0,0,0.55)); }
 
   .lrec-card {
-    background: var(--ems-surface, #ffffff);
-    border: 1px solid var(--ems-surface-border, rgba(0,0,0,0.07));
+    background: var(--mlrec-bg, #ffffff);
+    border: 1px solid var(--mlrec-border, rgba(0,0,0,0.07));
     border-radius: 14px; padding: 18px 20px;
     display: flex; flex-direction: column; gap: 14px;
     font-family: 'DM Sans', sans-serif;
   }
-  .lrec-label { font-size: 12px; font-weight: 600; color: var(--ems-text-muted, rgba(0,0,0,0.55)); }
+  .lrec-label { font-size: 12px; font-weight: 600; color: var(--mlrec-text-muted, rgba(0,0,0,0.55)); }
 
   .lrec-bar-wrap { display: flex; flex-direction: column; gap: 5px; width: 100%; }
-  .lrec-bar-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--ems-text-faint, rgba(0,0,0,0.4)); }
-  .lrec-bar-track { width: 100%; background: rgba(0,0,0,0.07); border-radius: 100px; height: 8px; }
+  .lrec-bar-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--mlrec-text-faint, rgba(0,0,0,0.4)); }
+  .lrec-bar-track { width: 100%; background: var(--mlrec-track-bg, rgba(0,0,0,0.07)); border-radius: 100px; height: 8px; }
   .lrec-bar-fill  { height: 8px; border-radius: 100px; transition: width 0.4s; }
-  .lrec-bar-quota { font-size: 11px; color: var(--ems-text-faint, rgba(0,0,0,0.35)); text-align: right; margin-top: 2px; }
+  .lrec-bar-quota { font-size: 11px; color: var(--mlrec-text-faint, rgba(0,0,0,0.35)); text-align: right; margin-top: 2px; }
 
-  .lrec-positive { background: rgba(22,163,74,0.07); border: 1px solid rgba(22,163,74,0.2); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
-  .lrec-positive-title { font-size: 12px; font-weight: 700; color: #15803d; }
-  .lrec-positive-item  { display: flex; gap: 8px; font-size: 13px; color: #15803d; }
-  .lrec-caution { background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
-  .lrec-caution-title { font-size: 12px; font-weight: 700; color: #b45309; }
-  .lrec-caution-item  { display: flex; gap: 8px; font-size: 13px; color: #b45309; }
+  .lrec-positive { background: var(--mlrec-pos-bg, rgba(22,163,74,0.07)); border: 1px solid var(--mlrec-pos-border, rgba(22,163,74,0.2)); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .lrec-positive-title { font-size: 12px; font-weight: 700; color: var(--mlrec-pos-title, #15803d); }
+  .lrec-positive-item  { display: flex; gap: 8px; font-size: 13px; color: var(--mlrec-pos-text, #15803d); }
+  .lrec-caution { background: var(--mlrec-cau-bg, rgba(245,158,11,0.07)); border: 1px solid var(--mlrec-cau-border, rgba(245,158,11,0.2)); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .lrec-caution-title { font-size: 12px; font-weight: 700; color: var(--mlrec-cau-title, #b45309); }
+  .lrec-caution-item  { display: flex; gap: 8px; font-size: 13px; color: var(--mlrec-cau-text, #b45309); }
 
   .lrec-window-card {
-    border: 1px solid var(--ems-border, rgba(0,0,0,0.08));
+    border: 1px solid var(--mlrec-border, rgba(0,0,0,0.08));
     border-radius: 12px; padding: 12px 14px;
     display: flex; flex-direction: column; gap: 6px;
     transition: border-color 0.2s, background 0.2s;
     font-family: 'DM Sans', sans-serif;
   }
-  .lrec-window-card:hover { border-color: rgba(99,102,241,0.3); background: rgba(99,102,241,0.04); }
-  .lrec-window-name { font-size: 13px; font-weight: 600; color: var(--ems-text-primary, #0f172a); }
-  .lrec-window-days { font-size: 12px; color: var(--ems-text-faint, rgba(0,0,0,0.4)); }
+  .lrec-window-card:hover { border-color: rgba(99,102,241,0.3); background: var(--mlrec-hover, rgba(99,102,241,0.04)); }
+  .lrec-window-name { font-size: 13px; font-weight: 600; color: var(--mlrec-text-main, #0f172a); }
+  .lrec-window-days { font-size: 12px; color: var(--mlrec-text-faint, rgba(0,0,0,0.4)); }
   .lrec-window-btn {
     background: none; border: none; cursor: pointer; text-align: left;
     font-size: 12px; color: #6366f1; font-weight: 500;
@@ -74,19 +109,19 @@ const styles = `
 
   .lrec-history-head { display: grid; grid-template-columns: 1fr 1fr 1fr 80px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ems-label-color, rgba(0,0,0,0.35)); padding: 0 8px 8px; }
   .lrec-history-row  { display: grid; grid-template-columns: 1fr 1fr 1fr 80px; font-size: 13px; padding: 8px; border-radius: 8px; transition: background 0.12s; }
-  .lrec-history-row:hover { background: var(--ems-bg-secondary, rgba(0,0,0,0.02)); }
-  .lrec-history-title { color: var(--ems-text-muted, rgba(0,0,0,0.65)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .lrec-history-date  { font-size: 12px; color: var(--ems-text-faint, rgba(0,0,0,0.4)); }
+  .lrec-history-row:hover { background: var(--mlrec-hover, rgba(0,0,0,0.02)); }
+  .lrec-history-title { color: var(--mlrec-text-muted, rgba(0,0,0,0.65)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lrec-history-date  { font-size: 12px; color: var(--mlrec-text-faint, rgba(0,0,0,0.4)); }
 
-  .lrec-error { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: #dc2626; font-family: 'DM Sans', sans-serif; }
+  .lrec-error { background: var(--mlrec-red-bg, rgba(220,38,38,0.06)); border: 1px solid var(--mlrec-red-border, rgba(220,38,38,0.2)); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: var(--mlrec-red-text, #dc2626); font-family: 'DM Sans', sans-serif; }
 `
 
 const ScoreRing = ({ score, color }) => {
     const colorMap = {
-        green:  { stroke: '#16a34a', bg: 'rgba(22,163,74,0.12)',  text: '#15803d' },
-        blue:   { stroke: '#2563eb', bg: 'rgba(37,99,235,0.1)',   text: '#1d4ed8' },
-        yellow: { stroke: '#d97706', bg: 'rgba(217,119,6,0.1)',   text: '#b45309' },
-        red:    { stroke: '#dc2626', bg: 'rgba(220,38,38,0.1)',   text: '#b91c1c' },
+        green:  { stroke: 'var(--mlrec-green-text, #16a34a)', bg: 'var(--mlrec-green-bg, rgba(22,163,74,0.12))',  text: 'var(--mlrec-green-text, #15803d)' },
+        blue:   { stroke: 'var(--mlrec-blue-text, #2563eb)',  bg: 'var(--mlrec-blue-bg, rgba(37,99,235,0.1))',   text: 'var(--mlrec-blue-text, #1d4ed8)' },
+        yellow: { stroke: 'var(--mlrec-yellow-text, #d97706)', bg: 'var(--mlrec-yellow-bg, rgba(217,119,6,0.1))',  text: 'var(--mlrec-yellow-text, #b45309)' },
+        red:    { stroke: 'var(--mlrec-red-text, #dc2626)',    bg: 'var(--mlrec-red-bg, rgba(220,38,38,0.1))',   text: 'var(--mlrec-red-text, #b91c1c)' },
     }
     const c    = colorMap[color] || colorMap.blue
     const r    = 44
@@ -94,7 +129,7 @@ const ScoreRing = ({ score, color }) => {
     const dash = (score / 100) * circ
     return (
         <svg width="110" height="110" viewBox="0 0 110 110">
-            <circle cx="55" cy="55" r={r} fill={c.bg} stroke="rgba(0,0,0,0.08)" strokeWidth="8" />
+            <circle cx="55" cy="55" r={r} fill={c.bg} stroke="var(--mlrec-ring-bg, rgba(0,0,0,0.08))" strokeWidth="8" />
             <circle cx="55" cy="55" r={r}
                 fill="none" stroke={c.stroke} strokeWidth="8"
                 strokeDasharray={`${dash} ${circ}`}
@@ -109,10 +144,10 @@ const ScoreRing = ({ score, color }) => {
 
 const Pill = ({ label, type }) => {
     const map = {
-        green:  { bg: 'rgba(22,163,74,0.1)',   color: '#15803d', border: 'rgba(22,163,74,0.25)'  },
-        blue:   { bg: 'rgba(37,99,235,0.09)',  color: '#1d4ed8', border: 'rgba(37,99,235,0.2)'   },
-        yellow: { bg: 'rgba(217,119,6,0.09)',  color: '#b45309', border: 'rgba(217,119,6,0.25)'  },
-        red:    { bg: 'rgba(220,38,38,0.08)',  color: '#dc2626', border: 'rgba(220,38,38,0.22)'  },
+        green:  { bg: 'var(--mlrec-green-bg, rgba(22,163,74,0.1))',   color: 'var(--mlrec-green-text, #15803d)', border: 'var(--mlrec-green-border, rgba(22,163,74,0.25))'  },
+        blue:   { bg: 'var(--mlrec-blue-bg, rgba(37,99,235,0.09))',  color: 'var(--mlrec-blue-text, #1d4ed8)', border: 'var(--mlrec-blue-border, rgba(37,99,235,0.2))'   },
+        yellow: { bg: 'var(--mlrec-yellow-bg, rgba(217,119,6,0.09))', color: 'var(--mlrec-yellow-text, #b45309)', border: 'var(--mlrec-yellow-border, rgba(217,119,6,0.25))'  },
+        red:    { bg: 'var(--mlrec-red-bg, rgba(220,38,38,0.08))',   color: 'var(--mlrec-red-text, #dc2626)', border: 'var(--mlrec-red-border, rgba(220,38,38,0.22))'  },
     }
     const s = map[type] || map.blue
     return (
@@ -217,11 +252,11 @@ export const MyLeaveRecommendationPage = () => {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                         <Pill label={reco.recommendation} type={reco.color} />
                                         {reco.requestDays && (
-                                            <p style={{ fontSize: 12, color: 'var(--ems-text-faint)', margin: 0 }}>
+                                            <p style={{ fontSize: 12, color: 'var(--mlrec-text-faint, rgba(0,0,0,0.4))', margin: 0 }}>
                                                 For {reco.requestDays} working day{reco.requestDays !== 1 ? 's' : ''} requested
                                             </p>
                                         )}
-                                        {rec.insight && <p style={{ fontSize: 12, color: 'var(--ems-text-faint)', fontStyle: 'italic', margin: 0 }}>{rec.insight}</p>}
+                                        {rec.insight && <p style={{ fontSize: 12, color: 'var(--mlrec-text-faint, rgba(0,0,0,0.4))', fontStyle: 'italic', margin: 0 }}>{rec.insight}</p>}
                                     </div>
                                 </div>
                             </div>
@@ -259,7 +294,7 @@ export const MyLeaveRecommendationPage = () => {
                         {rec.suggestedWindows?.length > 0 && (
                             <div className="lrec-card">
                                 <p className="lrec-label">Suggested Leave Windows</p>
-                                <p style={{ fontSize: 12, color: 'var(--ems-text-faint)', margin: 0 }}>
+                                <p style={{ fontSize: 12, color: 'var(--mlrec-text-faint, rgba(0,0,0,0.4))', margin: 0 }}>
                                     These windows avoid peak periods and ensure your team has coverage. Click any to analyse it.
                                 </p>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -295,7 +330,7 @@ export const MyLeaveRecommendationPage = () => {
                                             <span className="lrec-history-date">{fmtDate(h.enddate)}</span>
                                             <span style={{
                                                 fontSize: 12, fontWeight: 600,
-                                                color: h.status === 'Approved' ? '#16a34a' : h.status === 'Rejected' ? '#dc2626' : '#b45309',
+                                                color: h.status === 'Approved' ? 'var(--mlrec-green-text, #16a34a)' : h.status === 'Rejected' ? 'var(--mlrec-red-text, #dc2626)' : 'var(--mlrec-yellow-text, #b45309)',
                                             }}>{h.status}</span>
                                         </div>
                                     ))}

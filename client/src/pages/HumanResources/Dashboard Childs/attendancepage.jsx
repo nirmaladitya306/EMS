@@ -4,6 +4,25 @@ import { HandleGetAllAttendances, HandleDeleteAttendance } from '../../../redux/
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --att-text-main: #fafafa;
+    --att-text-muted: #a1a1aa;
+    --att-border: #27272a;
+
+    /* Override the 'Not Specified' status colors for dark mode */
+    --att-ns-bg: rgba(255,255,255,0.08);
+    --att-ns-text: rgba(255,255,255,0.6);
+    --att-ns-border: rgba(255,255,255,0.12);
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: #18181b !important;
+    border: 1px solid #27272a !important;
+  }
+`
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtDate = (d) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
@@ -28,7 +47,7 @@ const Avatar = ({ first, last, size = 30, fontSize = 11 }) => (
 const STATUS = {
     Present:         { bg: 'rgba(22,163,74,0.08)',  color: '#15803d', border: 'rgba(22,163,74,0.22)'  },
     Absent:          { bg: 'rgba(220,38,38,0.07)',  color: '#dc2626', border: 'rgba(220,38,38,0.2)'   },
-    'Not Specified': { bg: 'rgba(0,0,0,0.04)',      color: 'rgba(0,0,0,0.45)', border: 'rgba(0,0,0,0.1)' },
+    'Not Specified': { bg: 'var(--att-ns-bg, rgba(0,0,0,0.04))', color: 'var(--att-ns-text, rgba(0,0,0,0.45))', border: 'var(--att-ns-border, rgba(0,0,0,0.1))' },
 }
 
 const StatusPill = ({ status }) => {
@@ -70,12 +89,12 @@ const LogModal = ({ record, onClose }) => {
                     <div>
                         <div style={{
                             fontFamily: "'DM Serif Display', serif",
-                            fontSize: '1.2rem', color: '#0f172a',
+                            fontSize: '1.2rem', color: 'var(--att-text-main, #0f172a)',
                             letterSpacing: '-0.02em', lineHeight: 1.2,
                         }}>
                             {record.employee?.firstname} {record.employee?.lastname}
                         </div>
-                        <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 3 }}>
+                        <div style={{ fontSize: 12, color: 'var(--att-text-muted, rgba(0,0,0,0.38))', marginTop: 3 }}>
                             Attendance Log · {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
                         </div>
                     </div>
@@ -128,9 +147,9 @@ const LogModal = ({ record, onClose }) => {
                                 display: 'flex', justifyContent: 'space-between',
                                 alignItems: 'center', gap: 16,
                                 padding: '9px 0',
-                                borderBottom: i < logs.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                                borderBottom: i < logs.length - 1 ? '1px solid var(--att-border, rgba(0,0,0,0.05))' : 'none',
                             }}>
-                                <span style={{ fontSize: 13, color: '#0f172a', fontWeight: 500 }}>
+                                <span style={{ fontSize: 13, color: 'var(--att-text-main, #0f172a)', fontWeight: 500 }}>
                                     {fmtDate(log.logdate)}
                                 </span>
                                 <StatusPill status={log.logstatus} />
@@ -140,7 +159,7 @@ const LogModal = ({ record, onClose }) => {
                 </div>
 
                 {/* Actions */}
-                <div className="pg-modal-actions">
+                <div className="pg-modal-actions" style={{ borderTop: '1px solid var(--att-border, rgba(0,0,0,0.06))' }}>
                     <button className="pg-btn-ghost" onClick={onClose}>Close</button>
                 </div>
             </div>
@@ -180,6 +199,7 @@ export const AttendancePage = () => {
 
     return (
         <PageShell>
+            <style>{styles}</style>
 
             {/* ── Page header ── */}
             <PageHeader
@@ -285,7 +305,7 @@ export const AttendancePage = () => {
                         </span>
 
                         {/* Log count */}
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--att-text-main, #0f172a)' }}>
                             {a.attendancelog?.length || 0}
                             <span className="pg-td-sub" style={{ fontWeight: 400, marginLeft: 3 }}>
                                 {a.attendancelog?.length === 1 ? 'day' : 'days'}

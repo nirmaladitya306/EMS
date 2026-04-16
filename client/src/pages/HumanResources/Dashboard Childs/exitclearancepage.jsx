@@ -13,6 +13,27 @@ import { HandleGetHREmployees } from '../../../redux/Thunks/HREmployeesThunk'
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --ex-drawer-bg: #09090b;
+    --ex-modal-bg: #18181b;
+    --ex-text-main: #fafafa;
+    --ex-text-muted: #a1a1aa;
+    --ex-text-faint: #71717a;
+    --ex-border: #27272a;
+    --ex-subtle-bg: rgba(255,255,255,0.04);
+    --ex-prog-bg: rgba(255,255,255,0.1);
+    --ex-shadow: -24px 0 64px rgba(0,0,0,0.6);
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--ex-modal-bg) !important;
+    border: 1px solid var(--ex-border) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8) !important;
+  }
+`
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtDate = (d) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
@@ -30,7 +51,7 @@ const STATUS_TOKENS = {
 
 // ─── Status pill ──────────────────────────────────────────────────────────────
 const StatusPill = ({ status }) => {
-    const t = STATUS_TOKENS[status] || { bg: 'rgba(0,0,0,0.04)', color: 'rgba(0,0,0,0.45)', border: 'rgba(0,0,0,0.1)' }
+    const t = STATUS_TOKENS[status] || { bg: 'var(--ex-subtle-bg, rgba(0,0,0,0.04))', color: 'var(--ex-text-muted, rgba(0,0,0,0.45))', border: 'var(--ex-border, rgba(0,0,0,0.1))' }
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -64,14 +85,14 @@ const ChecklistBar = ({ checklist }) => {
     const pct   = total ? Math.round((done / total) * 100) : 0
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 110 }}>
-            <div style={{ flex: 1, height: 5, borderRadius: 100, background: 'rgba(0,0,0,0.07)' }}>
+            <div style={{ flex: 1, height: 5, borderRadius: 100, background: 'var(--ex-prog-bg, rgba(0,0,0,0.07))' }}>
                 <div style={{
                     width: `${pct}%`, height: '100%', borderRadius: 100,
                     background: pct === 100 ? '#16a34a' : 'linear-gradient(90deg, #6366f1, #8b5cf6)',
                     transition: 'width 0.3s ease',
                 }} />
             </div>
-            <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', whiteSpace: 'nowrap', fontWeight: 500 }}>
+            <span style={{ fontSize: 11, color: 'var(--ex-text-muted, rgba(0,0,0,0.4))', whiteSpace: 'nowrap', fontWeight: 500 }}>
                 {done}/{total}
             </span>
         </div>
@@ -92,12 +113,12 @@ const CreateModal = ({ onClose, onSubmit, employees }) => {
                 <div>
                     <div style={{
                         fontFamily: "'DM Serif Display', serif",
-                        fontSize: '1.25rem', color: '#0f172a',
+                        fontSize: '1.25rem', color: 'var(--ex-text-main, #0f172a)',
                         letterSpacing: '-0.02em', marginBottom: 4,
                     }}>
                         Initiate Exit Clearance
                     </div>
-                    <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', margin: 0 }}>
+                    <p style={{ fontSize: 12, color: 'var(--ex-text-muted, rgba(0,0,0,0.38))', margin: 0 }}>
                         A default 8-item checklist will be created automatically.
                     </p>
                 </div>
@@ -190,59 +211,59 @@ const DetailDrawer = ({ clearance, onClose, onToggle, onStatusChange, onDetailsU
         >
             <div
                 style={{
-                    background: '#fff', width: '100%', maxWidth: 520,
+                    background: 'var(--ex-drawer-bg, #fff)', width: '100%', maxWidth: 520,
                     height: '100%', display: 'flex', flexDirection: 'column',
-                    boxShadow: '-24px 0 64px rgba(0,0,0,0.12)',
+                    boxShadow: 'var(--ex-shadow, -24px 0 64px rgba(0,0,0,0.12))',
                     fontFamily: "'DM Sans', sans-serif",
                 }}
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(0,0,0,0.06)', flexShrink: 0 }}>
+                <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--ex-border, rgba(0,0,0,0.06))', flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <Avatar first={clearance.employee?.firstname} last={clearance.employee?.lastname} size={44} fontSize={15} />
                             <div>
-                                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.1rem', color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.1rem', color: 'var(--ex-text-main, #0f172a)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
                                     {clearance.employee?.firstname} {clearance.employee?.lastname}
                                 </div>
-                                <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', marginTop: 3 }}>
+                                <div style={{ fontSize: 12, color: 'var(--ex-text-muted, rgba(0,0,0,0.38))', marginTop: 3 }}>
                                     Initiated {fmtDate(clearance.createdAt)}
                                 </div>
                             </div>
                         </div>
-                        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'rgba(0,0,0,0.35)', lineHeight: 1, padding: 4 }}>✕</button>
+                        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--ex-text-muted, rgba(0,0,0,0.35))', lineHeight: 1, padding: 4 }}>✕</button>
                     </div>
 
                     {/* Status + reason */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
                         <StatusPill status={clearance.status} />
-                        <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 12, color: 'var(--ex-text-muted, rgba(0,0,0,0.4))', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {clearance.reason}
                         </span>
                     </div>
 
                     {/* Key dates */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 14, background: 'rgba(0,0,0,0.012)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '10px 14px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 14, background: 'var(--ex-subtle-bg, rgba(0,0,0,0.012))', border: '1px solid var(--ex-border, rgba(0,0,0,0.07))', borderRadius: 10, padding: '10px 14px' }}>
                         {[
                             { label: 'Resignation',  value: fmtDate(clearance.resignationDate) },
                             { label: 'Last Working', value: fmtDate(clearance.lastWorkingDate) },
                             { label: 'Exit Date',    value: fmtDate(clearance.exitDate)        },
                         ].map(f => (
                             <div key={f.label}>
-                                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)', marginBottom: 3 }}>{f.label}</div>
-                                <div style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>{f.value}</div>
+                                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ex-text-muted, rgba(0,0,0,0.35))', marginBottom: 3 }}>{f.label}</div>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ex-text-main, #0f172a)' }}>{f.value}</div>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.07)', padding: '0 24px', flexShrink: 0 }}>
+                <div style={{ display: 'flex', borderBottom: '1px solid var(--ex-border, rgba(0,0,0,0.07))', padding: '0 24px', flexShrink: 0 }}>
                     {TABS.map(t => (
                         <button key={t.key} onClick={() => setTab(t.key)} style={{
                             padding: '10px 16px', fontSize: 13, fontWeight: 500,
-                            color: tab === t.key ? '#6366f1' : 'rgba(0,0,0,0.4)',
+                            color: tab === t.key ? '#6366f1' : 'var(--ex-text-muted, rgba(0,0,0,0.4))',
                             borderBottom: `2px solid ${tab === t.key ? '#6366f1' : 'transparent'}`,
                             background: 'none', border: 'none', borderBottomWidth: 2, borderBottomStyle: 'solid',
                             borderBottomColor: tab === t.key ? '#6366f1' : 'transparent',
@@ -261,13 +282,13 @@ const DetailDrawer = ({ clearance, onClose, onToggle, onStatusChange, onDetailsU
                     {tab === 'checklist' && (
                         <>
                             {/* Progress summary */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.012)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '10px 14px' }}>
-                                <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.55)' }}>Clearance Tasks</span>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--ex-subtle-bg, rgba(0,0,0,0.012))', border: '1px solid var(--ex-border, rgba(0,0,0,0.07))', borderRadius: 10, padding: '10px 14px' }}>
+                                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ex-text-muted, rgba(0,0,0,0.55))' }}>Clearance Tasks</span>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <div style={{ width: 110, height: 5, borderRadius: 100, background: 'rgba(0,0,0,0.07)' }}>
+                                    <div style={{ width: 110, height: 5, borderRadius: 100, background: 'var(--ex-prog-bg, rgba(0,0,0,0.07))' }}>
                                         <div style={{ width: `${pct}%`, height: '100%', borderRadius: 100, background: pct === 100 ? '#16a34a' : 'linear-gradient(90deg, #6366f1, #8b5cf6)', transition: 'width 0.3s ease' }} />
                                     </div>
-                                    <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', fontWeight: 500 }}>{done}/{total}</span>
+                                    <span style={{ fontSize: 11, color: 'var(--ex-text-muted, rgba(0,0,0,0.4))', fontWeight: 500 }}>{done}/{total}</span>
                                 </div>
                             </div>
 
@@ -275,8 +296,8 @@ const DetailDrawer = ({ clearance, onClose, onToggle, onStatusChange, onDetailsU
                                 <div key={item._id} style={{
                                     display: 'flex', alignItems: 'flex-start', gap: 12,
                                     padding: '12px 14px', borderRadius: 12,
-                                    background: item.completed ? 'rgba(22,163,74,0.05)' : 'rgba(0,0,0,0.012)',
-                                    border: `1px solid ${item.completed ? 'rgba(22,163,74,0.2)' : 'rgba(0,0,0,0.07)'}`,
+                                    background: item.completed ? 'rgba(22,163,74,0.05)' : 'var(--ex-subtle-bg, rgba(0,0,0,0.012))',
+                                    border: `1px solid ${item.completed ? 'rgba(22,163,74,0.2)' : 'var(--ex-border, rgba(0,0,0,0.07))'}`,
                                     transition: 'all 0.15s',
                                 }}>
                                     <button
@@ -285,7 +306,7 @@ const DetailDrawer = ({ clearance, onClose, onToggle, onStatusChange, onDetailsU
                                         style={{
                                             width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1,
                                             cursor: isFinished ? 'not-allowed' : 'pointer',
-                                            border: item.completed ? 'none' : '1.5px solid rgba(0,0,0,0.2)',
+                                            border: item.completed ? 'none' : '1.5px solid var(--ex-border, rgba(0,0,0,0.2))',
                                             background: item.completed ? '#16a34a' : 'transparent',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             opacity: isFinished && !item.completed ? 0.45 : 1,
@@ -295,7 +316,7 @@ const DetailDrawer = ({ clearance, onClose, onToggle, onStatusChange, onDetailsU
                                         {item.completed && <span style={{ color: 'white', fontSize: 11, lineHeight: 1, fontWeight: 700 }}>✓</span>}
                                     </button>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: 13, fontWeight: 500, color: item.completed ? 'rgba(0,0,0,0.35)' : '#0f172a', textDecoration: item.completed ? 'line-through' : 'none' }}>
+                                        <div style={{ fontSize: 13, fontWeight: 500, color: item.completed ? 'var(--ex-text-faint, rgba(0,0,0,0.35))' : 'var(--ex-text-main, #0f172a)', textDecoration: item.completed ? 'line-through' : 'none' }}>
                                             {item.task}
                                         </div>
                                         {item.completed && item.completedBy && (
@@ -304,7 +325,7 @@ const DetailDrawer = ({ clearance, onClose, onToggle, onStatusChange, onDetailsU
                                             </div>
                                         )}
                                         {item.notes && (
-                                            <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.38)', marginTop: 2, fontStyle: 'italic' }}>{item.notes}</div>
+                                            <div style={{ fontSize: 11, color: 'var(--ex-text-muted, rgba(0,0,0,0.38))', marginTop: 2, fontStyle: 'italic' }}>{item.notes}</div>
                                         )}
                                     </div>
                                 </div>
@@ -315,8 +336,8 @@ const DetailDrawer = ({ clearance, onClose, onToggle, onStatusChange, onDetailsU
                     {/* ── Status ── */}
                     {tab === 'status' && (
                         <>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.012)', border: '1px solid rgba(0,0,0,0.07)' }}>
-                                <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)' }}>Current status</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'var(--ex-subtle-bg, rgba(0,0,0,0.012))', border: '1px solid var(--ex-border, rgba(0,0,0,0.07))' }}>
+                                <span style={{ fontSize: 12, color: 'var(--ex-text-muted, rgba(0,0,0,0.4))' }}>Current status</span>
                                 <StatusPill status={clearance.status} />
                             </div>
 
@@ -332,9 +353,9 @@ const DetailDrawer = ({ clearance, onClose, onToggle, onStatusChange, onDetailsU
                                                 style={{
                                                     padding: '8px 0', borderRadius: 10, fontSize: 12, fontWeight: 500,
                                                     cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s',
-                                                    border: active ? `1px solid ${t.border}` : '1px solid rgba(0,0,0,0.1)',
+                                                    border: active ? `1px solid ${t.border}` : '1px solid var(--ex-border, rgba(0,0,0,0.1))',
                                                     background: active ? t.bg : 'transparent',
-                                                    color: active ? t.color : 'rgba(0,0,0,0.45)',
+                                                    color: active ? t.color : 'var(--ex-text-muted, rgba(0,0,0,0.45))',
                                                 }}>
                                                 {opt}
                                             </button>
@@ -355,8 +376,8 @@ const DetailDrawer = ({ clearance, onClose, onToggle, onStatusChange, onDetailsU
                                 Update Status
                             </button>
 
-                            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 16, marginTop: 8 }}>
-                                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.3)', marginBottom: 10 }}>
+                            <div style={{ borderTop: '1px solid var(--ex-border, rgba(0,0,0,0.06))', paddingTop: 16, marginTop: 8 }}>
+                                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ex-text-muted, rgba(0,0,0,0.3))', marginBottom: 10 }}>
                                     Danger Zone
                                 </div>
                                 <button className="pg-btn-danger"
@@ -456,6 +477,7 @@ export const ExitClearancePage = () => {
 
     return (
         <PageShell>
+            <style>{styles}</style>
 
             {/* ── Header ── */}
             <PageHeader

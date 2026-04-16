@@ -5,6 +5,34 @@ import { HandleGetHREmployees } from '../../../redux/Thunks/HREmployeesThunk'
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --sl-modal-bg: #18181b;
+    --sl-border: #27272a;
+    --sl-text-main: #fafafa;
+    --sl-text-muted: #a1a1aa;
+    --sl-text-faint: #71717a;
+    --sl-preview-bg: rgba(99,102,241,0.1);
+    --sl-preview-border: rgba(99,102,241,0.3);
+    
+    /* Semantic Colors Boost */
+    --sl-green-text: #4ade80;
+    --sl-green-bg: rgba(34, 197, 94, 0.15);
+    --sl-red-text: #f87171;
+    --sl-red-bg: rgba(239, 68, 68, 0.15);
+    --sl-yellow-text: #fbbf24;
+    --sl-yellow-bg: rgba(234, 179, 8, 0.15);
+    --sl-indigo-text: #818cf8;
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--sl-modal-bg) !important;
+    border: 1px solid var(--sl-border) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8) !important;
+  }
+`
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmt = (amount, currency) =>
     new Intl.NumberFormat('en-IN', {
@@ -32,13 +60,13 @@ const Avatar = ({ first, last, size = 30, fontSize = 11 }) => (
 
 // ─── Status pill ──────────────────────────────────────────────────────────────
 const STATUS = {
-    Pending: { bg: 'rgba(234,179,8,0.09)',  color: '#854d0e', border: 'rgba(234,179,8,0.3)'  },
-    Paid:    { bg: 'rgba(22,163,74,0.08)',  color: '#15803d', border: 'rgba(22,163,74,0.22)' },
-    Delayed: { bg: 'rgba(220,38,38,0.07)', color: '#dc2626', border: 'rgba(220,38,38,0.2)'  },
+    Pending: { bg: 'var(--sl-yellow-bg, rgba(234,179,8,0.09))',  color: 'var(--sl-yellow-text, #854d0e)', border: 'rgba(234,179,8,0.3)'  },
+    Paid:    { bg: 'var(--sl-green-bg, rgba(22,163,74,0.08))',   color: 'var(--sl-green-text, #15803d)', border: 'rgba(22,163,74,0.22)' },
+    Delayed: { bg: 'var(--sl-red-bg, rgba(220,38,38,0.07))',    color: 'var(--sl-red-text, #dc2626)',   border: 'rgba(220,38,38,0.2)'   },
 }
 
 const StatusPill = ({ status }) => {
-    const s = STATUS[status] || { bg: 'rgba(0,0,0,0.04)', color: 'rgba(0,0,0,0.45)', border: 'rgba(0,0,0,0.1)' }
+    const s = STATUS[status] || { bg: 'rgba(0,0,0,0.04)', color: 'var(--sl-text-muted, rgba(0,0,0,0.45))', border: 'rgba(0,0,0,0.1)' }
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -59,7 +87,6 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
     const [form,    setForm]    = useState(empty)
     const [preview, setPreview] = useState({ bonuses: 0, deductions: 0, netpay: 0 })
 
-    // Populate form when opening
     useEffect(() => {
         if (!open) return
         if (isEdit) {
@@ -80,7 +107,6 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
         }
     }, [open, initialData])
 
-    // Live net-pay preview
     useEffect(() => {
         const b        = parseFloat(form.basicpay)    || 0
         const bonusPct = parseFloat(form.bonusePT)    || 0
@@ -98,17 +124,15 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
     return (
         <div className="pg-modal-overlay">
             <div className="pg-modal" style={{ maxWidth: 520 }}>
-
-                {/* Title */}
                 <div>
                     <div style={{
                         fontFamily: "'DM Serif Display', serif",
-                        fontSize: '1.25rem', color: '#0f172a',
+                        fontSize: '1.25rem', color: 'var(--sl-text-main, #0f172a)',
                         letterSpacing: '-0.02em', marginBottom: 4,
                     }}>
                         {isEdit ? 'Edit Salary Record' : 'Add Salary Record'}
                     </div>
-                    <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.38)', margin: 0 }}>
+                    <p style={{ fontSize: 12, color: 'var(--sl-text-muted, rgba(0,0,0,0.38))', margin: 0 }}>
                         {isEdit ? 'Update pay details and payment status.' : 'Create a new salary record for an employee.'}
                     </p>
                 </div>
@@ -116,8 +140,6 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
                 <div className="pg-divider" />
 
                 <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                    {/* Employee selector — create only */}
                     {!isEdit && (
                         <div className="pg-field">
                             <label className="pg-label">Employee</label>
@@ -137,7 +159,6 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
                         </div>
                     )}
 
-                    {/* Basic pay + currency */}
                     <div className="pg-grid-2">
                         <div className="pg-field">
                             <label className="pg-label">Basic Pay</label>
@@ -168,16 +189,13 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
                         </div>
                     </div>
 
-                    {/* Bonus % + Deduction % */}
                     <div className="pg-grid-2">
                         <div className="pg-field">
                             <label className="pg-label">Bonus %</label>
                             <input
                                 name="bonusePT"
                                 type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
+                                min="0" max="100" step="0.1"
                                 value={form.bonusePT}
                                 onChange={handle}
                                 required
@@ -190,9 +208,7 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
                             <input
                                 name="deductionPT"
                                 type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
+                                min="0" max="100" step="0.1"
                                 value={form.deductionPT}
                                 onChange={handle}
                                 required
@@ -202,21 +218,20 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
                         </div>
                     </div>
 
-                    {/* Live pay breakdown preview */}
                     {parseFloat(form.basicpay) > 0 && (
                         <div style={{
                             display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
-                            background: 'rgba(99,102,241,0.04)',
-                            border: '1px solid rgba(99,102,241,0.12)',
+                            background: 'var(--sl-preview-bg, rgba(99,102,241,0.04))',
+                            border: '1px solid var(--sl-preview-border, rgba(99,102,241,0.12))',
                             borderRadius: 12, padding: '14px 16px',
                         }}>
                             {[
-                                { label: 'Bonuses',    value: `+${fmt(preview.bonuses,    form.currency)}`, color: '#15803d' },
-                                { label: 'Deductions', value: `-${fmt(preview.deductions, form.currency)}`, color: '#dc2626' },
-                                { label: 'Net Pay',    value: fmt(preview.netpay,          form.currency),  color: '#4f46e5' },
+                                { label: 'Bonuses',    value: `+${fmt(preview.bonuses,    form.currency)}`, color: 'var(--sl-green-text, #15803d)' },
+                                { label: 'Deductions', value: `-${fmt(preview.deductions, form.currency)}`, color: 'var(--sl-red-text, #dc2626)' },
+                                { label: 'Net Pay',    value: fmt(preview.netpay,          form.currency),  color: 'var(--sl-indigo-text, #4f46e5)' },
                             ].map(item => (
                                 <div key={item.label} style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.38)', fontWeight: 500, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                                    <div style={{ fontSize: 11, color: 'var(--sl-text-muted, rgba(0,0,0,0.38))', fontWeight: 500, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                                         {item.label}
                                     </div>
                                     <div style={{ fontSize: 13, fontWeight: 700, color: item.color }}>
@@ -227,7 +242,6 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
                         </div>
                     )}
 
-                    {/* Due date + Status (edit only) */}
                     <div className={isEdit ? 'pg-grid-2' : ''}>
                         <div className="pg-field">
                             <label className="pg-label">Due Date</label>
@@ -272,8 +286,8 @@ const SalaryDialog = ({ open, onClose, onSubmit, employeeList, initialData }) =>
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export const SalaryPage = () => {
-    const dispatch      = useDispatch()
-    const state         = useSelector(s => s.SalaryReducer || {})
+    const dispatch       = useDispatch()
+    const state          = useSelector(s => s.SalaryReducer || {})
     const employeeState = useSelector(s => s.HREmployeesReducer || {})
 
     const [dialogOpen,    setDialogOpen]    = useState(false)
@@ -331,15 +345,13 @@ export const SalaryPage = () => {
     const delayed     = state.data?.filter(s => s.status === 'Delayed').length || 0
     const totalNetPay = state.data?.reduce((sum, s) => sum + (s.netpay || 0), 0) || 0
 
-    // Use the currency of the first record for the total, fallback to INR
     const totalCurrency = state.data?.[0]?.currency || 'INR'
 
     if (state.isLoading && !state.data?.length) return <Loading />
 
     return (
         <PageShell>
-
-            {/* ── Page header ── */}
+            <style>{styles}</style>
             <PageHeader
                 eyebrow="Operations"
                 title="Salary Management"
@@ -350,17 +362,16 @@ export const SalaryPage = () => {
                 </button>
             </PageHeader>
 
-            {/* ── Stats strip ── */}
             <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
                 {[
-                    { label: 'Total Records', value: total                       },
-                    { label: 'Pending',       value: pending                     },
-                    { label: 'Paid',          value: paid                        },
-                    { label: 'Delayed',       value: delayed                     },
+                    { label: 'Total Records', value: total                        },
+                    { label: 'Pending',       value: pending                      },
+                    { label: 'Paid',          value: paid                         },
+                    { label: 'Delayed',       value: delayed                      },
                     { label: 'Total Net Pay', value: fmt(totalNetPay, totalCurrency) },
                 ].map(s => (
                     <div key={s.label} className="pg-stat-card">
-                        <span className="pg-stat-value" style={{ fontSize: s.label === 'Total Net Pay' ? '1.1rem' : undefined }}>
+                        <span className="pg-stat-value" style={{ fontSize: s.label === 'Total Net Pay' ? '1.1rem' : undefined, color: 'var(--sl-text-main)' }}>
                             {s.value}
                         </span>
                         <span className="pg-stat-label">{s.label}</span>
@@ -368,7 +379,6 @@ export const SalaryPage = () => {
                 ))}
             </div>
 
-            {/* ── Filters ── */}
             <div className="pg-filters">
                 <input
                     className="pg-search"
@@ -389,10 +399,7 @@ export const SalaryPage = () => {
                 ))}
             </div>
 
-            {/* ── Table ── */}
             <div className="pg-table-wrap">
-
-                {/* Header */}
                 <div
                     className="pg-table-head"
                     style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1.1fr 100px 110px' }}
@@ -406,86 +413,60 @@ export const SalaryPage = () => {
                     <span className="pg-th">Actions</span>
                 </div>
 
-                {/* Empty state */}
                 {filtered.length === 0 && (
                     <div className="pg-empty">
                         <span className="pg-empty-icon">💰</span>
                         <p className="pg-empty-title">
-                            {search || filterStatus !== 'All'
-                                ? 'No records match your filters'
-                                : 'No salary records yet'}
+                            {search || filterStatus !== 'All' ? 'No records match your filters' : 'No salary records yet'}
                         </p>
                         <p className="pg-empty-sub">
-                            {search || filterStatus !== 'All'
-                                ? 'Try adjusting your search or filter.'
-                                : 'Add the first salary record using the button above.'}
+                            {search || filterStatus !== 'All' ? 'Try adjusting your search or filter.' : 'Add the first salary record using the button above.'}
                         </p>
                     </div>
                 )}
 
-                {/* Rows */}
                 {filtered.map(s => (
                     <div
                         key={s._id}
                         className="pg-table-row"
                         style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1.1fr 100px 110px' }}
                     >
-                        {/* Employee */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <Avatar first={s.employee?.firstname} last={s.employee?.lastname} />
                             <div>
-                                <div className="pg-td-name">
+                                <div className="pg-td-name" style={{ color: 'var(--sl-text-main)' }}>
                                     {s.employee?.firstname} {s.employee?.lastname}
                                 </div>
                                 <div className="pg-td-sub">Due: {fmtDate(s.duedate)}</div>
                             </div>
                         </div>
 
-                        {/* Basic pay */}
-                        <span style={{ fontSize: 13, color: '#0f172a', fontWeight: 500 }}>
+                        <span style={{ fontSize: 13, color: 'var(--sl-text-main, #0f172a)', fontWeight: 500 }}>
                             {fmt(s.basicpay, s.currency)}
                         </span>
 
-                        {/* Bonuses */}
-                        <span style={{ fontSize: 12, color: '#15803d', fontWeight: 500 }}>
+                        <span style={{ fontSize: 12, color: 'var(--sl-green-text, #15803d)', fontWeight: 500 }}>
                             +{fmt(s.bonuses, s.currency)}
                         </span>
 
-                        {/* Deductions */}
-                        <span style={{ fontSize: 12, color: '#dc2626', fontWeight: 500 }}>
+                        <span style={{ fontSize: 12, color: 'var(--sl-red-text, #dc2626)', fontWeight: 500 }}>
                             −{fmt(s.deductions, s.currency)}
                         </span>
 
-                        {/* Net pay — most important, emphasised */}
-                        <span style={{
-                            fontSize: 13, fontWeight: 700, color: '#4f46e5',
-                        }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--sl-indigo-text, #4f46e5)' }}>
                             {fmt(s.netpay, s.currency)}
                         </span>
 
-                        {/* Status */}
                         <span><StatusPill status={s.status} /></span>
 
-                        {/* Actions */}
                         <div style={{ display: 'flex', gap: 6 }}>
-                            <button
-                                className="pg-action-btn indigo"
-                                onClick={() => setEditTarget(s)}
-                            >
-                                Edit
-                            </button>
-                            <button
-                                className="pg-action-btn red"
-                                onClick={() => handleDelete(s._id)}
-                            >
-                                Delete
-                            </button>
+                            <button className="pg-action-btn indigo" onClick={() => setEditTarget(s)}>Edit</button>
+                            <button className="pg-action-btn red" onClick={() => handleDelete(s._id)}>Delete</button>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* ── Dialogs ── */}
             <SalaryDialog
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}
@@ -499,7 +480,6 @@ export const SalaryPage = () => {
                 employeeList={employeeList}
                 initialData={editTarget}
             />
-
         </PageShell>
     )
 }
