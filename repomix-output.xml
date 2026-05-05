@@ -10496,188 +10496,6 @@ const HRProfileSlice = createSlice({
 export default HRProfileSlice.reducer
 </file>
 
-<file path="client/src/redux/Slices/RBACSlice.js">
-import { createSlice } from '@reduxjs/toolkit'
-import {
-    HandleGetMyPermissions,
-    HandleGetPermissionCatalogue,
-    HandleGetAllRoles,
-    HandleCreateRole,
-    HandleUpdateRole,
-    HandleDeleteRole,
-    HandleGetHRAssignments,
-    HandleAssignRole,
-} from '../Thunks/RBACThunk'
-
-const pending  = (state) => { state.isLoading = true;  state.error = { status: false, message: null } }
-const rejected = (state, action) => {
-    state.isLoading = false
-    state.error = { status: true, message: action.payload?.message || 'Something went wrong' }
-}
-
-const RBACSlice = createSlice({
-    name: 'RBAC',
-    initialState: {
-        // Current HR user's permissions (loaded on login)
-        myPermissions:    null,   // null = unrestricted (super-admin)
-        myRoleName:       null,
-        isUnrestricted:   true,   // true until proven otherwise
-        permissionsLoaded: false,
-
-        // Permission catalogue from backend
-        catalogue: {
-            all:    [],
-            groups: {}
-        },
-
-        // All org roles
-        roles:     [],
-
-        // HR users with their role assignments
-        hrAssignments: [],
-
-        isLoading: false,
-        fetchData: true,
-        error: { status: false, message: null }
-    },
-    extraReducers: (builder) => {
-
-        // ── My permissions ────────────────────────────────────────────────────
-        builder
-            .addCase(HandleGetMyPermissions.pending,   pending)
-            .addCase(HandleGetMyPermissions.fulfilled, (state, action) => {
-                state.isLoading        = false
-                state.myPermissions    = action.payload.data.permissions   // null = unrestricted
-                state.myRoleName       = action.payload.data.roleName
-                state.isUnrestricted   = action.payload.data.isUnrestricted
-                state.permissionsLoaded = true
-                state.error            = { status: false, message: null }
-            })
-            .addCase(HandleGetMyPermissions.rejected, (state, action) => {
-                state.isLoading        = false
-                state.permissionsLoaded = true   // mark loaded even on error so app doesn't hang
-                state.error            = { status: true, message: action.payload?.message }
-            })
-
-        // ── Permission catalogue ───────────────────────────────────────────────
-        builder
-            .addCase(HandleGetPermissionCatalogue.pending,   pending)
-            .addCase(HandleGetPermissionCatalogue.fulfilled, (state, action) => {
-                state.isLoading  = false
-                state.catalogue  = action.payload.data
-                state.error      = { status: false, message: null }
-            })
-            .addCase(HandleGetPermissionCatalogue.rejected, rejected)
-
-        // ── All roles ─────────────────────────────────────────────────────────
-        builder
-            .addCase(HandleGetAllRoles.pending,   pending)
-            .addCase(HandleGetAllRoles.fulfilled, (state, action) => {
-                state.isLoading = false
-                state.roles     = action.payload.data
-                state.fetchData = false
-                state.error     = { status: false, message: null }
-            })
-            .addCase(HandleGetAllRoles.rejected, rejected)
-
-        // ── Create role ───────────────────────────────────────────────────────
-        builder
-            .addCase(HandleCreateRole.pending,   pending)
-            .addCase(HandleCreateRole.fulfilled, (state, action) => {
-                state.isLoading = false
-                state.roles.push(action.payload.data)
-                state.error     = { status: false, message: null }
-            })
-            .addCase(HandleCreateRole.rejected, rejected)
-
-        // ── Update role ───────────────────────────────────────────────────────
-        builder
-            .addCase(HandleUpdateRole.pending,   pending)
-            .addCase(HandleUpdateRole.fulfilled, (state, action) => {
-                state.isLoading = false
-                const updated   = action.payload.data
-                state.roles     = state.roles.map(r => r._id === updated._id ? updated : r)
-                // Also update in hrAssignments if anyone had this role
-                state.hrAssignments = state.hrAssignments.map(hr =>
-                    hr.rbacRole?._id === updated._id
-                        ? { ...hr, rbacRole: updated }
-                        : hr
-                )
-                state.error = { status: false, message: null }
-            })
-            .addCase(HandleUpdateRole.rejected, rejected)
-
-        // ── Delete role ───────────────────────────────────────────────────────
-        builder
-            .addCase(HandleDeleteRole.pending,   pending)
-            .addCase(HandleDeleteRole.fulfilled, (state, action) => {
-                state.isLoading     = false
-                const { roleID }    = action.payload
-                state.roles         = state.roles.filter(r => r._id !== roleID)
-                // Unassign from HR list in UI too
-                state.hrAssignments = state.hrAssignments.map(hr =>
-                    hr.rbacRole?._id === roleID ? { ...hr, rbacRole: null } : hr
-                )
-                state.error = { status: false, message: null }
-            })
-            .addCase(HandleDeleteRole.rejected, rejected)
-
-        // ── HR assignments ────────────────────────────────────────────────────
-        builder
-            .addCase(HandleGetHRAssignments.pending,   pending)
-            .addCase(HandleGetHRAssignments.fulfilled, (state, action) => {
-                state.isLoading    = false
-                state.hrAssignments = action.payload.data
-                state.error        = { status: false, message: null }
-            })
-            .addCase(HandleGetHRAssignments.rejected, rejected)
-
-        // ── Assign role ───────────────────────────────────────────────────────
-        builder
-            .addCase(HandleAssignRole.pending,   pending)
-            .addCase(HandleAssignRole.fulfilled, (state, action) => {
-                state.isLoading     = false
-                const updated       = action.payload.data
-                state.hrAssignments = state.hrAssignments.map(hr =>
-                    hr._id === updated._id ? { ...hr, rbacRole: updated.rbacRole } : hr
-                )
-                state.error = { status: false, message: null }
-            })
-            .addCase(HandleAssignRole.rejected, rejected)
-    }
-})
-
-export default RBACSlice.reducer
-
-// ─── Selector helper ──────────────────────────────────────────────────────────
-// Usage in any component: const can = useSelector(selectCan('employee.create'))
-export const selectCan = (permission) => (state) => {
-    const rbac = state.RBACReducer;
-    
-    // Note: Ensure the name here matches how Access Drift is configured in your store
-    const driftState = state.AccessDriftReducer; 
-
-    // 1. Super-admin or full access
-    if (rbac.isUnrestricted || rbac.myPermissions === null) return true;
-
-    // 2. Base permissions check
-    if (rbac.myPermissions.includes(permission)) return true;
-
-    // 3. Temporary Privilege (Drift) check
-    if (driftState?.myDrifts?.length > 0) {
-        const hasActiveDrift = driftState.myDrifts.some(drift => {
-            // Ignore revoked or expired drifts
-            if (drift.isRevoked || new Date(drift.expiresAt) < new Date()) return false;
-            // Check if the temporary role has the permission
-            return drift.driftRole?.permissions?.includes(permission);
-        });
-        if (hasActiveDrift) return true;
-    }
-
-    return false;
-}
-</file>
-
 <file path="client/src/redux/Thunks/AttendanceThunk.js">
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { apiService } from '../apis/APIService'
@@ -11783,72 +11601,6 @@ export const transporter = nodemailer.createTransport({
     pass: "0418e2275c2329"
   }
 });
-</file>
-
-<file path="server/middlewares/Auth.middleware.js">
-import jwt from 'jsonwebtoken';
-
-// 🔐 Verify Employee Token
-export const VerifyEmployeeToken = (req, res, next) => {
-    const token = req.cookies.EMtoken;
-
-    if (!token) {
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized access",
-            gologin: true
-        });
-    }
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        req.EMid = decoded.EMid;
-        req.role = decoded.EMrole;
-        req.ORGID = decoded.ORGID;
-
-        next();
-    } catch (error) {
-        res.clearCookie("EMtoken");
-        return res.status(401).json({
-            success: false,
-            message: "Invalid or expired token",
-            gologin: true
-        });
-    }
-};
-
-
-// 🔐 Verify HR Token
-export const VerifyHRToken = (req, res, next) => {
-
-    const token = req.cookies.HRtoken;
-
-    if (!token) {
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized access",
-            gologin: true
-        });
-    }
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        req.HRid = decoded.HRid;
-        req.ORGID = decoded.ORGID;
-        req.role = decoded.HRrole;
-
-        next();
-    } catch (error) {
-        res.clearCookie("HRtoken");
-        return res.status(401).json({
-            success: false,
-            message: "Invalid or expired token",
-            gologin: true
-        });
-    }
-};
 </file>
 
 <file path="server/models/Role.model.js">
@@ -14496,6 +14248,235 @@ export const { HR_CLEAR_ERROR } = HRSlice.actions;
 export default HRSlice.reducer;
 </file>
 
+<file path="client/src/redux/Slices/RBACSlice.js">
+import { createSlice } from '@reduxjs/toolkit'
+import {
+    HandleGetMyPermissions,
+    HandleGetPermissionCatalogue,
+    HandleGetAllRoles,
+    HandleCreateRole,
+    HandleUpdateRole,
+    HandleDeleteRole,
+    HandleGetHRAssignments,
+    HandleAssignRole,
+    HandleGetRoleDrifts,
+    HandleRevokeDrift,
+    HandleExtendDrift,
+    HandleCreateDrift,
+} from '../Thunks/RBACThunk'
+
+const pending  = (state) => { state.isLoading = true;  state.error = { status: false, message: null } }
+const rejected = (state, action) => {
+    state.isLoading = false
+    state.error = { status: true, message: action.payload?.message || 'Something went wrong' }
+}
+
+const RBACSlice = createSlice({
+    name: 'RBAC',
+    initialState: {
+        // Current HR user's permissions (loaded on login)
+        myPermissions:     null,   // null = unrestricted (super-admin)
+        myRoleName:        null,
+        isUnrestricted:    true,
+        permissionsLoaded: false,
+
+        // Permission catalogue from backend
+        catalogue: {
+            all:    [],
+            groups: {}
+        },
+
+        // All org roles
+        roles: [],
+
+        // HR users with their role assignments
+        hrAssignments: [],
+
+        // Privilege drift (temporary roles)
+        drifts: [],
+
+        isLoading: false,
+        fetchData:  true,
+        error: { status: false, message: null }
+    },
+    extraReducers: (builder) => {
+
+        // ── My permissions ────────────────────────────────────────────────────
+        builder
+            .addCase(HandleGetMyPermissions.pending,   pending)
+            .addCase(HandleGetMyPermissions.fulfilled, (state, action) => {
+                state.isLoading        = false
+                state.myPermissions    = action.payload.data.permissions
+                state.myRoleName       = action.payload.data.roleName
+                state.isUnrestricted   = action.payload.data.isUnrestricted
+                state.permissionsLoaded = true
+                state.error            = { status: false, message: null }
+            })
+            .addCase(HandleGetMyPermissions.rejected, (state, action) => {
+                state.isLoading        = false
+                state.permissionsLoaded = true
+                state.error            = { status: true, message: action.payload?.message }
+            })
+
+        // ── Permission catalogue ───────────────────────────────────────────────
+        builder
+            .addCase(HandleGetPermissionCatalogue.pending,   pending)
+            .addCase(HandleGetPermissionCatalogue.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.catalogue = action.payload.data
+                state.error     = { status: false, message: null }
+            })
+            .addCase(HandleGetPermissionCatalogue.rejected, rejected)
+
+        // ── All roles ─────────────────────────────────────────────────────────
+        builder
+            .addCase(HandleGetAllRoles.pending,   pending)
+            .addCase(HandleGetAllRoles.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.roles     = action.payload.data
+                state.fetchData = false
+                state.error     = { status: false, message: null }
+            })
+            .addCase(HandleGetAllRoles.rejected, rejected)
+
+        // ── Create role ───────────────────────────────────────────────────────
+        builder
+            .addCase(HandleCreateRole.pending,   pending)
+            .addCase(HandleCreateRole.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.roles.push(action.payload.data)
+                state.error     = { status: false, message: null }
+            })
+            .addCase(HandleCreateRole.rejected, rejected)
+
+        // ── Update role ───────────────────────────────────────────────────────
+        builder
+            .addCase(HandleUpdateRole.pending,   pending)
+            .addCase(HandleUpdateRole.fulfilled, (state, action) => {
+                state.isLoading = false
+                const updated   = action.payload.data
+                state.roles     = state.roles.map(r => r._id === updated._id ? updated : r)
+                state.hrAssignments = state.hrAssignments.map(hr =>
+                    hr.rbacRole?._id === updated._id
+                        ? { ...hr, rbacRole: updated }
+                        : hr
+                )
+                state.error = { status: false, message: null }
+            })
+            .addCase(HandleUpdateRole.rejected, rejected)
+
+        // ── Delete role ───────────────────────────────────────────────────────
+        builder
+            .addCase(HandleDeleteRole.pending,   pending)
+            .addCase(HandleDeleteRole.fulfilled, (state, action) => {
+                state.isLoading     = false
+                const { roleID }    = action.payload
+                state.roles         = state.roles.filter(r => r._id !== roleID)
+                state.hrAssignments = state.hrAssignments.map(hr =>
+                    hr.rbacRole?._id === roleID ? { ...hr, rbacRole: null } : hr
+                )
+                state.error = { status: false, message: null }
+            })
+            .addCase(HandleDeleteRole.rejected, rejected)
+
+        // ── HR assignments ────────────────────────────────────────────────────
+        builder
+            .addCase(HandleGetHRAssignments.pending,   pending)
+            .addCase(HandleGetHRAssignments.fulfilled, (state, action) => {
+                state.isLoading     = false
+                state.hrAssignments = action.payload.data
+                state.error         = { status: false, message: null }
+            })
+            .addCase(HandleGetHRAssignments.rejected, rejected)
+
+        // ── Assign role ───────────────────────────────────────────────────────
+        builder
+            .addCase(HandleAssignRole.pending,   pending)
+            .addCase(HandleAssignRole.fulfilled, (state, action) => {
+                state.isLoading     = false
+                const updated       = action.payload.data
+                state.hrAssignments = state.hrAssignments.map(hr =>
+                    hr._id === updated._id ? { ...hr, rbacRole: updated.rbacRole } : hr
+                )
+                state.error = { status: false, message: null }
+            })
+            .addCase(HandleAssignRole.rejected, rejected)
+
+        // ── Get role drifts ───────────────────────────────────────────────────
+        builder
+            .addCase(HandleGetRoleDrifts.pending,   pending)
+            .addCase(HandleGetRoleDrifts.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.drifts    = action.payload.data || []
+                state.error     = { status: false, message: null }
+            })
+            .addCase(HandleGetRoleDrifts.rejected, rejected)
+
+        // ── Create drift ──────────────────────────────────────────────────────
+        builder
+            .addCase(HandleCreateDrift.pending,   pending)
+            .addCase(HandleCreateDrift.fulfilled, (state, action) => {
+                state.isLoading = false
+                // Re-fetch will happen via the page's useEffect after success
+                state.error     = { status: false, message: null }
+            })
+            .addCase(HandleCreateDrift.rejected, rejected)
+
+        // ── Revoke drift ──────────────────────────────────────────────────────
+        builder
+            .addCase(HandleRevokeDrift.pending,   pending)
+            .addCase(HandleRevokeDrift.fulfilled, (state, action) => {
+                state.isLoading = false
+                const { driftID } = action.payload
+                // Mark it as revoked in local state so UI updates instantly
+                state.drifts = state.drifts.map(d =>
+                    d._id === driftID
+                        ? { ...d, drift: { ...d.drift, isExpired: true } }
+                        : d
+                )
+                state.error = { status: false, message: null }
+            })
+            .addCase(HandleRevokeDrift.rejected, rejected)
+
+        // ── Extend drift ──────────────────────────────────────────────────────
+        builder
+            .addCase(HandleExtendDrift.pending,   pending)
+            .addCase(HandleExtendDrift.fulfilled, (state, action) => {
+                state.isLoading = false
+                const { driftID, newExpiry } = action.payload
+                state.drifts = state.drifts.map(d =>
+                    d._id === driftID
+                        ? { ...d, drift: { ...d.drift, expiresAt: newExpiry, isExpired: false } }
+                        : d
+                )
+                state.error = { status: false, message: null }
+            })
+            .addCase(HandleExtendDrift.rejected, rejected)
+    }
+})
+
+export default RBACSlice.reducer
+
+// ─── Selector helper ──────────────────────────────────────────────────────────
+export const selectCan = (permission) => (state) => {
+    const rbac = state.RBACReducer
+
+    if (rbac.isUnrestricted || rbac.myPermissions === null) return true
+    if (rbac.myPermissions.includes(permission)) return true
+
+    // Check temporary drift permissions
+    if (rbac.drifts?.length > 0) {
+        const hasActiveDrift = rbac.drifts.some(drift => {
+            if (drift.drift?.isExpired) return false
+            return drift.drift?.role?.permissions?.includes(permission)
+        })
+        if (hasActiveDrift) return true
+    }
+
+    return false
+}
+</file>
+
 <file path="client/src/redux/Thunks/DashboardThunk.js">
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { apiService } from "../apis/APIService";
@@ -14854,193 +14835,6 @@ export const HandlePutHumanResources = createAsyncThunk("HandlePutHumanResources
 export const HandlePatchHumanResources = createAsyncThunk("HandlePatchHumanResources", async (HRData, { rejectWithValue }) => { })
 
 export const HandleDeleteHumanResources = createAsyncThunk("HandleDeleteHumanResources", async (HRData, { rejectWithValue }) => { })
-</file>
-
-<file path="client/src/redux/Thunks/RBACThunk.js">
-import { createAsyncThunk } from '@reduxjs/toolkit'
-import { apiService } from '../apis/APIService'
-
-// ─── My permissions (fetched once after HR login) ─────────────────────────────
-export const HandleGetMyPermissions = createAsyncThunk(
-    'HandleGetMyPermissions',
-    async (_, { rejectWithValue }) => {
-        try {
-            const res = await apiService.get('/v1/rbac/my-permissions', { withCredentials: true })
-            return res.data
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: error.message })
-        }
-    }
-)
-
-// ─── Permission catalogue ─────────────────────────────────────────────────────
-export const HandleGetPermissionCatalogue = createAsyncThunk(
-    'HandleGetPermissionCatalogue',
-    async (_, { rejectWithValue }) => {
-        try {
-            const res = await apiService.get('/v1/permissions', { withCredentials: true })
-
-            let permissions = res.data.data
-
-// 🔥 HANDLE ALL POSSIBLE BACKEND SHAPES
-if (Array.isArray(permissions)) {
-    // already correct
-} else if (Array.isArray(permissions?.all)) {
-    permissions = permissions.all
-} else if (Array.isArray(permissions?.permissions)) {
-    permissions = permissions.permissions
-} else {
-    permissions = []
-}
-
-            // 🔥 GROUP PERMISSIONS (CRITICAL FIX)
-            const groups = {}
-
-            permissions.forEach(p => {
-                const group = p.split('.')[0]
-                if (!groups[group]) groups[group] = []
-                groups[group].push(p)
-            })
-
-            return {
-                success: true,
-                data: {
-                    groups,
-                    all: permissions
-                }
-            }
-
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: error.message })
-        }
-    }
-)
-
-// ─── Roles ────────────────────────────────────────────────────────────────────
-export const HandleGetAllRoles = createAsyncThunk(
-    'HandleGetAllRoles',
-    async (_, { rejectWithValue }) => {
-        try {
-            const res = await apiService.get('/v1/rbac/roles', { withCredentials: true })
-            return res.data
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: error.message })
-        }
-    }
-)
-
-export const HandleCreateRole = createAsyncThunk(
-    'HandleCreateRole',
-    async (data, { rejectWithValue }) => {
-        try {
-            const res = await apiService.post('/v1/rbac/roles', data, { withCredentials: true })
-            return res.data
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: error.message })
-        }
-    }
-)
-
-export const HandleUpdateRole = createAsyncThunk(
-    'HandleUpdateRole',
-    async ({ roleID, ...data }, { rejectWithValue }) => {
-        try {
-            const res = await apiService.patch(`/v1/rbac/roles/${roleID}`, data, { withCredentials: true })
-            return res.data
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: error.message })
-        }
-    }
-)
-
-export const HandleDeleteRole = createAsyncThunk(
-    'HandleDeleteRole',
-    async (roleID, { rejectWithValue }) => {
-        try {
-            const res = await apiService.delete(`/v1/rbac/roles/${roleID}`, { withCredentials: true })
-            return { ...res.data, roleID }
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: error.message })
-        }
-    }
-)
-
-// ─── HR Assignments ───────────────────────────────────────────────────────────
-export const HandleGetHRAssignments = createAsyncThunk(
-    'HandleGetHRAssignments',
-    async (_, { rejectWithValue }) => {
-        try {
-            const res = await apiService.get('/v1/rbac/hr-assignments', { withCredentials: true })
-            return res.data
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: error.message })
-        }
-    }
-)
-
-export const HandleAssignRole = createAsyncThunk(
-    'HandleAssignRole',
-    async ({ hrID, roleID }, { rejectWithValue }) => {
-        try {
-            const res = await apiService.patch('/v1/rbac/assign', { hrID, roleID }, { withCredentials: true })
-            return res.data
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: error.message })
-        }
-    }
-)
-
-// ═══════════════════════════════════════════════════════
-// NEW: PRIVILEGE DRIFT THUNKS (Temporary Roles & Expiry)
-// ═══════════════════════════════════════════════════════
-
-export const HandleGetRoleDrifts = createAsyncThunk(
-    'rbac/getRoleDrifts',
-    async (_, { rejectWithValue }) => {
-        try {
-            // TODO: Replace with actual API call: await axios.get('/api/rbac/drifts')
-            return { success: true, data: [] }; 
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: "Failed to fetch privilege drifts" });
-        }
-    }
-);
-
-export const HandleRevokeDrift = createAsyncThunk(
-    'rbac/revokeDrift',
-    async ({ driftID }, { rejectWithValue }) => {
-        try {
-            // TODO: Replace with actual API call: await axios.post(`/api/rbac/drifts/${driftID}/revoke`)
-            return { success: true, message: "Privilege revoked successfully" };
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: "Failed to revoke privilege" });
-        }
-    }
-);
-
-export const HandleExtendDrift = createAsyncThunk(
-    'rbac/extendDrift',
-    async ({ driftID, newExpiry }, { rejectWithValue }) => {
-        try {
-            // TODO: Replace with actual API call: await axios.post(`/api/rbac/drifts/${driftID}/extend`, { newExpiry })
-            return { success: true, message: "Privilege extended successfully" };
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: "Failed to extend privilege" });
-        }
-    }
-);
-
-export const HandleCreateDrift = createAsyncThunk(
-    'rbac/createDrift',
-    async (driftData, { rejectWithValue }) => {
-        try {
-            const response = await apiService.post('/v1/rbac/drifts', driftData, { withCredentials: true });
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || { message: "Failed to create drift" });
-        }
-    }
-);
 </file>
 
 <file path="README.md">
@@ -16366,6 +16160,109 @@ export const SendResetPasswordConfimation = async (
 };
 </file>
 
+<file path="server/middlewares/Auth.middleware.js">
+import jwt from 'jsonwebtoken';
+
+// 🔐 Verify Employee Token
+export const VerifyEmployeeToken = (req, res, next) => {
+    const token = req.cookies.EMtoken;
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized access",
+            gologin: true
+        });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        req.EMid = decoded.EMid;
+        req.role = decoded.EMrole;
+        req.ORGID = decoded.ORGID;
+
+        next();
+    } catch (error) {
+        res.clearCookie("EMtoken");
+        return res.status(401).json({
+            success: false,
+            message: "Invalid or expired token",
+            gologin: true
+        });
+    }
+};
+
+
+// 🔐 Verify HR Token
+export const VerifyHRToken = (req, res, next) => {
+
+    const token = req.cookies.HRtoken;
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized access",
+            gologin: true
+        });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        req.HRid = decoded.HRid;
+        req.ORGID = decoded.ORGID;
+        req.role = decoded.HRrole;
+
+        next();
+    } catch (error) {
+        res.clearCookie("HRtoken");
+        return res.status(401).json({
+            success: false,
+            message: "Invalid or expired token",
+            gologin: true
+        });
+    }
+};
+
+// 🔐 Verify HR OR Employee Token — used for routes callable by both roles
+// Sets req.HRid + req.ORGID if HR, or req.EMid + req.ORGID if Employee
+export const VerifyHROrEmployeeToken = (req, res, next) => {
+    const hrToken  = req.cookies.HRtoken;
+    const emToken  = req.cookies.EMtoken;
+
+    if (hrToken) {
+        try {
+            const decoded = jwt.verify(hrToken, process.env.JWT_SECRET);
+            req.HRid  = decoded.HRid;
+            req.ORGID = decoded.ORGID;
+            req.role  = decoded.HRrole;
+            return next();
+        } catch {
+            res.clearCookie('HRtoken');
+        }
+    }
+
+    if (emToken) {
+        try {
+            const decoded = jwt.verify(emToken, process.env.JWT_SECRET);
+            req.EMid  = decoded.EMid;
+            req.ORGID = decoded.ORGID;
+            req.role  = decoded.EMrole;
+            return next();
+        } catch {
+            res.clearCookie('EMtoken');
+        }
+    }
+
+    return res.status(401).json({
+        success: false,
+        message: 'Unauthorized access',
+        gologin: true,
+    });
+};
+</file>
+
 <file path="server/middlewares/RoleAuth.middleware.js">
 // ✅ Make sure this import path matches your actual HR model file!
 import { HumanResources } from "../models/HR.model.js";
@@ -16817,38 +16714,6 @@ router.patch("/update-salary", VerifyHRToken, RoleAuthorization("HR-Admin"), Han
 router.delete("/delete-salary/:salaryID", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleDeleteSalary)
 
 export default router
-</file>
-
-<file path="server/utils/generatejwttokenandsetcookies.js">
-import jwt from 'jsonwebtoken'
-
-const secureCookie = process.env.COOKIE_SECURE !== "false"
-const sameSiteCookie = secureCookie ? "none" : "lax"
-
-export const GenerateJwtTokenAndSetCookiesEmployee = (res, EMid, EMrole, ORGID) => {
-    const token = jwt.sign({ EMid, EMrole, ORGID }, process.env.JWT_SECRET, { expiresIn: '7d' })
-
-    res.cookie("EMtoken", token, {
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-        secure: secureCookie,
-        sameSite: sameSiteCookie,
-    })
-
-    return token
-}
-
-export const GenerateJwtTokenAndSetCookiesHR = (res, HRid, HRrole, ORGID) => {
-    const token = jwt.sign({ HRid, HRrole, ORGID }, process.env.JWT_SECRET, { expiresIn: '7d' })
-
-    res.cookie("HRtoken", token, {
-        httpOnly: true,
-        secure: true,           // REQUIRED for HTTPS
-        sameSite: "none",       // REQUIRED for cross-origin
-        path: "/",              // IMPORTANT
-    });
-    return token
-}
 </file>
 
 <file path="client/src/components/common/Dashboard/datatable.jsx">
@@ -20602,6 +20467,190 @@ export const HandleDeleteNotice = createAsyncThunk("HandleDeleteNotice", async (
 })
 </file>
 
+<file path="client/src/redux/Thunks/RBACThunk.js">
+import { createAsyncThunk } from '@reduxjs/toolkit'
+import { apiService } from '../apis/APIService'
+
+// ─── My permissions (fetched once after HR login) ─────────────────────────────
+export const HandleGetMyPermissions = createAsyncThunk(
+    'HandleGetMyPermissions',
+    async (_, { rejectWithValue }) => {
+        try {
+            const res = await apiService.get('/v1/rbac/my-permissions', { withCredentials: true })
+            return res.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message })
+        }
+    }
+)
+
+// ─── Permission catalogue ─────────────────────────────────────────────────────
+export const HandleGetPermissionCatalogue = createAsyncThunk(
+    'HandleGetPermissionCatalogue',
+    async (_, { rejectWithValue }) => {
+        try {
+            const res = await apiService.get('/v1/rbac/permissions', { withCredentials: true })
+
+            let permissions = res.data.data
+
+            if (Array.isArray(permissions)) {
+                // already correct
+            } else if (Array.isArray(permissions?.all)) {
+                permissions = permissions.all
+            } else if (Array.isArray(permissions?.permissions)) {
+                permissions = permissions.permissions
+            } else {
+                permissions = []
+            }
+
+            const groups = {}
+            permissions.forEach(p => {
+                const group = p.split('.')[0]
+                if (!groups[group]) groups[group] = []
+                groups[group].push(p)
+            })
+
+            return {
+                success: true,
+                data: { groups, all: permissions }
+            }
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message })
+        }
+    }
+)
+
+// ─── Roles ────────────────────────────────────────────────────────────────────
+export const HandleGetAllRoles = createAsyncThunk(
+    'HandleGetAllRoles',
+    async (_, { rejectWithValue }) => {
+        try {
+            const res = await apiService.get('/v1/rbac/roles', { withCredentials: true })
+            return res.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message })
+        }
+    }
+)
+
+export const HandleCreateRole = createAsyncThunk(
+    'HandleCreateRole',
+    async (data, { rejectWithValue }) => {
+        try {
+            const res = await apiService.post('/v1/rbac/roles', data, { withCredentials: true })
+            return res.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message })
+        }
+    }
+)
+
+export const HandleUpdateRole = createAsyncThunk(
+    'HandleUpdateRole',
+    async ({ roleID, ...data }, { rejectWithValue }) => {
+        try {
+            const res = await apiService.patch(`/v1/rbac/roles/${roleID}`, data, { withCredentials: true })
+            return res.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message })
+        }
+    }
+)
+
+export const HandleDeleteRole = createAsyncThunk(
+    'HandleDeleteRole',
+    async (roleID, { rejectWithValue }) => {
+        try {
+            const res = await apiService.delete(`/v1/rbac/roles/${roleID}`, { withCredentials: true })
+            return { ...res.data, roleID }
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message })
+        }
+    }
+)
+
+// ─── HR Assignments ───────────────────────────────────────────────────────────
+export const HandleGetHRAssignments = createAsyncThunk(
+    'HandleGetHRAssignments',
+    async (_, { rejectWithValue }) => {
+        try {
+            const res = await apiService.get('/v1/rbac/hr-assignments', { withCredentials: true })
+            return res.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message })
+        }
+    }
+)
+
+export const HandleAssignRole = createAsyncThunk(
+    'HandleAssignRole',
+    async ({ hrID, roleID }, { rejectWithValue }) => {
+        try {
+            const res = await apiService.patch('/v1/rbac/assign', { hrID, roleID }, { withCredentials: true })
+            return res.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message })
+        }
+    }
+)
+
+// ═══════════════════════════════════════════════════════
+// PRIVILEGE DRIFT THUNKS — fully wired to real API
+// ═══════════════════════════════════════════════════════
+
+export const HandleGetRoleDrifts = createAsyncThunk(
+    'rbac/getRoleDrifts',
+    async (_, { rejectWithValue }) => {
+        try {
+            const res = await apiService.get('/v1/rbac/drifts', { withCredentials: true })
+            return res.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: 'Failed to fetch privilege drifts' })
+        }
+    }
+)
+
+export const HandleRevokeDrift = createAsyncThunk(
+    'rbac/revokeDrift',
+    async ({ driftID }, { rejectWithValue }) => {
+        try {
+            const res = await apiService.post(`/v1/rbac/drifts/${driftID}/revoke`, {}, { withCredentials: true })
+            return { ...res.data, driftID }
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: 'Failed to revoke privilege' })
+        }
+    }
+)
+
+export const HandleExtendDrift = createAsyncThunk(
+    'rbac/extendDrift',
+    async ({ driftID, newExpiry }, { rejectWithValue }) => {
+        try {
+            const res = await apiService.post(
+                `/v1/rbac/drifts/${driftID}/extend`,
+                { newExpiry },
+                { withCredentials: true }
+            )
+            return { ...res.data, driftID, newExpiry }
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: 'Failed to extend privilege' })
+        }
+    }
+)
+
+export const HandleCreateDrift = createAsyncThunk(
+    'rbac/createDrift',
+    async (driftData, { rejectWithValue }) => {
+        try {
+            const res = await apiService.post('/v1/rbac/drifts', driftData, { withCredentials: true })
+            return res.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: 'Failed to create drift' })
+        }
+    }
+)
+</file>
+
 <file path="server/controllers/ActivityLog.controller.js">
 import { ActivityLog } from '../models/ActivityLog.model.js'
 import dayjs from 'dayjs'
@@ -20718,39 +20767,6 @@ export const HandleGetLogSummary = async (req, res) => {
 }
 </file>
 
-<file path="server/routes/Employee.route.js">
-import express from "express"
-import { HandleAllEmployees, HandleEmployeeUpdate, HandleEmployeeDelete, HandleEmployeeByHR, HandleEmployeeByEmployee, HandleAllEmployeesIDS, HandleSearchBySkills, HandleGetEmployeeTimeline, HandleGetEmployeeTimelineByHR } from "../controllers/Employee.controller.js"
-import { VerifyHRToken } from "../middlewares/Auth.middleware.js"
-import { RoleAuthorization } from "../middlewares/RoleAuth.middleware.js"
-import { VerifyEmployeeToken } from "../middlewares/Auth.middleware.js"
-
-const router = express.Router()
-
-
-router.get("/all", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleAllEmployees)
-
-router.get("/all-employees-ids", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleAllEmployeesIDS)
-
-router.get("/search-by-skills", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleSearchBySkills)
-
-router.patch("/update-employee", VerifyEmployeeToken, HandleEmployeeUpdate)
-
-router.delete("/delete-employee/:employeeId", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleEmployeeDelete)
-
-router.get("/by-HR/:employeeId", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleEmployeeByHR)
-
-router.get("/by-employee", VerifyEmployeeToken, HandleEmployeeByEmployee)
-
-router.get("/my-timeline", VerifyEmployeeToken, HandleGetEmployeeTimeline)
-
-router.get("/timeline/:employeeId", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleGetEmployeeTimelineByHR)
-
-
-
-export default router
-</file>
-
 <file path="server/routes/GenerateRequest.route.js">
 import express from 'express'
 import { HandleAllGenerateRequest, HandleCreateGenerateRequest, HandleDeleteRequest, HandleGenerateRequest, HandleUpdateRequestByEmployee, HandleUpdateRequestByHR, HandleEmployeeRequests } from '../controllers/GenerateRequest.controller.js'
@@ -20769,6 +20785,39 @@ router.patch("/update-request-status", VerifyHRToken, RoleAuthorization("HR-Admi
 router.delete("/delete-request/:requestID", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleDeleteRequest)
 
 export default router
+</file>
+
+<file path="server/utils/generatejwttokenandsetcookies.js">
+import jwt from 'jsonwebtoken'
+
+const secureCookie = process.env.COOKIE_SECURE !== "false"
+const sameSiteCookie = secureCookie ? "none" : "lax"
+
+export const GenerateJwtTokenAndSetCookiesEmployee = (res, EMid, EMrole, ORGID) => {
+    const token = jwt.sign({ EMid, EMrole, ORGID }, process.env.JWT_SECRET, { expiresIn: '7d' })
+
+    res.cookie("EMtoken", token, {
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        secure: secureCookie,
+        sameSite: sameSiteCookie,
+    })
+
+    return token
+}
+
+export const GenerateJwtTokenAndSetCookiesHR = (res, HRid, HRrole, ORGID) => {
+    const token = jwt.sign({ HRid, HRrole, ORGID }, process.env.JWT_SECRET, { expiresIn: '7d' })
+
+    res.cookie("HRtoken", token, {
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 👈 ADD THIS (7 Days)
+        httpOnly: true,
+        secure: true,           
+        sameSite: "none",       
+        path: "/",              
+    });
+    return token
+}
 </file>
 
 <file path="client/src/components/common/Dashboard/departmentTabs.jsx">
@@ -25440,6 +25489,40 @@ router.delete("/delete-department", VerifyHRToken, CheckPermission("department.d
 export default router
 </file>
 
+<file path="server/routes/Employee.route.js">
+import express from "express"
+import {
+    HandleAllEmployees,
+    HandleEmployeeUpdate,
+    HandleEmployeeDelete,
+    HandleEmployeeByHR,
+    HandleEmployeeByEmployee,
+    HandleAllEmployeesIDS,
+    HandleSearchBySkills,
+    HandleGetEmployeeTimeline,
+    HandleGetEmployeeTimelineByHR
+} from "../controllers/Employee.controller.js"
+import { VerifyHRToken, VerifyEmployeeToken, VerifyHROrEmployeeToken } from "../middlewares/Auth.middleware.js"
+import { RoleAuthorization } from "../middlewares/RoleAuth.middleware.js"
+
+const router = express.Router()
+
+router.get("/all",                  VerifyHRToken, RoleAuthorization("HR-Admin"), HandleAllEmployees)
+router.get("/all-employees-ids",    VerifyHRToken, RoleAuthorization("HR-Admin"), HandleAllEmployeesIDS)
+router.get("/search-by-skills",     VerifyHRToken, RoleAuthorization("HR-Admin"), HandleSearchBySkills)
+
+// VerifyHROrEmployeeToken — allows both HR (modify from dashboard) and Employee (update own profile)
+router.patch("/update-employee",    VerifyHROrEmployeeToken, HandleEmployeeUpdate)
+
+router.delete("/delete-employee/:employeeId", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleEmployeeDelete)
+router.get("/by-HR/:employeeId",    VerifyHRToken, RoleAuthorization("HR-Admin"), HandleEmployeeByHR)
+router.get("/by-employee",          VerifyEmployeeToken, HandleEmployeeByEmployee)
+router.get("/my-timeline",          VerifyEmployeeToken, HandleGetEmployeeTimeline)
+router.get("/timeline/:employeeId", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleGetEmployeeTimelineByHR)
+
+export default router
+</file>
+
 <file path="server/utils/activityLogger.js">
 import { ActivityLog } from '../models/ActivityLog.model.js'
 import { runDriftDetection } from './accessDriftDetector.js'
@@ -26737,321 +26820,6 @@ export const HandlePatchHREmployees = createAsyncThunk('HandlePatchHREmployees',
 })
 </file>
 
-<file path="server/controllers/Employee.controller.js">
-import { Department } from "../models/Department.model.js"
-import { Employee } from "../models/Employee.model.js"
-import { Organization } from "../models/Organization.model.js"
-import { createLog } from "../utils/activityLogger.js"
-import { Salary } from "../models/Salary.model.js"
-import { Leave } from "../models/Leave.model.js"
-import { Notice } from "../models/Notice.model.js"
-import { Document } from "../models/Document.model.js"
-
-export const HandleEmployeeUpdate = async (req, res) => {
-    try {
-        const { employeeId, updatedEmployee } = req.body
-
-        const employee = await Employee.findByIdAndUpdate(
-            employeeId,
-            updatedEmployee,
-            { new: true }
-        )
-
-        if (!employee) {
-            return res.status(404).json({ success: false, message: "employee not found" })
-        }
-
-        const isHR = !!req.HRid
-
-        let actorName = "Unknown"
-
-        if (isHR) {
-            const { HumanResources } = await import('../models/HR.model.js')
-            const hr = await HumanResources.findById(req.HRid)
-            actorName = hr ? `${hr.firstname} ${hr.lastname}` : "HR Admin"
-        } else {
-            actorName = `${employee.firstname} ${employee.lastname}`
-        }
-
-        // ✅ NO ROLE PASSED
-        await createLog({
-            actorID: isHR ? req.HRid : req.EMid,
-            actorName,
-            action: 'EMPLOYEE_UPDATED',
-            description: `${actorName} updated employee ${employee.firstname} ${employee.lastname}`,
-            targetID: employeeId,
-            targetModel: 'Employee',
-            organizationID: req.ORGID,
-            req
-        })
-
-        return res.status(200).json({ success: true, data: employee })
-
-    } catch (error) {
-        return res.status(500).json({ success: false, message: "internal server error" })
-    }
-}
-
-export const HandleEmployeeDelete = async (req, res) => {
-    try {
-        const { employeeId } = req.params
-
-        const employee = await Employee.findById(employeeId)
-
-        if (!employee) {
-            return res.status(404).json({ success: false, message: "employee not found" })
-        }
-
-        await employee.deleteOne()
-
-        const { HumanResources } = await import('../models/HR.model.js')
-        const hr = await HumanResources.findById(req.HRid)
-
-        const hrName = hr ? `${hr.firstname} ${hr.lastname}` : "HR Admin"
-
-        // ✅ NO ROLE PASSED
-        await createLog({
-            actorID: req.HRid,
-            actorName: hrName,
-            action: 'EMPLOYEE_DELETED',
-            description: `${hrName} deleted employee ${employee.firstname} ${employee.lastname}`,
-            targetID: employeeId,
-            targetModel: 'Employee',
-            organizationID: req.ORGID,
-            req
-        })
-
-        return res.status(200).json({ success: true })
-
-    } catch (error) {
-        return res.status(500).json({ success: false, message: "internal server error" })
-    }
-}
-
-export const HandleAllEmployees = async (req, res) => {
-    try {
-        const employees = await Employee.find({ organizationID: req.ORGID }).populate("department", "name").select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest isverified skills")
-        return res.status(200).json({ success: true, data: employees, type: "AllEmployees" })
-    } catch (error) {
-        return res.status(500).json({ success: false, error: error, message: "internal server error" })
-    }
-}
-
-export const HandleAllEmployeesIDS = async (req, res) => {
-    try {
-        const employees = await Employee.find({ organizationID: req.ORGID }).populate("department", "name").select("firstname lastname department")
-        return res.status(200).json({ success: true, data: employees, type: "AllEmployeesIDS" })
-    } catch (error) {
-        return res.status(500).json({ success: false, error: error, message: "internal server error" })
-    }
-}
-
-export const HandleEmployeeByEmployee = async (req, res) => {
-    try {
-        const employee = await Employee.findOne({ _id: req.EMid, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest skills")
-
-        if (!employee) {
-            return res.status(404).json({ success: false, message: "employee not found" })
-        }
-
-        return res.json({ success: true, message: "Employee Data Fetched Successfully", data: employee })
-
-    } catch (error) {
-        return res.json({ success: false, message: "Internal Server Error", error: error })
-    }
-}
-
-export const HandleSearchBySkills = async (req, res) => {
-    try {
-        const { skills } = req.query
-        // skills is comma-separated: ?skills=React,Node
-        if (!skills) {
-            return res.status(400).json({ success: false, message: "skills query param is required" })
-        }
-        const skillArray = skills.split(',').map(s => s.trim()).filter(Boolean)
-        const employees = await Employee.find({
-            organizationID: req.ORGID,
-            skills: { $in: skillArray.map(s => new RegExp(`^${s}$`, 'i')) }
-        })
-        .populate("department", "name")
-        .select("firstname lastname email contactnumber department skills")
-
-        return res.status(200).json({ success: true, data: employees, type: "SkillSearch" })
-    } catch (error) {
-        return res.status(500).json({ success: false, message: error.message })
-    }
-}
-
-export const HandleEmployeeByHR = async (req, res) => {
-    try {
-        const { employeeId } = req.params
-        const employee = await Employee.findOne({ _id: employeeId, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest skills")
-
-        if (!employee) {
-            return res.status(404).json({ success: false, message: "employee not found" })
-        }
-        
-        return res.status(200).json({ success: true, data: employee, type: "GetEmployee" })
-    }
-    catch (error) {
-        return res.status(404).json({ success: false, error: error, message: "employee not found" }) 
-    }
-}
-
-// ─── Shared helper: build a timeline from an employee's related records ────────
-const buildTimeline = async (employee) => {
-    const events = []
-
-    // 1. Hired (account creation date)
-    events.push({
-        type: "HIRED",
-        date: employee.createdAt,
-        description: `${employee.firstname} ${employee.lastname} joined the organisation.`,
-        details: { email: employee.email }
-    })
-
-    // 2. Department assignments
-    if (employee.department) {
-        const dept = await Department.findById(employee.department).select("name createdAt")
-        if (dept) {
-            events.push({
-                type: "DEPARTMENT_CHANGE",
-                date: dept.createdAt,
-                description: `Assigned to the ${dept.name} department.`,
-                details: { department: dept.name }
-            })
-        }
-    }
-
-    // 3. Salary records
-    const salaries = await Salary.find({ employee: employee._id }).sort({ createdAt: 1 })
-    for (const sal of salaries) {
-        events.push({
-            type: "SALARY_UPDATED",
-            date: sal.createdAt,
-            description: `Salary record created — net pay ${sal.currency} ${sal.netpay}.`,
-            details: {
-                basic_pay: `${sal.currency} ${sal.basicpay}`,
-                bonuses:   `${sal.currency} ${sal.bonuses}`,
-                deductions:`${sal.currency} ${sal.deductions}`,
-                net_pay:   `${sal.currency} ${sal.netpay}`,
-                status:    sal.status
-            }
-        })
-    }
-
-    // 4. Approved leaves
-    const leaves = await Leave.find({ employee: employee._id, status: "Approved" }).sort({ createdAt: 1 })
-    for (const leave of leaves) {
-        events.push({
-            type: "LEAVE_APPROVED",
-            date: leave.createdAt,
-            description: `Leave approved: "${leave.title}".`,
-            details: {
-                title:      leave.title,
-                start_date: new Date(leave.startdate).toLocaleDateString("en-GB"),
-                end_date:   new Date(leave.enddate).toLocaleDateString("en-GB"),
-                reason:     leave.reason
-            }
-        })
-    }
-
-    // 5. Notices issued to this employee
-    const notices = await Notice.find({ employee: employee._id }).sort({ createdAt: 1 })
-    for (const notice of notices) {
-        events.push({
-            type: "NOTICE_ISSUED",
-            date: notice.createdAt,
-            description: `Notice issued: "${notice.title}".`,
-            details: { title: notice.title }
-        })
-    }
-
-    // 6. Documents added
-    const documents = await Document.find({ employee: employee._id }).sort({ createdAt: 1 })
-    for (const doc of documents) {
-        events.push({
-            type: "DOCUMENT_ADDED",
-            date: doc.createdAt,
-            description: `Document added: "${doc.documentname}" (${doc.documenttype}).`,
-            details: {
-                document:   doc.documentname,
-                type:       doc.documenttype,
-                status:     doc.status,
-                expiry:     new Date(doc.expirydate).toLocaleDateString("en-GB")
-            }
-        })
-    }
-
-    // Sort all events chronologically
-    events.sort((a, b) => new Date(a.date) - new Date(b.date))
-
-    return events
-}
-
-// ─── Employee views their own timeline ────────────────────────────────────────
-export const HandleGetEmployeeTimeline = async (req, res) => {
-    try {
-        const employee = await Employee.findOne({ _id: req.EMid, organizationID: req.ORGID })
-            .select("firstname lastname email department createdAt")
-            .populate("department", "name")
-
-        if (!employee) {
-            return res.status(404).json({ success: false, message: "Employee not found" })
-        }
-
-        const events = await buildTimeline(employee)
-
-        return res.status(200).json({
-            success: true,
-            data: {
-                employee: {
-                    firstname:  employee.firstname,
-                    lastname:   employee.lastname,
-                    email:      employee.email,
-                    department: employee.department
-                },
-                events
-            }
-        })
-    } catch (error) {
-        return res.status(500).json({ success: false, message: "Internal server error" })
-    }
-}
-
-// ─── HR views any employee's timeline ────────────────────────────────────────
-export const HandleGetEmployeeTimelineByHR = async (req, res) => {
-    try {
-        const { employeeId } = req.params
-
-        const employee = await Employee.findOne({ _id: employeeId, organizationID: req.ORGID })
-            .select("firstname lastname email department createdAt")
-            .populate("department", "name")
-
-        if (!employee) {
-            return res.status(404).json({ success: false, message: "Employee not found" })
-        }
-
-        const events = await buildTimeline(employee)
-
-        return res.status(200).json({
-            success: true,
-            data: {
-                employee: {
-                    firstname:  employee.firstname,
-                    lastname:   employee.lastname,
-                    email:      employee.email,
-                    department: employee.department
-                },
-                events
-            }
-        })
-    } catch (error) {
-        return res.status(500).json({ success: false, message: "Internal server error" })
-    }
-}
-</file>
-
 <file path="server/package.json">
 {
   "type": "module",
@@ -27967,541 +27735,6 @@ export const EmployeeOverviewPage = () => {
 }
 </file>
 
-<file path="client/src/pages/HumanResources/Dashboard Childs/rbacpage.jsx">
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import {
-    HandleGetAllRoles,
-    HandleCreateRole,
-    HandleUpdateRole,
-    HandleDeleteRole,
-    HandleGetHRAssignments,
-    HandleAssignRole,
-    HandleGetPermissionCatalogue,
-    // Add this to your Thunk imports (we will build it below)
-    HandleCreateDrift 
-} from '../../../redux/Thunks/RBACThunk'
-import { Loading } from '../../../components/common/loading'
-import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
-
-// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
-const styles = `
-  [data-theme='dark'] {
-    --rbac-bg: #18181b;
-    --rbac-border: #27272a;
-    --rbac-text-main: #fafafa;
-    --rbac-text-muted: #a1a1aa;
-    --rbac-text-faint: #71717a;
-    
-    --rbac-input-bg: #09090b;
-    --rbac-panel-bg: #18181b;
-    --rbac-hover: rgba(255,255,255,0.04);
-    
-    --rbac-active-bg: rgba(99,102,241,0.15);
-    --rbac-active-border: rgba(99,102,241,0.4);
-    --rbac-active-text: #818cf8;
-    
-    --rbac-th-bg: rgba(255,255,255,0.05);
-    --rbac-row-alt: rgba(255,255,255,0.02);
-    --rbac-modal-bg: #18181b;
-  }
-
-  .rbac-text-main { color: var(--rbac-text-main, #1f2937); }
-  .rbac-text-muted { color: var(--rbac-text-muted, #6b7280); }
-  .rbac-text-faint { color: var(--rbac-text-faint, #9ca3af); }
-
-  .rbac-panel { background: var(--rbac-panel-bg, #ffffff); border-color: var(--rbac-border, #e5e7eb); }
-  
-  .rbac-card { 
-    background: var(--rbac-panel-bg, #ffffff); 
-    border-color: var(--rbac-border, #e5e7eb); 
-    transition: all 0.2s; 
-  }
-  .rbac-card:hover { border-color: var(--rbac-active-border, #a5b4fc); background: var(--rbac-hover, #eef2ff); }
-  .rbac-card.active { border-color: var(--rbac-active-border, #818cf8); background: var(--rbac-active-bg, #eef2ff); }
-
-  .rbac-input { 
-    background: var(--rbac-input-bg, #ffffff); 
-    border: 1px solid var(--rbac-border, #d1d5db); 
-    color: var(--rbac-text-main, #1f2937); 
-  }
-  .rbac-input:focus { border-color: rgba(99,102,241,0.5); outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
-  .rbac-input:disabled { opacity: 0.6; cursor: not-allowed; }
-
-  .rbac-tab { border-bottom: 2px solid transparent; color: var(--rbac-text-muted, #6b7280); }
-  .rbac-tab:hover { color: var(--rbac-text-main, #374151); }
-  .rbac-tab.active { border-color: var(--rbac-active-text, #4f46e5); color: var(--rbac-active-text, #4f46e5); }
-
-  /* Permissions styling */
-  .rbac-perm-group { border: 1px solid var(--rbac-border, #e5e7eb); border-radius: 0.75rem; overflow: hidden; }
-  .rbac-perm-header { color: var(--rbac-text-main, #111827); transition: background 0.2s; }
-  .rbac-perm-header-all { background: var(--rbac-active-bg, #eef2ff); }
-  .rbac-perm-header-some { background: var(--rbac-hover, #f5f3ff); }
-  .rbac-perm-header-none { background: var(--rbac-th-bg, #f9fafb); }
-  .rbac-perm-header:hover:not(:disabled) { background: var(--rbac-hover, #eef2ff); }
-  
-  .rbac-perm-item { color: var(--rbac-text-main, #111827); transition: background 0.2s; }
-  .rbac-perm-item:hover:not(.disabled) { background: var(--rbac-hover, #f3f4f6); }
-  .rbac-perm-item.selected { background: var(--rbac-active-bg, #e0e7ff); }
-
-  .rbac-th { background: var(--rbac-th-bg, #f9fafb); color: var(--rbac-text-muted, #6b7280); border-bottom: 1px solid var(--rbac-border, #e5e7eb); }
-  .rbac-row { background: var(--rbac-panel-bg, #ffffff); border-bottom: 1px solid var(--rbac-border, #f3f4f6); }
-  .rbac-row-alt { background: var(--rbac-row-alt, #f9fafb); border-bottom: 1px solid var(--rbac-border, #f3f4f6); }
-  
-  .rbac-sys-badge { background: var(--rbac-active-bg, #dbeafe); color: var(--rbac-active-text, #1d4ed8); border: 1px solid var(--rbac-active-border, #bfdbfe); }
-  .rbac-modal { background: var(--rbac-modal-bg, #ffffff); border: 1px solid var(--rbac-border, transparent); }
-`
-
-const label = (p) => p.split('.').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' › ')
-
-const SystemBadge = () => (
-    <span className="px-2 py-0.5 rounded-full text-xs font-semibold rbac-sys-badge">System</span>
-)
-
-const PermCount = ({ role }) => (
-    <span className="text-xs rbac-text-faint">{role.permissions.length} permissions</span>
-)
-
-const ErrorBanner = ({ message, onDismiss }) =>
-    message ? (
-        <div style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)', color: '#ef4444' }} className="text-sm rounded-xl px-4 py-3 flex justify-between items-center">
-            <span>{message}</span>
-            <button onClick={onDismiss} className="hover:opacity-70 text-lg leading-none ml-4">×</button>
-        </div>
-    ) : null
-
-// ─── Initiate Drift Modal ─────────────────────────────────────────────────────
-const InitiateDriftModal = ({ hrUser, roles, onClose, onSave }) => {
-    const [roleID, setRoleID] = useState('')
-    const [reason, setReason] = useState('')
-    const [expiresAt, setExpiresAt] = useState('')
-    const [saving, setSaving] = useState(false)
-
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        setSaving(true)
-        await onSave({ hrUserID: hrUser._id, driftRoleID: roleID, reason, expiresAt })
-        setSaving(false)
-    }
-
-    // Don't let them select their existing base role or system roles
-    const selectableRoles = roles.filter(r => r._id !== hrUser.rbacRole?._id && !r.isSystem)
-
-    return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="rounded-2xl shadow-xl p-6 w-full max-w-md mx-4 rbac-modal">
-                <h2 className="text-xl font-bold mb-1 rbac-text-main">Grant Temporary Access</h2>
-                <p className="text-sm mb-5 rbac-text-muted">
-                    Elevate <strong className="rbac-text-main">{hrUser.firstname} {hrUser.lastname}</strong>'s privileges for a limited time.
-                </p>
-
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <div>
-                        <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase">Temporary Role</label>
-                        <select 
-                            required value={roleID} onChange={e => setRoleID(e.target.value)}
-                            className="w-full rounded-lg px-3 py-2 text-sm rbac-input"
-                        >
-                            <option value="">— Select a role —</option>
-                            {selectableRoles.map(r => (
-                                <option key={r._id} value={r._id}>{r.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase">Reason for Access</label>
-                        <input 
-                            required type="text" value={reason} onChange={e => setReason(e.target.value)}
-                            placeholder="e.g. Covering for Sarah's maternity leave"
-                            className="w-full rounded-lg px-3 py-2 text-sm rbac-input"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase">Expiry Date</label>
-                        <input 
-                            required type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
-                            className="w-full rounded-lg px-3 py-2 text-sm rbac-input"
-                        />
-                    </div>
-
-                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--rbac-border)' }}>
-                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm border rounded-lg hover:opacity-70 rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>
-                            Cancel
-                        </button>
-                        <button type="submit" disabled={saving || !roleID || !expiresAt} className="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-medium shadow-sm">
-                            {saving ? 'Processing...' : 'Grant Access'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    )
-}
-
-const PermissionPicker = ({ groups = {}, selected = [], onChange, disabled }) => {
-    const groupNames = Object.keys(groups)
-    const toggleAll = (perms) => {
-        const allIn = perms.every(p => selected.includes(p))
-        if (allIn) onChange(selected.filter(s => !perms.includes(s)))
-        else onChange([...new Set([...selected, ...perms])])
-    }
-    const toggle = (perm) => {
-        if (selected.includes(perm)) onChange(selected.filter(p => p !== perm))
-        else onChange([...selected, perm])
-    }
-    return (
-        <div className="flex flex-col gap-4">
-            {groupNames.length === 0 && <div className="rbac-text-muted">No permissions available</div>}
-            {groupNames.map(groupName => {
-                const perms = groups[groupName] || []
-                const allIn = perms.length > 0 && perms.every(p => selected.includes(p))
-                const someIn = perms.some(p => selected.includes(p))
-                return (
-                    <div key={groupName} className="rbac-perm-group">
-                        <button type="button" disabled={disabled} onClick={() => toggleAll(perms)}
-                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold rbac-perm-header ${allIn ? 'rbac-perm-header-all' : someIn ? 'rbac-perm-header-some' : 'rbac-perm-header-none'} ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-                        >
-                            <span>{groupName}</span>
-                            <span className="text-xs opacity-70 font-medium">
-                                {perms.filter(p => selected.includes(p)).length}/{perms.length}
-                            </span>
-                        </button>
-                        <div className="flex flex-col gap-1 p-2 rbac-panel">
-                            {perms.map((perm) => (
-                                <label key={perm} className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md rbac-perm-item ${selected.includes(perm) ? 'selected' : ''} ${disabled ? 'disabled opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
-                                    <input type="checkbox" disabled={disabled} checked={selected.includes(perm)} onChange={() => toggle(perm)} className="accent-indigo-600 w-4 h-4" />
-                                    <span className="font-medium" style={{ fontSize: "13px" }}>{perm.split('.').join(' → ')}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                )
-            })}
-        </div>
-    )
-}
-
-const RoleForm = ({ initial, groups, onSave, onCancel, saving, error }) => {
-    const [name,        setName]        = useState(initial?.name        || '')
-    const [description, setDescription] = useState(initial?.description || '')
-    const [permissions, setPermissions] = useState(initial?.permissions || [])
-
-    const isEdit   = !!initial?._id
-    const isSystem = initial?.isSystem
-
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        if (!name.trim()) return
-        onSave({ name: name.trim(), description, permissions })
-    }
-
-    return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 relative h-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase tracking-wide">Role Name *</label>
-                    <input value={name} onChange={e => setName(e.target.value)} disabled={isSystem} required placeholder="e.g. Recruiter, Finance HR" className="w-full rounded-lg px-3 py-2 text-sm rbac-input" />
-                </div>
-                <div>
-                    <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase tracking-wide">Description</label>
-                    <input value={description} onChange={e => setDescription(e.target.value)} placeholder="What does this role do?" className="w-full rounded-lg px-3 py-2 text-sm rbac-input" />
-                </div>
-            </div>
-
-            <div className="flex-1 overflow-auto pb-16">
-                <label className="block text-xs font-semibold rbac-text-muted mb-2 mt-2 uppercase tracking-wide">
-                    Permissions — {permissions.length} selected
-                </label>
-                {Object.keys(groups).length > 0 ? (
-                    <PermissionPicker groups={groups} selected={permissions} onChange={setPermissions} disabled={isSystem} />
-                ) : (
-                    <div className="text-sm text-red-400">No permissions loaded (check backend / API)</div>
-                )}
-            </div>
-
-            {error && <p className="text-sm text-red-600">{error}</p>}
-
-            <div className="absolute bottom-0 left-0 right-0 flex gap-3 justify-end pt-3 pb-1 rbac-panel border-t mt-4" style={{ borderTop: '1px solid var(--rbac-border)' }}>
-                <button type="button" onClick={onCancel} className="px-4 py-2 text-sm border rounded-lg hover:opacity-70 rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>Cancel</button>
-                {!isSystem && (
-                    <button type="submit" disabled={saving || !name.trim()} className="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium rounded-lg shadow-sm">
-                        {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Role'}
-                    </button>
-                )}
-            </div>
-        </form>
-    )
-}
-
-const RoleCard = ({ role, isSelected, onSelect, onEdit, onDelete }) => (
-    <div onClick={() => onSelect(role)} className={`border rounded-xl p-4 cursor-pointer rbac-card ${isSelected ? 'active shadow-sm' : ''}`}>
-        <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold rbac-text-main text-sm truncate">{role.name}</p>
-                    {role.isSystem && <SystemBadge />}
-                </div>
-                {role.description && <p className="text-xs rbac-text-muted mt-0.5 line-clamp-1">{role.description}</p>}
-            </div>
-            <PermCount role={role} />
-        </div>
-        <div className="flex gap-2 mt-3 justify-end">
-            <button onClick={e => { e.stopPropagation(); onEdit(role) }} className="px-3 py-1 text-xs border rounded-lg hover:opacity-70 transition-opacity rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>Edit</button>
-            {!role.isSystem && (
-                <button onClick={e => { e.stopPropagation(); onDelete(role) }} className="px-3 py-1 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50/20 transition-colors">Delete</button>
-            )}
-        </div>
-    </div>
-)
-
-const AssignmentTable = ({ hrList, roles, onAssign, assigning, onInitDrift }) => {
-    const [search, setSearch] = useState('')
-
-    const filtered = hrList.filter(hr => {
-        const name = `${hr.firstname} ${hr.lastname} ${hr.email}`.toLowerCase()
-        return name.includes(search.toLowerCase())
-    })
-
-    return (
-        <div className="flex flex-col gap-3">
-            <input type="text" placeholder="Search HR users…" value={search} onChange={e => setSearch(e.target.value)} className="rounded-lg px-3 py-2 text-sm w-64 rbac-input" />
-            <div className="flex flex-col gap-0 border rounded-xl overflow-hidden" style={{ borderColor: 'var(--rbac-border)' }}>
-                <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide rbac-th">
-                    <span className="col-span-4">HR User</span>
-                    <span className="col-span-3">Email</span>
-                    <span className="col-span-3">Assigned Role</span>
-                    <span className="col-span-2 text-right">Change</span>
-                </div>
-                {filtered.length === 0 && <div className="text-center py-8 text-sm rbac-text-muted">No HR users found.</div>}
-                {filtered.map((hr, i) => (
-                    <div key={hr._id} className={`grid grid-cols-12 px-4 py-3 text-sm items-center ${i % 2 === 0 ? 'rbac-row' : 'rbac-row-alt'}`}>
-                        <div className="col-span-4">
-                            <p className="font-medium rbac-text-main">{hr.firstname} {hr.lastname}</p>
-                            {!hr.rbacRole && <span className="text-xs font-medium" style={{ color: 'var(--rbac-active-text)' }}>Unrestricted</span>}
-                        </div>
-                        <p className="col-span-3 text-xs truncate pr-2 rbac-text-muted">{hr.email}</p>
-                        <div className="col-span-3">
-                            {hr.rbacRole ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold rbac-sys-badge">
-                                    {hr.rbacRole.isSystem && '⭐ '}{hr.rbacRole.name}
-                                </span>
-                            ) : (
-                                <span className="text-xs italic rbac-text-faint">No role (full access)</span>
-                            )}
-                        </div>
-                        <div className="col-span-2 flex justify-end gap-2 items-center">
-                            <select
-                                disabled={assigning === hr._id} value={hr.rbacRole?._id || ''}
-                                onChange={e => onAssign(hr._id, e.target.value || null)}
-                                className="rounded-lg px-2 py-1 text-xs max-w-[130px] rbac-input"
-                            >
-                                <option value="">— Full Access —</option>
-                                {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
-                            </select>
-                            
-                            {/* THE NEW DRIFT BUTTON */}
-                            <button 
-                                onClick={() => onInitDrift(hr)}
-                                title="Grant Temporary Access (Drift)"
-                                className="rounded-lg px-2 py-1 text-xs border hover:opacity-70 transition-opacity"
-                                style={{ borderColor: 'var(--rbac-active-border)', background: 'var(--rbac-active-bg)', color: 'var(--rbac-active-text)' }}
-                            >
-                                ⏳
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-export const RBACPage = () => {
-    const dispatch = useDispatch()
-    const state = useSelector(s => s.RBACReducer) || { roles: [], catalogue: {}, hrAssignments: [], error: {} }
-
-    const [tab,           setTab]           = useState('roles')
-    const [formMode,      setFormMode]      = useState(null)
-    const [selectedRole,  setSelectedRole]  = useState(null)
-    const [saving,        setSaving]        = useState(false)
-    const [assigning,     setAssigning]     = useState(null)
-    const [formError,     setFormError]     = useState(null)
-    const [globalError,   setGlobalError]   = useState(null)
-    const [confirmDelete, setConfirmDelete] = useState(null)
-    const [driftModalUser,setDriftModalUser]= useState(null) // New State for Drift Modal
-
-    useEffect(() => {
-        dispatch(HandleGetAllRoles())
-        dispatch(HandleGetHRAssignments())
-        dispatch(HandleGetPermissionCatalogue())
-    }, [dispatch])
-
-    useEffect(() => {
-        if (state.error?.status) setGlobalError(state.error.message)
-    }, [state.error])
-
-    const handleSaveRole = async (data) => {
-        setSaving(true); setFormError(null)
-        try {
-            let action = formMode === 'create' ? await dispatch(HandleCreateRole(data)) : await dispatch(HandleUpdateRole({ roleID: formMode._id, ...data }))
-            if (action.payload?.success === false) setFormError(action.payload.message)
-            else setFormMode(null)
-        } finally { setSaving(false) }
-    }
-
-    const handleDeleteRole = async (role) => {
-        const action = await dispatch(HandleDeleteRole(role._id))
-        if (action.payload?.success === false) setGlobalError(action.payload.message)
-        setConfirmDelete(null)
-        if (selectedRole?._id === role._id) setSelectedRole(null)
-    }
-
-    const handleAssign = async (hrID, roleID) => {
-        setAssigning(hrID)
-        await dispatch(HandleAssignRole({ hrID, roleID }))
-        setAssigning(null)
-    }
-
-    const handleCreateDrift = async (driftData) => {
-        // Calls the new thunk we are creating next
-        const res = await dispatch(HandleCreateDrift(driftData))
-        if(res.payload?.success) {
-            setDriftModalUser(null)
-            alert("Temporary access granted successfully!")
-        } else {
-            alert(res.payload?.message || "Failed to grant access")
-        }
-    }
-
-    if (state.isLoading && state.roles.length === 0) return <Loading />
-
-    const groups = state.catalogue?.groups || {}
-    const roles  = state.roles || []
-
-    return (
-        <PageShell>
-            <style>{styles}</style>
-            
-            <PageHeader eyebrow="Security" title="Role-Based Access Control" subtitle="Define roles, assign permissions, and control what each HR user can access">
-                {tab === 'roles' && !formMode && (
-                    <button onClick={() => { setFormMode('create'); setFormError(null) }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm">
-                        + New Role
-                    </button>
-                )}
-            </PageHeader>
-
-            <ErrorBanner message={globalError} onDismiss={() => setGlobalError(null)} />
-
-            <div className="flex gap-1 border-b mb-5" style={{ borderColor: 'var(--rbac-border)' }}>
-                {[
-                    { key: 'roles',  label: `Roles (${roles.length})` },
-                    { key: 'assign', label: `Assign to HR Users (${state.hrAssignments.length})` },
-                ].map(t => (
-                    <button key={t.key} onClick={() => { setTab(t.key); setFormMode(null) }} className={`px-5 py-3 text-sm font-medium transition-colors rbac-tab ${tab === t.key ? 'active' : ''}`}>
-                        {t.label}
-                    </button>
-                ))}
-            </div>
-
-            {tab === 'roles' && (
-                <>
-                    {formMode && (
-                        <div className="border rounded-2xl shadow-sm flex flex-col overflow-hidden rbac-panel" style={{ height: 'calc(100vh - 220px)' }}>
-                            <div className="px-6 pt-5 pb-3 border-b shrink-0" style={{ borderColor: 'var(--rbac-border)' }}>
-                                <h2 className="text-lg font-bold rbac-text-main">{formMode === 'create' ? 'Create New Role' : `Edit: ${formMode.name}`}</h2>
-                            </div>
-                            <div className="flex-1 px-6 py-4 overflow-hidden relative">
-                                <RoleForm initial={formMode === 'create' ? null : formMode} groups={groups} onSave={handleSaveRole} onCancel={() => setFormMode(null)} saving={saving} error={formError} />
-                            </div>
-                        </div>
-                    )}
-                    {!formMode && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                            <div className="lg:col-span-1 flex flex-col gap-3">
-                                {roles.length === 0 ? <div className="text-center py-16 border-2 border-dashed rounded-xl text-sm rbac-text-muted" style={{ borderColor: 'var(--rbac-border)' }}>No roles yet. Create one to get started.</div> : roles.map(role => (
-                                    <RoleCard key={role._id} role={role} isSelected={selectedRole?._id === role._id} onSelect={setSelectedRole} onEdit={r => { setFormMode(r); setFormError(null) }} onDelete={setConfirmDelete} />
-                                ))}
-                            </div>
-                            <div className="lg:col-span-2">
-                                {!selectedRole ? (
-                                    <div className="flex flex-col items-center justify-center h-full py-24 gap-2 border-2 border-dashed rounded-xl rbac-text-faint" style={{ borderColor: 'var(--rbac-border)' }}>
-                                        <span className="text-4xl">🔐</span><p className="font-medium">Select a role to view its permissions</p>
-                                    </div>
-                                ) : (
-                                    <div className="border rounded-2xl p-5 flex flex-col gap-4 rbac-panel shadow-sm">
-                                        <div className="flex items-center gap-3 border-b pb-3" style={{ borderColor: 'var(--rbac-border)' }}>
-                                            <div>
-                                                <div className="flex items-center gap-2"><h3 className="text-lg font-bold rbac-text-main">{selectedRole.name}</h3>{selectedRole.isSystem && <SystemBadge />}</div>
-                                                {selectedRole.description && <p className="text-sm mt-0.5 rbac-text-muted">{selectedRole.description}</p>}
-                                            </div>
-                                            <span className="ml-auto text-sm font-semibold" style={{ color: 'var(--rbac-active-text)' }}>{selectedRole.permissions.length} / {state.catalogue.all?.length || 0} permissions</span>
-                                        </div>
-                                        <div className="flex flex-col gap-4 overflow-auto max-h-[500px] pr-1">
-                                            {Object.entries(groups).map(([groupName, rawPerms]) => {
-                                                const perms = Array.isArray(rawPerms) ? rawPerms : Object.values(rawPerms || {})
-                                                const granted = perms.filter(p => selectedRole.permissions.includes(p))
-                                                if (granted.length === 0) return null
-                                                return (
-                                                    <div key={groupName}>
-                                                        <p className="text-xs font-semibold uppercase tracking-wide mb-2 rbac-text-faint">{groupName}</p>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {granted.map(p => <span key={p} className="px-3 py-1.5 rounded-md text-xs font-medium rbac-sys-badge">{typeof p === "string" ? label(p) : ""}</span>)}
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })}
-                                            {selectedRole.permissions.length === 0 && <p className="text-sm italic rbac-text-faint">This role has no permissions assigned yet.</p>}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </>
-            )}
-
-            {tab === 'assign' && (
-                <div className="border rounded-2xl p-5 rbac-panel shadow-sm">
-                    <div className="mb-4">
-                        <h2 className="text-base font-bold rbac-text-main">Assign Roles to HR Users</h2>
-                        <p className="text-sm mt-0.5 rbac-text-muted">HR users without a role have unrestricted access to all modules.</p>
-                    </div>
-                    <AssignmentTable hrList={state.hrAssignments} roles={roles} onAssign={handleAssign} assigning={assigning} onInitDrift={setDriftModalUser} />
-                </div>
-            )}
-
-            {/* Delete Modal */}
-            {confirmDelete && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4 rbac-modal">
-                        <h2 className="text-lg font-bold mb-2 rbac-text-main">Delete Role</h2>
-                        <p className="text-sm mb-1 rbac-text-muted">Are you sure you want to delete <strong className="rbac-text-main">{confirmDelete.name}</strong>?</p>
-                        <p className="text-xs mb-5" style={{ color: '#ea580c' }}>All HR users assigned this role will lose it and revert to full access.</p>
-                        <div className="flex justify-end gap-3">
-                            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm border rounded-lg hover:opacity-70 rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>Cancel</button>
-                            <button onClick={() => handleDeleteRole(confirmDelete)} className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-sm">Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Initiate Drift Modal */}
-            {driftModalUser && (
-                <InitiateDriftModal 
-                    hrUser={driftModalUser} 
-                    roles={roles} 
-                    onClose={() => setDriftModalUser(null)} 
-                    onSave={handleCreateDrift} 
-                />
-            )}
-        </PageShell>
-    )
-}
-</file>
-
 <file path="client/src/pages/HumanResources/Dashboard Childs/recruitmentpage.jsx">
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -29348,6 +28581,340 @@ export const SalaryPage = () => {
 }
 </file>
 
+<file path="server/controllers/Employee.controller.js">
+import { AccessDrift } from '../models/AccessDrift.model.js'
+import { ActivityLog } from '../models/ActivityLog.model.js'
+import { Department } from "../models/Department.model.js"
+import { Employee } from "../models/Employee.model.js"
+import { Organization } from "../models/Organization.model.js"
+import { createLog } from "../utils/activityLogger.js"
+import { Salary } from "../models/Salary.model.js"
+import { Leave } from "../models/Leave.model.js"
+import { Notice } from "../models/Notice.model.js"
+import { Document } from "../models/Document.model.js"
+
+export const HandleEmployeeUpdate = async (req, res) => {
+    try {
+        const { employeeId, updatedEmployee } = req.body
+
+        const employee = await Employee.findByIdAndUpdate(
+            employeeId,
+            updatedEmployee,
+            { new: true }
+        )
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: "employee not found" })
+        }
+
+        // ── Propagate name/dept changes to all denormalized collections ──────
+        const fullName = `${employee.firstname} ${employee.lastname}`
+        const deptName = employee.department?.name || 'Unknown'
+
+        await Promise.all([
+            // Security Alerts (AccessDrift) — stores employeeName + employeeDepartment as strings
+            AccessDrift.updateMany(
+                { employeeID: employee._id },
+                { $set: { employeeName: fullName, employeeDepartment: deptName } }
+            ),
+            // Activity Log — update actorName where this employee was the actor
+            ActivityLog.updateMany(
+                { actorID: employee._id, actorRole: 'Employee' },
+                { $set: { actorName: fullName } }
+            ),
+        ])
+
+        const isHR = !!req.HRid
+
+        let actorName = "Unknown"
+
+        if (isHR) {
+            const { HumanResources } = await import('../models/HR.model.js')
+            const hr = await HumanResources.findById(req.HRid)
+            actorName = hr ? `${hr.firstname} ${hr.lastname}` : "HR Admin"
+        } else {
+            actorName = `${employee.firstname} ${employee.lastname}`
+        }
+
+        // ✅ NO ROLE PASSED
+        await createLog({
+            actorID: isHR ? req.HRid : req.EMid,
+            actorName,
+            action: 'EMPLOYEE_UPDATED',
+            description: `${actorName} updated employee ${employee.firstname} ${employee.lastname}`,
+            targetID: employeeId,
+            targetModel: 'Employee',
+            organizationID: req.ORGID,
+            req
+        })
+
+        return res.status(200).json({ success: true, data: employee })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "internal server error" })
+    }
+}
+
+export const HandleEmployeeDelete = async (req, res) => {
+    try {
+        const { employeeId } = req.params
+
+        const employee = await Employee.findById(employeeId)
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: "employee not found" })
+        }
+
+        await employee.deleteOne()
+
+        const { HumanResources } = await import('../models/HR.model.js')
+        const hr = await HumanResources.findById(req.HRid)
+
+        const hrName = hr ? `${hr.firstname} ${hr.lastname}` : "HR Admin"
+
+        // ✅ NO ROLE PASSED
+        await createLog({
+            actorID: req.HRid,
+            actorName: hrName,
+            action: 'EMPLOYEE_DELETED',
+            description: `${hrName} deleted employee ${employee.firstname} ${employee.lastname}`,
+            targetID: employeeId,
+            targetModel: 'Employee',
+            organizationID: req.ORGID,
+            req
+        })
+
+        return res.status(200).json({ success: true })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "internal server error" })
+    }
+}
+
+export const HandleAllEmployees = async (req, res) => {
+    try {
+        const employees = await Employee.find({ organizationID: req.ORGID }).populate("department", "name").select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest isverified skills")
+        return res.status(200).json({ success: true, data: employees, type: "AllEmployees" })
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error, message: "internal server error" })
+    }
+}
+
+export const HandleAllEmployeesIDS = async (req, res) => {
+    try {
+        const employees = await Employee.find({ organizationID: req.ORGID }).populate("department", "name").select("firstname lastname department")
+        return res.status(200).json({ success: true, data: employees, type: "AllEmployeesIDS" })
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error, message: "internal server error" })
+    }
+}
+
+export const HandleEmployeeByEmployee = async (req, res) => {
+    try {
+        const employee = await Employee.findOne({ _id: req.EMid, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest skills")
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: "employee not found" })
+        }
+
+        return res.json({ success: true, message: "Employee Data Fetched Successfully", data: employee })
+
+    } catch (error) {
+        return res.json({ success: false, message: "Internal Server Error", error: error })
+    }
+}
+
+export const HandleSearchBySkills = async (req, res) => {
+    try {
+        const { skills } = req.query
+        // skills is comma-separated: ?skills=React,Node
+        if (!skills) {
+            return res.status(400).json({ success: false, message: "skills query param is required" })
+        }
+        const skillArray = skills.split(',').map(s => s.trim()).filter(Boolean)
+        const employees = await Employee.find({
+            organizationID: req.ORGID,
+            skills: { $in: skillArray.map(s => new RegExp(`^${s}$`, 'i')) }
+        })
+        .populate("department", "name")
+        .select("firstname lastname email contactnumber department skills")
+
+        return res.status(200).json({ success: true, data: employees, type: "SkillSearch" })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message })
+    }
+}
+
+export const HandleEmployeeByHR = async (req, res) => {
+    try {
+        const { employeeId } = req.params
+        const employee = await Employee.findOne({ _id: employeeId, organizationID: req.ORGID }).select("firstname lastname email contactnumber department attendance notice salary leaverequest generaterequest skills")
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: "employee not found" })
+        }
+        
+        return res.status(200).json({ success: true, data: employee, type: "GetEmployee" })
+    }
+    catch (error) {
+        return res.status(404).json({ success: false, error: error, message: "employee not found" }) 
+    }
+}
+
+// ─── Shared helper: build a timeline from an employee's related records ────────
+const buildTimeline = async (employee) => {
+    const events = []
+
+    // 1. Hired (account creation date)
+    events.push({
+        type: "HIRED",
+        date: employee.createdAt,
+        description: `${employee.firstname} ${employee.lastname} joined the organisation.`,
+        details: { email: employee.email }
+    })
+
+    // 2. Department assignments
+    if (employee.department) {
+        const dept = await Department.findById(employee.department).select("name createdAt")
+        if (dept) {
+            events.push({
+                type: "DEPARTMENT_CHANGE",
+                date: dept.createdAt,
+                description: `Assigned to the ${dept.name} department.`,
+                details: { department: dept.name }
+            })
+        }
+    }
+
+    // 3. Salary records
+    const salaries = await Salary.find({ employee: employee._id }).sort({ createdAt: 1 })
+    for (const sal of salaries) {
+        events.push({
+            type: "SALARY_UPDATED",
+            date: sal.createdAt,
+            description: `Salary record created — net pay ${sal.currency} ${sal.netpay}.`,
+            details: {
+                basic_pay: `${sal.currency} ${sal.basicpay}`,
+                bonuses:   `${sal.currency} ${sal.bonuses}`,
+                deductions:`${sal.currency} ${sal.deductions}`,
+                net_pay:   `${sal.currency} ${sal.netpay}`,
+                status:    sal.status
+            }
+        })
+    }
+
+    // 4. Approved leaves
+    const leaves = await Leave.find({ employee: employee._id, status: "Approved" }).sort({ createdAt: 1 })
+    for (const leave of leaves) {
+        events.push({
+            type: "LEAVE_APPROVED",
+            date: leave.createdAt,
+            description: `Leave approved: "${leave.title}".`,
+            details: {
+                title:      leave.title,
+                start_date: new Date(leave.startdate).toLocaleDateString("en-GB"),
+                end_date:   new Date(leave.enddate).toLocaleDateString("en-GB"),
+                reason:     leave.reason
+            }
+        })
+    }
+
+    // 5. Notices issued to this employee
+    const notices = await Notice.find({ employee: employee._id }).sort({ createdAt: 1 })
+    for (const notice of notices) {
+        events.push({
+            type: "NOTICE_ISSUED",
+            date: notice.createdAt,
+            description: `Notice issued: "${notice.title}".`,
+            details: { title: notice.title }
+        })
+    }
+
+    // 6. Documents added
+    const documents = await Document.find({ employee: employee._id }).sort({ createdAt: 1 })
+    for (const doc of documents) {
+        events.push({
+            type: "DOCUMENT_ADDED",
+            date: doc.createdAt,
+            description: `Document added: "${doc.documentname}" (${doc.documenttype}).`,
+            details: {
+                document:   doc.documentname,
+                type:       doc.documenttype,
+                status:     doc.status,
+                expiry:     new Date(doc.expirydate).toLocaleDateString("en-GB")
+            }
+        })
+    }
+
+    // Sort all events chronologically
+    events.sort((a, b) => new Date(a.date) - new Date(b.date))
+
+    return events
+}
+
+// ─── Employee views their own timeline ────────────────────────────────────────
+export const HandleGetEmployeeTimeline = async (req, res) => {
+    try {
+        const employee = await Employee.findOne({ _id: req.EMid, organizationID: req.ORGID })
+            .select("firstname lastname email department createdAt")
+            .populate("department", "name")
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: "Employee not found" })
+        }
+
+        const events = await buildTimeline(employee)
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                employee: {
+                    firstname:  employee.firstname,
+                    lastname:   employee.lastname,
+                    email:      employee.email,
+                    department: employee.department
+                },
+                events
+            }
+        })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error" })
+    }
+}
+
+// ─── HR views any employee's timeline ────────────────────────────────────────
+export const HandleGetEmployeeTimelineByHR = async (req, res) => {
+    try {
+        const { employeeId } = req.params
+
+        const employee = await Employee.findOne({ _id: employeeId, organizationID: req.ORGID })
+            .select("firstname lastname email department createdAt")
+            .populate("department", "name")
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: "Employee not found" })
+        }
+
+        const events = await buildTimeline(employee)
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                employee: {
+                    firstname:  employee.firstname,
+                    lastname:   employee.lastname,
+                    email:      employee.email,
+                    department: employee.department
+                },
+                events
+            }
+        })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error" })
+    }
+}
+</file>
+
 <file path="server/controllers/HRAuth.controller.js">
 import { HumanResources } from "../models/HR.model.js"
 import bcrypt from 'bcrypt'
@@ -29861,241 +29428,6 @@ export const HandleCreateHRByAdmin = async (req, res) => {
         });
     }
 };
-</file>
-
-<file path="client/src/pages/HumanResources/Dashboard Childs/accessdriftpage.jsx">
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-// Note: You will need to create these Thunks in your RBAC or Employee slice
-import { HandleGetRoleDrifts, HandleRevokeDrift, HandleExtendDrift } from '../../../redux/Thunks/RBACThunk'
-import { Loading } from '../../../components/common/loading'
-import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
-
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-  /* ═══════════════════════════════════════════════════════
-     DARK MODE & EXECUTIVE THEME OVERRIDES
-  ═══════════════════════════════════════════════════════ */
-  [data-theme='dark'] {
-    --dr-bg: #18181b;
-    --dr-border: #27272a;
-    --dr-text-main: #fafafa;
-    --dr-text-muted: #a1a1aa;
-    --dr-text-faint: #71717a;
-    --dr-row-hover: rgba(255, 255, 255, 0.03);
-    
-    --dr-base-bg: rgba(255, 255, 255, 0.08);
-    --dr-base-text: #e4e4e7;
-    
-    --dr-add-bg: rgba(99, 102, 241, 0.15);
-    --dr-add-text: #818cf8;
-    --dr-add-border: rgba(99, 102, 241, 0.3);
-
-    --dr-warn-bg: rgba(239, 68, 68, 0.15);
-    --dr-warn-text: #f87171;
-    --dr-warn-border: rgba(239, 68, 68, 0.3);
-  }
-
-  .dr-base-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
-    background: var(--dr-base-bg, #f3f4f6); color: var(--dr-base-text, #4b5563);
-    letter-spacing: 0.03em;
-  }
-
-  .dr-added-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
-    background: var(--dr-add-bg, rgba(99, 102, 241, 0.08)); 
-    color: var(--dr-add-text, #4f46e5); 
-    border: 1px solid var(--dr-add-border, rgba(99, 102, 241, 0.2));
-  }
-
-  .dr-expired-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
-    background: var(--dr-warn-bg, rgba(239, 68, 68, 0.08)); 
-    color: var(--dr-warn-text, #dc2626); 
-    border: 1px solid var(--dr-warn-border, rgba(239, 68, 68, 0.2));
-  }
-`
-
-const initials = (first, last) => `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase()
-
-const Avatar = ({ first, last }) => (
-    <div style={{
-        width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'white', fontWeight: 700, fontSize: 13,
-        fontFamily: "'DM Serif Display', serif",
-    }}>
-        {initials(first, last)}
-    </div>
-)
-
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'No Expiry'
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-export const AccessDriftPage = () => {
-    const dispatch = useDispatch()
-    
-    // Fallback empty state if the Redux slice isn't built yet
-    const state = useSelector(s => s.PrivilegeDriftReducer) || { data: [], isLoading: false }
-    const [search, setSearch] = useState('')
-    const [filter, setFilter] = useState('All')
-
-    // Dummy data to test the UI until the backend is hooked up
-    const dummyData = [
-        {
-            _id: '1',
-            employee: { firstname: 'Dulce', lastname: 'Lehner', department: { name: 'Human Resources' }, email: 'dulce@novacore.com' },
-            baseRole: 'HR Assistant',
-            drift: { role: 'Payroll Admin', reason: 'Maternity Cover (Sarah)', expiresAt: '2026-05-15T00:00:00.000Z', isExpired: false }
-        },
-        {
-            _id: '2',
-            employee: { firstname: 'Wilson', lastname: 'Rolfson', department: { name: 'Finance' }, email: 'wilson@novacore.com' },
-            baseRole: 'Accountant',
-            drift: { role: 'Audit Viewer', reason: 'Q1 Financial Audit', expiresAt: '2026-04-10T00:00:00.000Z', isExpired: true }
-        }
-    ]
-
-    const drifts = state.data?.length > 0 ? state.data : dummyData
-
-    useEffect(() => {
-        // dispatch(HandleGetRoleDrifts())
-    }, [dispatch])
-
-    const handleRevoke = (driftID) => {
-        if (window.confirm('Instantly revoke this temporary privilege?')) {
-            // dispatch(HandleRevokeDrift({ driftID }))
-            console.log('Revoked:', driftID)
-        }
-    }
-
-    const filtered = drifts.filter(d => {
-        const matchName = `${d.employee?.firstname} ${d.employee?.lastname}`.toLowerCase().includes(search.toLowerCase())
-        if (filter === 'Expired') return matchName && d.drift.isExpired
-        if (filter === 'Active') return matchName && !d.drift.isExpired
-        return matchName
-    })
-
-    const totalExpired = drifts.filter(d => d.drift.isExpired).length
-
-    return (
-        <PageShell>
-            <style>{styles}</style>
-            
-            <PageHeader 
-                eyebrow="Security" 
-                title="Access Drift" 
-                subtitle="Track employees with temporary roles, expanded access, or expired privileges" 
-            />
-
-            <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                <div className="pg-stat-card">
-                    <span className="pg-stat-value">{drifts.length}</span>
-                    <span className="pg-stat-label">Total Active Drifts</span>
-                </div>
-                <div className="pg-stat-card">
-                    <span className="pg-stat-value" style={{ color: totalExpired > 0 ? 'var(--dr-warn-text, #dc2626)' : 'inherit' }}>
-                        {totalExpired}
-                    </span>
-                    <span className="pg-stat-label">Expired Privileges</span>
-                </div>
-                <div className="pg-stat-card">
-                    <span className="pg-stat-value">{drifts.filter(d => !d.drift.isExpired).length}</span>
-                    <span className="pg-stat-label">Temporary Roles</span>
-                </div>
-            </div>
-
-            <div className="pg-filters">
-                <input 
-                    className="pg-search" type="text" placeholder="Search by employee..." 
-                    value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 260 }} 
-                />
-                {['All', 'Active', 'Expired'].map(s => (
-                    <button key={s} onClick={() => setFilter(s)} className={`pg-pill${filter === s ? ' active' : ''}`}>
-                        {s}
-                    </button>
-                ))}
-            </div>
-
-            <div className="pg-table-wrap">
-                <div className="pg-table-head" style={{ gridTemplateColumns: '2fr 1.5fr 2fr 1fr 140px' }}>
-                    <span className="pg-th">Employee</span>
-                    <span className="pg-th">Base Role</span>
-                    <span className="pg-th">Added Privilege (Drift)</span>
-                    <span className="pg-th">Expiry</span>
-                    <span className="pg-th">Actions</span>
-                </div>
-
-                {filtered.length === 0 && (
-                    <div className="pg-empty">
-                        <span className="pg-empty-icon">🛡️</span>
-                        <p className="pg-empty-title">No privilege drift detected</p>
-                        <p className="pg-empty-sub">All employee access aligns with their base roles.</p>
-                    </div>
-                )}
-
-                {filtered.map(item => (
-                    <div key={item._id} className="pg-table-row" style={{ gridTemplateColumns: '2fr 1.5fr 2fr 1fr 140px' }}>
-                        
-                        {/* Employee */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <Avatar first={item.employee.firstname} last={item.employee.lastname} />
-                            <div>
-                                <div className="pg-td-name" style={{ color: 'var(--dr-text-main, #0f172a)' }}>
-                                    {item.employee.firstname} {item.employee.lastname}
-                                </div>
-                                <div className="pg-td-sub">{item.employee.department?.name}</div>
-                            </div>
-                        </div>
-
-                        {/* Base Role */}
-                        <div>
-                            <span className="dr-base-pill">🛡️ {item.baseRole}</span>
-                        </div>
-
-                        {/* Added Privilege */}
-                        <div>
-                            <div className={item.drift.isExpired ? 'dr-expired-pill' : 'dr-added-pill'}>
-                                + {item.drift.role}
-                            </div>
-                            <div className="pg-td-sub" style={{ marginTop: 6, fontSize: 11, fontStyle: 'italic' }}>
-                                Reason: {item.drift.reason}
-                            </div>
-                        </div>
-
-                        {/* Expiry */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            <span style={{ fontSize: 13, fontWeight: 600, color: item.drift.isExpired ? 'var(--dr-warn-text, #dc2626)' : 'var(--dr-text-main, #0f172a)' }}>
-                                {fmtDate(item.drift.expiresAt)}
-                            </span>
-                            {item.drift.isExpired && (
-                                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--dr-warn-text, #dc2626)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    Action Required
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Actions */}
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                            <button className="pg-action-btn red" onClick={() => handleRevoke(item._id)}>
-                                Revoke
-                            </button>
-                            <button className="pg-action-btn indigo">
-                                Extend
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </PageShell>
-    )
-}
 </file>
 
 <file path="client/src/pages/HumanResources/Dashboard Childs/activitylogpage.jsx">
@@ -31435,6 +30767,909 @@ export const PayrollCompliancePage = () => {
 }
 </file>
 
+<file path="client/src/pages/HumanResources/Dashboard Childs/rbacpage.jsx">
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+    HandleGetAllRoles,
+    HandleCreateRole,
+    HandleUpdateRole,
+    HandleDeleteRole,
+    HandleGetHRAssignments,
+    HandleAssignRole,
+    HandleGetPermissionCatalogue,
+    HandleCreateDrift,
+    HandleGetRoleDrifts,
+} from '../../../redux/Thunks/RBACThunk'
+import { Loading } from '../../../components/common/loading'
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
+
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --rbac-bg: #18181b;
+    --rbac-border: #27272a;
+    --rbac-text-main: #fafafa;
+    --rbac-text-muted: #a1a1aa;
+    --rbac-text-faint: #71717a;
+    
+    --rbac-input-bg: #09090b;
+    --rbac-panel-bg: #18181b;
+    --rbac-hover: rgba(255,255,255,0.04);
+    
+    --rbac-active-bg: rgba(99,102,241,0.15);
+    --rbac-active-border: rgba(99,102,241,0.4);
+    --rbac-active-text: #818cf8;
+    
+    --rbac-th-bg: rgba(255,255,255,0.05);
+    --rbac-row-alt: rgba(255,255,255,0.02);
+    --rbac-modal-bg: #18181b;
+  }
+
+  .rbac-text-main { color: var(--rbac-text-main, #1f2937); }
+  .rbac-text-muted { color: var(--rbac-text-muted, #6b7280); }
+  .rbac-text-faint { color: var(--rbac-text-faint, #9ca3af); }
+
+  .rbac-panel { background: var(--rbac-panel-bg, #ffffff); border-color: var(--rbac-border, #e5e7eb); }
+  
+  .rbac-card { 
+    background: var(--rbac-panel-bg, #ffffff); 
+    border-color: var(--rbac-border, #e5e7eb); 
+    transition: all 0.2s; 
+  }
+  .rbac-card:hover { border-color: var(--rbac-active-border, #a5b4fc); background: var(--rbac-hover, #eef2ff); }
+  .rbac-card.active { border-color: var(--rbac-active-border, #818cf8); background: var(--rbac-active-bg, #eef2ff); }
+
+  .rbac-input { 
+    background: var(--rbac-input-bg, #ffffff); 
+    border: 1px solid var(--rbac-border, #d1d5db); 
+    color: var(--rbac-text-main, #1f2937); 
+  }
+  .rbac-input:focus { border-color: rgba(99,102,241,0.5); outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+  .rbac-input:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .rbac-tab { border-bottom: 2px solid transparent; color: var(--rbac-text-muted, #6b7280); }
+  .rbac-tab:hover { color: var(--rbac-text-main, #374151); }
+  .rbac-tab.active { border-color: var(--rbac-active-text, #4f46e5); color: var(--rbac-active-text, #4f46e5); }
+
+  /* Permissions styling */
+  .rbac-perm-group { border: 1px solid var(--rbac-border, #e5e7eb); border-radius: 0.75rem; overflow: hidden; }
+  .rbac-perm-header { color: var(--rbac-text-main, #111827); transition: background 0.2s; }
+  .rbac-perm-header-all { background: var(--rbac-active-bg, #eef2ff); }
+  .rbac-perm-header-some { background: var(--rbac-hover, #f5f3ff); }
+  .rbac-perm-header-none { background: var(--rbac-th-bg, #f9fafb); }
+  .rbac-perm-header:hover:not(:disabled) { background: var(--rbac-hover, #eef2ff); }
+  
+  .rbac-perm-item { color: var(--rbac-text-main, #111827); transition: background 0.2s; }
+  .rbac-perm-item:hover:not(.disabled) { background: var(--rbac-hover, #f3f4f6); }
+  .rbac-perm-item.selected { background: var(--rbac-active-bg, #e0e7ff); }
+
+  .rbac-th { background: var(--rbac-th-bg, #f9fafb); color: var(--rbac-text-muted, #6b7280); border-bottom: 1px solid var(--rbac-border, #e5e7eb); }
+  .rbac-row { background: var(--rbac-panel-bg, #ffffff); border-bottom: 1px solid var(--rbac-border, #f3f4f6); }
+  .rbac-row-alt { background: var(--rbac-row-alt, #f9fafb); border-bottom: 1px solid var(--rbac-border, #f3f4f6); }
+  
+  .rbac-sys-badge { background: var(--rbac-active-bg, #dbeafe); color: var(--rbac-active-text, #1d4ed8); border: 1px solid var(--rbac-active-border, #bfdbfe); }
+  .rbac-modal { background: var(--rbac-modal-bg, #ffffff); border: 1px solid var(--rbac-border, transparent); }
+`
+
+const label = (p) => p.split('.').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' › ')
+
+const SystemBadge = () => (
+    <span className="px-2 py-0.5 rounded-full text-xs font-semibold rbac-sys-badge">System</span>
+)
+
+const PermCount = ({ role }) => (
+    <span className="text-xs rbac-text-faint">{role.permissions.length} permissions</span>
+)
+
+const ErrorBanner = ({ message, onDismiss }) =>
+    message ? (
+        <div style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)', color: '#ef4444' }} className="text-sm rounded-xl px-4 py-3 flex justify-between items-center">
+            <span>{message}</span>
+            <button onClick={onDismiss} className="hover:opacity-70 text-lg leading-none ml-4">×</button>
+        </div>
+    ) : null
+
+// ─── Initiate Drift Modal ─────────────────────────────────────────────────────
+const InitiateDriftModal = ({ hrUser, roles, onClose, onSave }) => {
+    const [roleID, setRoleID] = useState('')
+    const [reason, setReason] = useState('')
+    const [expiresAt, setExpiresAt] = useState('')
+    const [saving, setSaving] = useState(false)
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setSaving(true)
+        await onSave({ hrUserID: hrUser._id, driftRoleID: roleID, reason, expiresAt })
+        setSaving(false)
+    }
+
+    // Don't let them select their existing base role or system roles
+    const selectableRoles = roles.filter(r => r._id !== hrUser.rbacRole?._id && !r.isSystem)
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="rounded-2xl shadow-xl p-6 w-full max-w-md mx-4 rbac-modal">
+                <h2 className="text-xl font-bold mb-1 rbac-text-main">Grant Temporary Access</h2>
+                <p className="text-sm mb-5 rbac-text-muted">
+                    Elevate <strong className="rbac-text-main">{hrUser.firstname} {hrUser.lastname}</strong>'s privileges for a limited time.
+                </p>
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div>
+                        <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase">Temporary Role</label>
+                        <select 
+                            required value={roleID} onChange={e => setRoleID(e.target.value)}
+                            className="w-full rounded-lg px-3 py-2 text-sm rbac-input"
+                        >
+                            <option value="">— Select a role —</option>
+                            {selectableRoles.map(r => (
+                                <option key={r._id} value={r._id}>{r.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase">Reason for Access</label>
+                        <input 
+                            required type="text" value={reason} onChange={e => setReason(e.target.value)}
+                            placeholder="e.g. Covering for Sarah's maternity leave"
+                            className="w-full rounded-lg px-3 py-2 text-sm rbac-input"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase">Expiry Date</label>
+                        <input 
+                            required type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-full rounded-lg px-3 py-2 text-sm rbac-input"
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--rbac-border)' }}>
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm border rounded-lg hover:opacity-70 rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>
+                            Cancel
+                        </button>
+                        <button type="submit" disabled={saving || !roleID || !expiresAt} className="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-medium shadow-sm">
+                            {saving ? 'Processing...' : 'Grant Access'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
+}
+
+const PermissionPicker = ({ groups = {}, selected = [], onChange, disabled }) => {
+    const groupNames = Object.keys(groups)
+    const toggleAll = (perms) => {
+        const allIn = perms.every(p => selected.includes(p))
+        if (allIn) onChange(selected.filter(s => !perms.includes(s)))
+        else onChange([...new Set([...selected, ...perms])])
+    }
+    const toggle = (perm) => {
+        if (selected.includes(perm)) onChange(selected.filter(p => p !== perm))
+        else onChange([...selected, perm])
+    }
+    return (
+        <div className="flex flex-col gap-4">
+            {groupNames.length === 0 && <div className="rbac-text-muted">No permissions available</div>}
+            {groupNames.map(groupName => {
+                const perms = groups[groupName] || []
+                const allIn = perms.length > 0 && perms.every(p => selected.includes(p))
+                const someIn = perms.some(p => selected.includes(p))
+                return (
+                    <div key={groupName} className="rbac-perm-group">
+                        <button type="button" disabled={disabled} onClick={() => toggleAll(perms)}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold rbac-perm-header ${allIn ? 'rbac-perm-header-all' : someIn ? 'rbac-perm-header-some' : 'rbac-perm-header-none'} ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                            <span>{groupName}</span>
+                            <span className="text-xs opacity-70 font-medium">
+                                {perms.filter(p => selected.includes(p)).length}/{perms.length}
+                            </span>
+                        </button>
+                        <div className="flex flex-col gap-1 p-2 rbac-panel">
+                            {perms.map((perm) => (
+                                <label key={perm} className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md rbac-perm-item ${selected.includes(perm) ? 'selected' : ''} ${disabled ? 'disabled opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
+                                    <input type="checkbox" disabled={disabled} checked={selected.includes(perm)} onChange={() => toggle(perm)} className="accent-indigo-600 w-4 h-4" />
+                                    <span className="font-medium" style={{ fontSize: "13px" }}>{perm.split('.').join(' → ')}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
+    )
+}
+
+const RoleForm = ({ initial, groups, onSave, onCancel, saving, error }) => {
+    const [name,        setName]        = useState(initial?.name        || '')
+    const [description, setDescription] = useState(initial?.description || '')
+    const [permissions, setPermissions] = useState(initial?.permissions || [])
+
+    const isEdit   = !!initial?._id
+    const isSystem = initial?.isSystem
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        if (!name.trim()) return
+        onSave({ name: name.trim(), description, permissions })
+    }
+
+    return (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 relative h-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase tracking-wide">Role Name *</label>
+                    <input value={name} onChange={e => setName(e.target.value)} disabled={isSystem} required placeholder="e.g. Recruiter, Finance HR" className="w-full rounded-lg px-3 py-2 text-sm rbac-input" />
+                </div>
+                <div>
+                    <label className="block text-xs font-semibold rbac-text-muted mb-1 uppercase tracking-wide">Description</label>
+                    <input value={description} onChange={e => setDescription(e.target.value)} placeholder="What does this role do?" className="w-full rounded-lg px-3 py-2 text-sm rbac-input" />
+                </div>
+            </div>
+
+            <div className="flex-1 overflow-auto pb-16">
+                <label className="block text-xs font-semibold rbac-text-muted mb-2 mt-2 uppercase tracking-wide">
+                    Permissions — {permissions.length} selected
+                </label>
+                {Object.keys(groups).length > 0 ? (
+                    <PermissionPicker groups={groups} selected={permissions} onChange={setPermissions} disabled={isSystem} />
+                ) : (
+                    <div className="text-sm text-red-400">No permissions loaded (check backend / API)</div>
+                )}
+            </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <div className="absolute bottom-0 left-0 right-0 flex gap-3 justify-end pt-3 pb-1 rbac-panel border-t mt-4" style={{ borderTop: '1px solid var(--rbac-border)' }}>
+                <button type="button" onClick={onCancel} className="px-4 py-2 text-sm border rounded-lg hover:opacity-70 rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>Cancel</button>
+                {!isSystem && (
+                    <button type="submit" disabled={saving || !name.trim()} className="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium rounded-lg shadow-sm">
+                        {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Role'}
+                    </button>
+                )}
+            </div>
+        </form>
+    )
+}
+
+const RoleCard = ({ role, isSelected, onSelect, onEdit, onDelete }) => (
+    <div onClick={() => onSelect(role)} className={`border rounded-xl p-4 cursor-pointer rbac-card ${isSelected ? 'active shadow-sm' : ''}`}>
+        <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold rbac-text-main text-sm truncate">{role.name}</p>
+                    {role.isSystem && <SystemBadge />}
+                </div>
+                {role.description && <p className="text-xs rbac-text-muted mt-0.5 line-clamp-1">{role.description}</p>}
+            </div>
+            <PermCount role={role} />
+        </div>
+        <div className="flex gap-2 mt-3 justify-end">
+            <button onClick={e => { e.stopPropagation(); onEdit(role) }} className="px-3 py-1 text-xs border rounded-lg hover:opacity-70 transition-opacity rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>Edit</button>
+            {!role.isSystem && (
+                <button onClick={e => { e.stopPropagation(); onDelete(role) }} className="px-3 py-1 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50/20 transition-colors">Delete</button>
+            )}
+        </div>
+    </div>
+)
+
+const AssignmentTable = ({ hrList, roles, onAssign, assigning, onInitDrift }) => {
+    const [search, setSearch] = useState('')
+
+    const filtered = hrList.filter(hr => {
+        const name = `${hr.firstname} ${hr.lastname} ${hr.email}`.toLowerCase()
+        return name.includes(search.toLowerCase())
+    })
+
+    return (
+        <div className="flex flex-col gap-3">
+            <input type="text" placeholder="Search HR users…" value={search} onChange={e => setSearch(e.target.value)} className="rounded-lg px-3 py-2 text-sm w-64 rbac-input" />
+            <div className="flex flex-col gap-0 border rounded-xl overflow-hidden" style={{ borderColor: 'var(--rbac-border)' }}>
+                <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide rbac-th">
+                    <span className="col-span-4">HR User</span>
+                    <span className="col-span-3">Email</span>
+                    <span className="col-span-3">Assigned Role</span>
+                    <span className="col-span-2 text-right">Change</span>
+                </div>
+                {filtered.length === 0 && <div className="text-center py-8 text-sm rbac-text-muted">No HR users found.</div>}
+                {filtered.map((hr, i) => (
+                    <div key={hr._id} className={`grid grid-cols-12 px-4 py-3 text-sm items-center ${i % 2 === 0 ? 'rbac-row' : 'rbac-row-alt'}`}>
+                        <div className="col-span-4">
+                            <p className="font-medium rbac-text-main">{hr.firstname} {hr.lastname}</p>
+                            {!hr.rbacRole && <span className="text-xs font-medium" style={{ color: 'var(--rbac-active-text)' }}>Unrestricted</span>}
+                        </div>
+                        <p className="col-span-3 text-xs truncate pr-2 rbac-text-muted">{hr.email}</p>
+                        <div className="col-span-3">
+                            {hr.rbacRole ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold rbac-sys-badge">
+                                    {hr.rbacRole.isSystem && '⭐ '}{hr.rbacRole.name}
+                                </span>
+                            ) : (
+                                <span className="text-xs italic rbac-text-faint">No role (full access)</span>
+                            )}
+                        </div>
+                        <div className="col-span-2 flex justify-end gap-2 items-center">
+                            <select
+                                disabled={assigning === hr._id} value={hr.rbacRole?._id || ''}
+                                onChange={e => onAssign(hr._id, e.target.value || null)}
+                                className="rounded-lg px-2 py-1 text-xs max-w-[130px] rbac-input"
+                            >
+                                <option value="">— Full Access —</option>
+                                {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
+                            </select>
+                            
+                            {/* THE NEW DRIFT BUTTON */}
+                            <button 
+                                onClick={() => onInitDrift(hr)}
+                                title="Grant Temporary Access (Drift)"
+                                className="rounded-lg px-2 py-1 text-xs border hover:opacity-70 transition-opacity"
+                                style={{ borderColor: 'var(--rbac-active-border)', background: 'var(--rbac-active-bg)', color: 'var(--rbac-active-text)' }}
+                            >
+                                ⏳
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+export const RBACPage = () => {
+    const dispatch = useDispatch()
+    const state = useSelector(s => s.RBACReducer) || { roles: [], catalogue: {}, hrAssignments: [], error: {} }
+
+    const [tab,           setTab]           = useState('roles')
+    const [formMode,      setFormMode]      = useState(null)
+    const [selectedRole,  setSelectedRole]  = useState(null)
+    const [saving,        setSaving]        = useState(false)
+    const [assigning,     setAssigning]     = useState(null)
+    const [formError,     setFormError]     = useState(null)
+    const [globalError,   setGlobalError]   = useState(null)
+    const [confirmDelete, setConfirmDelete] = useState(null)
+    const [driftModalUser,setDriftModalUser]= useState(null) // New State for Drift Modal
+
+    useEffect(() => {
+        dispatch(HandleGetAllRoles())
+        dispatch(HandleGetHRAssignments())
+        dispatch(HandleGetPermissionCatalogue())
+    }, [dispatch])
+
+    useEffect(() => {
+        if (state.error?.status) setGlobalError(state.error.message)
+    }, [state.error])
+
+    const handleSaveRole = async (data) => {
+        setSaving(true); setFormError(null)
+        try {
+            let action = formMode === 'create' ? await dispatch(HandleCreateRole(data)) : await dispatch(HandleUpdateRole({ roleID: formMode._id, ...data }))
+            if (action.payload?.success === false) setFormError(action.payload.message)
+            else setFormMode(null)
+        } finally { setSaving(false) }
+    }
+
+    const handleDeleteRole = async (role) => {
+        const action = await dispatch(HandleDeleteRole(role._id))
+        if (action.payload?.success === false) setGlobalError(action.payload.message)
+        setConfirmDelete(null)
+        if (selectedRole?._id === role._id) setSelectedRole(null)
+    }
+
+    const handleAssign = async (hrID, roleID) => {
+        setAssigning(hrID)
+        await dispatch(HandleAssignRole({ hrID, roleID }))
+        setAssigning(null)
+    }
+
+    const handleCreateDrift = async (driftData) => {
+        const res = await dispatch(HandleCreateDrift(driftData))
+        if (res.payload?.success) {
+            setDriftModalUser(null)
+            dispatch(HandleGetRoleDrifts())
+        } else {
+            setGlobalError(res.payload?.message || 'Failed to grant temporary access')
+        }
+    }
+
+    if (state.isLoading && state.roles.length === 0) return <Loading />
+
+    const groups = state.catalogue?.groups || {}
+    const roles  = state.roles || []
+
+    return (
+        <PageShell>
+            <style>{styles}</style>
+            
+            <PageHeader eyebrow="Security" title="Role-Based Access Control" subtitle="Define roles, assign permissions, and control what each HR user can access">
+                {tab === 'roles' && !formMode && (
+                    <button onClick={() => { setFormMode('create'); setFormError(null) }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm">
+                        + New Role
+                    </button>
+                )}
+            </PageHeader>
+
+            <ErrorBanner message={globalError} onDismiss={() => setGlobalError(null)} />
+
+            <div className="flex gap-1 border-b mb-5" style={{ borderColor: 'var(--rbac-border)' }}>
+                {[
+                    { key: 'roles',  label: `Roles (${roles.length})` },
+                    { key: 'assign', label: `Assign to HR Users (${state.hrAssignments.length})` },
+                ].map(t => (
+                    <button key={t.key} onClick={() => { setTab(t.key); setFormMode(null) }} className={`px-5 py-3 text-sm font-medium transition-colors rbac-tab ${tab === t.key ? 'active' : ''}`}>
+                        {t.label}
+                    </button>
+                ))}
+            </div>
+
+            {tab === 'roles' && (
+                <>
+                    {formMode && (
+                        <div className="border rounded-2xl shadow-sm flex flex-col overflow-hidden rbac-panel" style={{ height: 'calc(100vh - 220px)' }}>
+                            <div className="px-6 pt-5 pb-3 border-b shrink-0" style={{ borderColor: 'var(--rbac-border)' }}>
+                                <h2 className="text-lg font-bold rbac-text-main">{formMode === 'create' ? 'Create New Role' : `Edit: ${formMode.name}`}</h2>
+                            </div>
+                            <div className="flex-1 px-6 py-4 overflow-hidden relative">
+                                <RoleForm initial={formMode === 'create' ? null : formMode} groups={groups} onSave={handleSaveRole} onCancel={() => setFormMode(null)} saving={saving} error={formError} />
+                            </div>
+                        </div>
+                    )}
+                    {!formMode && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                            <div className="lg:col-span-1 flex flex-col gap-3">
+                                {roles.length === 0 ? <div className="text-center py-16 border-2 border-dashed rounded-xl text-sm rbac-text-muted" style={{ borderColor: 'var(--rbac-border)' }}>No roles yet. Create one to get started.</div> : roles.map(role => (
+                                    <RoleCard key={role._id} role={role} isSelected={selectedRole?._id === role._id} onSelect={setSelectedRole} onEdit={r => { setFormMode(r); setFormError(null) }} onDelete={setConfirmDelete} />
+                                ))}
+                            </div>
+                            <div className="lg:col-span-2">
+                                {!selectedRole ? (
+                                    <div className="flex flex-col items-center justify-center h-full py-24 gap-2 border-2 border-dashed rounded-xl rbac-text-faint" style={{ borderColor: 'var(--rbac-border)' }}>
+                                        <span className="text-4xl">🔐</span><p className="font-medium">Select a role to view its permissions</p>
+                                    </div>
+                                ) : (
+                                    <div className="border rounded-2xl p-5 flex flex-col gap-4 rbac-panel shadow-sm">
+                                        <div className="flex items-center gap-3 border-b pb-3" style={{ borderColor: 'var(--rbac-border)' }}>
+                                            <div>
+                                                <div className="flex items-center gap-2"><h3 className="text-lg font-bold rbac-text-main">{selectedRole.name}</h3>{selectedRole.isSystem && <SystemBadge />}</div>
+                                                {selectedRole.description && <p className="text-sm mt-0.5 rbac-text-muted">{selectedRole.description}</p>}
+                                            </div>
+                                            <span className="ml-auto text-sm font-semibold" style={{ color: 'var(--rbac-active-text)' }}>{selectedRole.permissions.length} / {state.catalogue.all?.length || 0} permissions</span>
+                                        </div>
+                                        <div className="flex flex-col gap-4 overflow-auto max-h-[500px] pr-1">
+                                            {Object.entries(groups).map(([groupName, rawPerms]) => {
+                                                const perms = Array.isArray(rawPerms) ? rawPerms : Object.values(rawPerms || {})
+                                                const granted = perms.filter(p => selectedRole.permissions.includes(p))
+                                                if (granted.length === 0) return null
+                                                return (
+                                                    <div key={groupName}>
+                                                        <p className="text-xs font-semibold uppercase tracking-wide mb-2 rbac-text-faint">{groupName}</p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {granted.map(p => <span key={p} className="px-3 py-1.5 rounded-md text-xs font-medium rbac-sys-badge">{typeof p === "string" ? label(p) : ""}</span>)}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                            {selectedRole.permissions.length === 0 && <p className="text-sm italic rbac-text-faint">This role has no permissions assigned yet.</p>}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+
+            {tab === 'assign' && (
+                <div className="border rounded-2xl p-5 rbac-panel shadow-sm">
+                    <div className="mb-4">
+                        <h2 className="text-base font-bold rbac-text-main">Assign Roles to HR Users</h2>
+                        <p className="text-sm mt-0.5 rbac-text-muted">HR users without a role have unrestricted access to all modules.</p>
+                    </div>
+                    <AssignmentTable hrList={state.hrAssignments} roles={roles} onAssign={handleAssign} assigning={assigning} onInitDrift={setDriftModalUser} />
+                </div>
+            )}
+
+            {/* Delete Modal */}
+            {confirmDelete && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4 rbac-modal">
+                        <h2 className="text-lg font-bold mb-2 rbac-text-main">Delete Role</h2>
+                        <p className="text-sm mb-1 rbac-text-muted">Are you sure you want to delete <strong className="rbac-text-main">{confirmDelete.name}</strong>?</p>
+                        <p className="text-xs mb-5" style={{ color: '#ea580c' }}>All HR users assigned this role will lose it and revert to full access.</p>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm border rounded-lg hover:opacity-70 rbac-text-main" style={{ borderColor: 'var(--rbac-border)' }}>Cancel</button>
+                            <button onClick={() => handleDeleteRole(confirmDelete)} className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-sm">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Initiate Drift Modal */}
+            {driftModalUser && (
+                <InitiateDriftModal 
+                    hrUser={driftModalUser} 
+                    roles={roles} 
+                    onClose={() => setDriftModalUser(null)} 
+                    onSave={handleCreateDrift} 
+                />
+            )}
+        </PageShell>
+    )
+}
+</file>
+
+<file path="client/src/pages/HumanResources/Dashboard Childs/accessdriftpage.jsx">
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+    HandleGetRoleDrifts,
+    HandleRevokeDrift,
+    HandleExtendDrift,
+} from '../../../redux/Thunks/RBACThunk'
+import { Loading } from '../../../components/common/loading'
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
+
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  [data-theme='dark'] {
+    --dr-bg: #18181b;
+    --dr-border: #27272a;
+    --dr-text-main: #fafafa;
+    --dr-text-muted: #a1a1aa;
+    --dr-text-faint: #71717a;
+    --dr-row-hover: rgba(255, 255, 255, 0.03);
+    --dr-base-bg: rgba(255, 255, 255, 0.08);
+    --dr-base-text: #e4e4e7;
+    --dr-add-bg: rgba(99, 102, 241, 0.15);
+    --dr-add-text: #818cf8;
+    --dr-add-border: rgba(99, 102, 241, 0.3);
+    --dr-warn-bg: rgba(239, 68, 68, 0.15);
+    --dr-warn-text: #f87171;
+    --dr-warn-border: rgba(239, 68, 68, 0.3);
+    --dr-modal-bg: #18181b;
+    --dr-input-bg: #09090b;
+    --dr-input-border: #27272a;
+  }
+
+  .dr-base-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    background: var(--dr-base-bg, #f3f4f6); color: var(--dr-base-text, #4b5563);
+    letter-spacing: 0.03em;
+  }
+  .dr-added-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    background: var(--dr-add-bg, rgba(99,102,241,0.08));
+    color: var(--dr-add-text, #4f46e5);
+    border: 1px solid var(--dr-add-border, rgba(99,102,241,0.2));
+  }
+  .dr-expired-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    background: var(--dr-warn-bg, rgba(239,68,68,0.08));
+    color: var(--dr-warn-text, #dc2626);
+    border: 1px solid var(--dr-warn-border, rgba(239,68,68,0.2));
+  }
+
+  .dr-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; z-index: 50;
+  }
+  .dr-modal {
+    background: var(--dr-modal-bg, #ffffff);
+    border-radius: 16px; padding: 24px; width: 100%; max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .dr-modal-title  { font-size: 16px; font-weight: 700; color: var(--dr-text-main, #0f172a); margin: 0 0 4px; }
+  .dr-modal-sub    { font-size: 13px; color: var(--dr-text-muted, #6b7280); margin: 0 0 18px; }
+  .dr-modal-label  { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dr-text-muted, #6b7280); margin-bottom: 6px; display: block; }
+  .dr-modal-input  {
+    width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; box-sizing: border-box;
+    background: var(--dr-input-bg, #ffffff); border: 1px solid var(--dr-input-border, rgba(0,0,0,0.12));
+    color: var(--dr-text-main, #0f172a); outline: none; font-family: 'DM Sans', sans-serif;
+  }
+  .dr-modal-input:focus { border-color: rgba(99,102,241,0.4); box-shadow: 0 0 0 3px rgba(99,102,241,0.07); }
+  .dr-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--dr-input-border, rgba(0,0,0,0.07)); }
+`
+
+const initials = (first, last) => `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase()
+
+const Avatar = ({ first, last }) => (
+    <div style={{
+        width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'white', fontWeight: 700, fontSize: 13,
+        fontFamily: "'DM Serif Display', serif",
+    }}>
+        {initials(first, last)}
+    </div>
+)
+
+const fmtDate = (d) => d
+    ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    : 'No Expiry'
+
+// ─── Extend Modal ─────────────────────────────────────────────────────────────
+const ExtendModal = ({ item, onClose, onSave }) => {
+    const today = new Date().toISOString().split('T')[0]
+    const [newExpiry, setNewExpiry] = useState(today)
+    const [saving, setSaving] = useState(false)
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setSaving(true)
+        await onSave({ driftID: item._id, newExpiry: new Date(newExpiry).toISOString() })
+        setSaving(false)
+    }
+
+    return (
+        <div className="dr-modal-overlay" onClick={onClose}>
+            <div className="dr-modal" onClick={e => e.stopPropagation()}>
+                <p className="dr-modal-title">Extend Temporary Access</p>
+                <p className="dr-modal-sub">
+                    Set a new expiry date for{' '}
+                    <strong>{item.employee?.firstname} {item.employee?.lastname}</strong>'s
+                    elevated privilege.
+                </p>
+                <form onSubmit={handleSubmit}>
+                    <label className="dr-modal-label">New Expiry Date</label>
+                    <input
+                        type="date"
+                        required
+                        className="dr-modal-input"
+                        value={newExpiry}
+                        min={today}
+                        onChange={e => setNewExpiry(e.target.value)}
+                    />
+                    <div className="dr-modal-footer">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="pg-btn-ghost"
+                            style={{ padding: '8px 16px', fontSize: 13 }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className="pg-btn-primary"
+                            style={{ padding: '8px 18px', fontSize: 13 }}
+                        >
+                            {saving ? 'Saving…' : 'Extend Access'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+export const AccessDriftPage = () => {
+    const dispatch = useDispatch()
+
+    // Reads from RBACReducer (PrivilegeDriftReducer is an alias in store.js)
+    const state = useSelector(s => s.PrivilegeDriftReducer) || { drifts: [], isLoading: false }
+
+    const [search,      setSearch]      = useState('')
+    const [filter,      setFilter]      = useState('All')
+    const [extendItem,  setExtendItem]  = useState(null)
+
+    useEffect(() => {
+        dispatch(HandleGetRoleDrifts())
+    }, [dispatch])
+
+    const handleRevoke = async (driftID) => {
+        if (!window.confirm('Instantly revoke this temporary privilege?')) return
+        await dispatch(HandleRevokeDrift({ driftID }))
+        // Refresh to get the latest state from server
+        dispatch(HandleGetRoleDrifts())
+    }
+
+    const handleExtend = async ({ driftID, newExpiry }) => {
+        await dispatch(HandleExtendDrift({ driftID, newExpiry }))
+        setExtendItem(null)
+        dispatch(HandleGetRoleDrifts())
+    }
+
+    const drifts = state.drifts || []
+
+    const filtered = drifts.filter(d => {
+        const name = `${d.employee?.firstname ?? ''} ${d.employee?.lastname ?? ''}`.toLowerCase()
+        const matchName = name.includes(search.toLowerCase())
+        if (filter === 'Expired') return matchName && d.drift?.isExpired
+        if (filter === 'Active')  return matchName && !d.drift?.isExpired
+        return matchName
+    })
+
+    const totalExpired  = drifts.filter(d => d.drift?.isExpired).length
+    const totalActive   = drifts.filter(d => !d.drift?.isExpired).length
+
+    if (state.isLoading && drifts.length === 0) return <Loading />
+
+    return (
+        <PageShell>
+            <style>{styles}</style>
+
+            <PageHeader
+                eyebrow="Security"
+                title="Access Drift"
+                subtitle="Track employees with temporary roles, expanded access, or expired privileges"
+            />
+
+            {/* Stats */}
+            <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                <div className="pg-stat-card">
+                    <span className="pg-stat-value">{drifts.length}</span>
+                    <span className="pg-stat-label">Total Active Drifts</span>
+                </div>
+                <div className="pg-stat-card">
+                    <span
+                        className="pg-stat-value"
+                        style={{ color: totalExpired > 0 ? 'var(--dr-warn-text, #dc2626)' : 'inherit' }}
+                    >
+                        {totalExpired}
+                    </span>
+                    <span className="pg-stat-label">Expired Privileges</span>
+                </div>
+                <div className="pg-stat-card">
+                    <span className="pg-stat-value">{totalActive}</span>
+                    <span className="pg-stat-label">Temporary Roles</span>
+                </div>
+            </div>
+
+            {/* Filters */}
+            <div className="pg-filters">
+                <input
+                    className="pg-search"
+                    type="text"
+                    placeholder="Search by employee..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    style={{ minWidth: 260 }}
+                />
+                {['All', 'Active', 'Expired'].map(s => (
+                    <button
+                        key={s}
+                        onClick={() => setFilter(s)}
+                        className={`pg-pill${filter === s ? ' active' : ''}`}
+                    >
+                        {s}
+                    </button>
+                ))}
+            </div>
+
+            {/* Table */}
+            <div className="pg-table-wrap">
+                <div
+                    className="pg-table-head"
+                    style={{ gridTemplateColumns: '2fr 1.5fr 2fr 1fr 140px' }}
+                >
+                    <span className="pg-th">Employee</span>
+                    <span className="pg-th">Base Role</span>
+                    <span className="pg-th">Added Privilege (Drift)</span>
+                    <span className="pg-th">Expiry</span>
+                    <span className="pg-th">Actions</span>
+                </div>
+
+                {filtered.length === 0 && (
+                    <div className="pg-empty">
+                        <span className="pg-empty-icon">🛡️</span>
+                        <p className="pg-empty-title">
+                            {drifts.length === 0
+                                ? 'No privilege drifts recorded'
+                                : 'No drifts match the current filter'}
+                        </p>
+                        <p className="pg-empty-sub">
+                            Grant temporary access via the Access Control → Assign tab.
+                        </p>
+                    </div>
+                )}
+
+                {filtered.map(item => (
+                    <div
+                        key={item._id}
+                        className="pg-table-row"
+                        style={{ gridTemplateColumns: '2fr 1.5fr 2fr 1fr 140px' }}
+                    >
+                        {/* Employee */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <Avatar
+                                first={item.employee?.firstname}
+                                last={item.employee?.lastname}
+                            />
+                            <div>
+                                <div className="pg-td-name">
+                                    {item.employee?.firstname} {item.employee?.lastname}
+                                </div>
+                                <div className="pg-td-sub">
+                                    {item.employee?.department?.name ?? item.employee?.email}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Base Role */}
+                        <div>
+                            <span className="dr-base-pill">
+                                🛡️ {item.baseRole?.name ?? 'Full Access'}
+                            </span>
+                        </div>
+
+                        {/* Added Privilege */}
+                        <div>
+                            <div className={item.drift?.isExpired ? 'dr-expired-pill' : 'dr-added-pill'}>
+                                + {item.drift?.role?.name ?? '—'}
+                            </div>
+                            <div
+                                className="pg-td-sub"
+                                style={{ marginTop: 6, fontSize: 11, fontStyle: 'italic' }}
+                            >
+                                Reason: {item.drift?.reason ?? '—'}
+                            </div>
+                        </div>
+
+                        {/* Expiry */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <span style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: item.drift?.isExpired
+                                    ? 'var(--dr-warn-text, #dc2626)'
+                                    : 'var(--ems-text-primary, #0f172a)',
+                            }}>
+                                {fmtDate(item.drift?.expiresAt)}
+                            </span>
+                            {item.drift?.isExpired && (
+                                <span style={{
+                                    fontSize: 10, fontWeight: 700,
+                                    color: 'var(--dr-warn-text, #dc2626)',
+                                    textTransform: 'uppercase', letterSpacing: '0.05em'
+                                }}>
+                                    Action Required
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            <button
+                                className="pg-action-btn red"
+                                onClick={() => handleRevoke(item._id)}
+                            >
+                                Revoke
+                            </button>
+                            <button
+                                className="pg-action-btn indigo"
+                                onClick={() => setExtendItem(item)}
+                            >
+                                Extend
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Extend Modal */}
+            {extendItem && (
+                <ExtendModal
+                    item={extendItem}
+                    onClose={() => setExtendItem(null)}
+                    onSave={handleExtend}
+                />
+            )}
+        </PageShell>
+    )
+}
+</file>
+
 <file path="client/src/routes/employeeroutes.jsx">
 import { EmployeeLogin }     from "../pages/Employees/emplyoeelogin.jsx"
 import { EmployeeDashboard } from "../pages/Employees/employeedashboard.jsx"
@@ -31879,6 +32114,7 @@ export const store = configureStore({
         PayrollComplianceReducer:   PayrollComplianceReducer,
         ExitClearanceReducer:       ExitClearanceReducer,
         RBACReducer:                RBACReducer,
+        PrivilegeDriftReducer:      RBACReducer,
         permissions:                PermissionReducer,
         OrgStructureReducer:        OrgStructureReducer,
         AnalyticsReducer:           AnalyticsReducer,

@@ -529,3 +529,26 @@
     border-color: #1e293b !important;
     color: #f8fafc !important;
 }
+
+/* System-wide fix for scrolling table headers overlapping rows */
+.pg-table-head, 
+.HeadingBar,
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 40 !important;
+  /* Solid white background prevents row text from bleeding through */
+  background-color: #ffffff !important; 
+}
+
+/* Dark mode support */
+.dark .pg-table-head,
+.dark .HeadingBar,
+.dark thead,
+[data-theme='dark'] .pg-table-head,
+[data-theme='dark'] .HeadingBar,
+[data-theme='dark'] .HeadingBar div,
+[data-theme='dark'] thead {
+  /* Solid dark background matching your app's surface */
+  background-color: #09090b !important; 
+}
