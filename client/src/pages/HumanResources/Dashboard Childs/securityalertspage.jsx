@@ -177,7 +177,7 @@ const ResolutionModal = ({ drift, mode, onConfirm, onClose }) => {
                     <button
                         onClick={() => onConfirm(note)}
                         style={{
-                            padding: '9px 18px', borderRadius: 10, border: 'none',
+                            padding: '9px 18px', borderRadius: 10, 
                             fontSize: 13, fontWeight: 500, cursor: 'pointer',
                             fontFamily: "'DM Sans', sans-serif",
                             background: isResolve ? 'var(--sa-res-bg, rgba(22,163,74,0.12))' : 'var(--sa-subtle-bg, rgba(0,0,0,0.07))',

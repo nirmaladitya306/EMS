@@ -12,7 +12,7 @@ import activityLogImg from "../../assets/HR-Dashboard/activitylog.png";
 import leaveImg from "../../assets/HR-Dashboard/leave.png";
 import requestImg from "../../assets/HR-Dashboard/request.png";
 import attendanceImg from "../../assets/HR-Dashboard/attendance.png";
-import salaryImg from "../../assets/HR-Dashboard/salary.png";
+import salaryImg from "../../assets/HR-Dashboard/Salary.png";
 import noticeImg from "../../assets/HR-Dashboard/notice.png";
 import docAlertImg from "../../assets/HR-Dashboard/docalert.png";
 import analyticsImg from "../../assets/HR-Dashboard/analytics.png";
