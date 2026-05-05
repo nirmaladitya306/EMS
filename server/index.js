@@ -40,6 +40,9 @@ dotenv.config();
 
 const app = express();
 
+// 👇 REQUIRED FOR VERCEL & DEV TUNNELS COOKIES TO WORK
+app.set("trust proxy", 1); 
+
 // middleware
 app.use(helmet());
 app.use(morgan("combined"));
@@ -53,22 +56,23 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
 
-    // 🔥 normalize origin (remove trailing slash)
+    // normalize origin (remove trailing slash)
     const normalizedOrigin = origin.replace(/\/$/, "");
 
     const normalizedAllowed = allowedOrigins.map(o =>
       o.replace(/\/$/, "")
     );
 
-    // ✅ allow localhost + env
+    // allow localhost + env
     if (normalizedAllowed.includes(normalizedOrigin)) {
       return callback(null, true);
     }
 
-    // ✅ allow Codespaces / DevTunnels
+    // ✅ allow Codespaces / DevTunnels / Vercel
     if (
       normalizedOrigin.includes(".app.github.dev") ||
-      normalizedOrigin.includes(".devtunnels.ms")
+      normalizedOrigin.includes(".devtunnels.ms") ||
+      normalizedOrigin.includes(".vercel.app")
     ) {
       return callback(null, true);
     }
@@ -78,7 +82,6 @@ app.use(cors({
   },
   credentials: true
 }));
-
 
 app.use(express.json());
 app.use(cookieParser());
@@ -137,14 +140,24 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await ConnectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
+    
+    // Only listen on a port if we are NOT in Vercel's production environment
+    if (process.env.NODE_ENV !== 'production') {
+      app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      });
+    }
   } catch (err) {
     console.error("DB connection failed:", err);
-    process.exit(1); // Exit process with failure
+    // Don't kill the process on Vercel, just log it
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1); 
+    }
   }
 };
 
 startServer();
+
+// 👇 THIS IS THE MAGIC LINE VERCEL NEEDS 👇
+export default app;
