@@ -4,6 +4,20 @@ import { useTheme } from "../../context/ThemeContext.jsx"
 import { ChatWidget } from "../common/Chat/ChatWidget.jsx"
 import { useSelector } from "react-redux"
 
+import dashboardImg from "../../../assets/HR-Dashboard/dashboard.png";
+import employeeImg from "../../../assets/HR-Dashboard/employee-2.png";
+import departmentImg from "../../../assets/HR-Dashboard/department.png";
+import hrProfilesImg from "../../../assets/HR-Dashboard/HR-profiles.png";
+import activityLogImg from "../../../assets/HR-Dashboard/activitylog.png";
+import leaveImg from "../../../assets/HR-Dashboard/leave.png";
+import requestImg from "../../../assets/HR-Dashboard/request.png";
+import attendanceImg from "../../../assets/HR-Dashboard/attendance.png";
+import salaryImg from "../../../assets/HR-Dashboard/salary.png";
+import noticeImg from "../../../assets/HR-Dashboard/notice.png";
+import docAlertImg from "../../../assets/HR-Dashboard/docalert.png";
+import analyticsImg from "../../../assets/HR-Dashboard/analytics.png";
+import leaveRecImg from "../../../assets/HR-Dashboard/leaverec.png";
+
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
   
@@ -147,52 +161,52 @@ export function HRdashboardSidebar() {
             
             <div className="hr-sidebar-scroll">
               <p className="hr-nav-section-label">Overview</p>
-              <NavItem to="/hr/dashboard/dashboard-data" icon={I("dashboard.png")} label="Dashboard" />
+              <NavItem to="/hr/dashboard/dashboard-data" icon={dashboardImg} label="Dashboard" />
 
               {(hasAccess('employee.view') || hasAccess('department.view') || hasAccess('hr.view')) && (
                   <p className="hr-nav-section-label">People</p>
               )}
-              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/employees" icon={I("employee-2.png")} label="Employees" />}
-              {hasAccess('department.view') && <NavItem to="/hr/dashboard/departments" icon={I("department.png")} label="Departments" />}
-              {hasAccess('hr.view') && <NavItem to="/hr/dashboard/hr-profiles" icon={I("HR-profiles.png")} label="HR Profiles" />}
-              {hasAccess('department.view') && <NavItem to="/hr/dashboard/org-structure" icon={I("department.png")} label="Org Structure" />}
-              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/employee-timeline" icon={I("activitylog.png")} label="Employee Timeline" />}
+              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/employees" icon={employeeImg} label="Employees" />}
+              {hasAccess('department.view') && <NavItem to="/hr/dashboard/departments" icon={departmentImg} label="Departments" />}
+              {hasAccess('hr.view') && <NavItem to="/hr/dashboard/hr-profiles" icon={hrProfilesImg} label="HR Profiles" />}
+              {hasAccess('department.view') && <NavItem to="/hr/dashboard/org-structure" icon={departmentImg} label="Org Structure" />}
+              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/employee-timeline" icon={activityLogImg} label="Employee Timeline" />}
 
               {(hasAccess('leave.view') || hasAccess('attendance.view') || hasAccess('salary.view')) && (
                   <p className="hr-nav-section-label">Operations</p>
               )}
-              {hasAccess('leave.view') && <NavItem to="/hr/dashboard/leaves" icon={I("leave.png")} label="Leaves" />}
-              {hasAccess('leave.view') && <NavItem to="/hr/dashboard/requests" icon={I("request.png")} label="Requests" />}
-              {hasAccess('attendance.view') && <NavItem to="/hr/dashboard/attendance" icon={I("attendance.png")} label="Attendance" />}
-              {hasAccess('salary.view') && <NavItem to="/hr/dashboard/salary" icon={I("salary.png")} label="Salary" />}
-              {hasAccess('salary.view') && <NavItem to="/hr/dashboard/payroll-compliance" icon={I("salary.png")} label="Payroll Compliance" />}
-              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/notices" icon={I("notice.png")} label="Notices" />}
-              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/document-expiry" icon={I("docalert.png")} label="Document Expiry" />}
-              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/exit-clearance" icon={I("leave.png")} label="Exit Clearance" />}
-              {hasAccess('leave.view') && <NavItem to="/hr/dashboard/leave-recommendation" icon={I("leave.png")} label="Leave Recommendation" />}
+              {hasAccess('leave.view') && <NavItem to="/hr/dashboard/leaves" icon={leaveImg} label="Leaves" />}
+              {hasAccess('leave.view') && <NavItem to="/hr/dashboard/requests" icon={requestImg} label="Requests" />}
+              {hasAccess('attendance.view') && <NavItem to="/hr/dashboard/attendance" icon={attendanceImg} label="Attendance" />}
+              {hasAccess('salary.view') && <NavItem to="/hr/dashboard/salary" icon={salaryImg} label="Salary" />}
+              {hasAccess('salary.view') && <NavItem to="/hr/dashboard/payroll-compliance" icon={salaryImg} label="Payroll Compliance" />}
+              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/notices" icon={noticeImg} label="Notices" />}
+              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/document-expiry" icon={docAlertImg} label="Document Expiry" />}
+              {hasAccess('employee.view') && <NavItem to="/hr/dashboard/exit-clearance" icon={leaveImg} label="Exit Clearance" />}
+              {hasAccess('leave.view') && <NavItem to="/hr/dashboard/leave-recommendation" icon={leaveRecImg} label="Leave Recommendation" />}
 
               {hasAccess('recruitment.view') && (
                   <>
                       <p className="hr-nav-section-label">Recruitment</p>
-                      <NavItem to="/hr/dashboard/recruitment" icon={I("request.png")} label="Job Postings" />
-                      <NavItem to="/hr/dashboard/interviews" icon={I("request.png")} label="Interviews" />
+                      <NavItem to="/hr/dashboard/recruitment" icon={requestImg} label="Job Postings" />
+                      <NavItem to="/hr/dashboard/interviews" icon={requestImg} label="Interviews" />
                   </>
               )}
 
               {hasAccess('rbac.view') && (
                   <>
                       <p className="hr-nav-section-label">Security</p>
-                      <NavItem to="/hr/dashboard/activity-log" icon={I("activitylog.png")} label="Activity Log" />
-                      <NavItem to="/hr/dashboard/security-alerts" icon={I("notice.png")} label="Security Alerts" />
-                      <NavItem to="/hr/dashboard/access-control" icon={I("HR-profiles.png")} label="Access Control" />
-                      <NavItem to="/hr/dashboard/access-drift" icon={I("request.png")} label="Access Drift" />
+                      <NavItem to="/hr/dashboard/activity-log" icon={activityLogImg} label="Activity Log" />
+                      <NavItem to="/hr/dashboard/security-alerts" icon={noticeImg} label="Security Alerts" />
+                      <NavItem to="/hr/dashboard/access-control" icon={hrProfilesImg} label="Access Control" />
+                      <NavItem to="/hr/dashboard/access-drift" icon={requestImg} label="Access Drift" />
                   </>
               )}
 
               {hasAccess('analytics.view') && (
                   <>
                       <p className="hr-nav-section-label">Analytics</p>
-                      <NavItem to="/hr/dashboard/analytics" icon={I("dashboard.png")} label="Analytics" />
+                      <NavItem to="/hr/dashboard/analytics" icon={analyticsImg} label="Analytics" />
                   </>
               )}
             </div>

@@ -3,6 +3,17 @@ import { NavLink, Link } from "react-router-dom"
 import { useTheme } from "../../context/ThemeContext.jsx"
 import { ChatWidget } from "../common/Chat/ChatWidget.jsx"
 
+import dashboardImg from "../../../assets/HR-Dashboard/dashboard.png";
+import leaveImg from "../../../assets/HR-Dashboard/leave.png";
+import salary4Img from "../../../assets/HR-Dashboard/salary4.png";
+import noticeImg from "../../../assets/HR-Dashboard/notice.png";
+import attendanceImg from "../../../assets/HR-Dashboard/attendance.png";
+import requestImg from "../../../assets/HR-Dashboard/request.png";
+import docAlertImg from "../../../assets/HR-Dashboard/docalert.png";
+import activityLogImg from "../../../assets/HR-Dashboard/activitylog.png";
+import leaveRecImg from "../../../assets/HR-Dashboard/leaverec.png";
+import analyticsImg from "../../../assets/HR-Dashboard/analytics.png";
+
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
   
@@ -154,26 +165,26 @@ export function EmployeeSidebar() {
             </div>
             <div className="em-sidebar-scroll">
               <p className="em-nav-section-label">Overview</p>
-              <NavItem to="/auth/employee/employee-dashboard/overview" icon={I("dashboard.png")} label="Overview" />
+              <NavItem to="/auth/employee/employee-dashboard/overview" icon={dashboardImg} label="Overview" />
 
               <p className="em-nav-section-label">My Records</p>
-              <NavItem to="/auth/employee/employee-dashboard/my-leaves" icon={I("leave.png")} label="My Leaves" />
-              <NavItem to="/auth/employee/employee-dashboard/my-salary" icon={I("salary4.png")} label="My Salary" />
-              <NavItem to="/auth/employee/employee-dashboard/my-notices" icon={I("notice.png")} label="My Notices" />
-              <NavItem to="/auth/employee/employee-dashboard/my-attendance" icon={I("attendance.png")} label="My Attendance" />
-              <NavItem to="/auth/employee/employee-dashboard/my-requests" icon={I("request.png")} label="My Requests" />
+              <NavItem to="/auth/employee/employee-dashboard/my-leaves" icon={leaveImg} label="My Leaves" />
+              <NavItem to="/auth/employee/employee-dashboard/my-salary" icon={salary4Img} label="My Salary" />
+              <NavItem to="/auth/employee/employee-dashboard/my-notices" icon={noticeImg} label="My Notices" />
+              <NavItem to="/auth/employee/employee-dashboard/my-attendance" icon={attendanceImg} label="My Attendance" />
+              <NavItem to="/auth/employee/employee-dashboard/my-requests" icon={requestImg} label="My Requests" />
 
               <p className="em-nav-section-label">Documents & Activity</p>
-              <NavItem to="/auth/employee/employee-dashboard/my-documents" icon={I("docalert.png")} label="My Documents" />
-              <NavItem to="/auth/employee/employee-dashboard/my-activity" icon={I("activitylog.png")} label="My Activity" />
-              <NavItem to="/auth/employee/employee-dashboard/my-timeline" icon={I("activitylog.png")} label="My Timeline" />
+              <NavItem to="/auth/employee/employee-dashboard/my-documents" icon={docAlertImg} label="My Documents" />
+              <NavItem to="/auth/employee/employee-dashboard/my-activity" icon={activityLogImg} label="My Activity" />
+              <NavItem to="/auth/employee/employee-dashboard/my-timeline" icon={activityLogImg} label="My Timeline" />
 
               <p className="em-nav-section-label">Intelligence</p>
-              <NavItem to="/auth/employee/employee-dashboard/leave-recommendation" icon={I("leaverec.png")} label="Leave Recommendation" />
-              <NavItem to="/auth/employee/employee-dashboard/my-analytics" icon={I("analytics.png")} label="My Analytics" />
+              <NavItem to="/auth/employee/employee-dashboard/leave-recommendation" icon={leaveRecImg} label="Leave Recommendation" />
+              <NavItem to="/auth/employee/employee-dashboard/my-analytics" icon={analyticsImg} label="My Analytics" />
 
               <p className="em-nav-section-label">Security</p>
-              <NavItem to="/auth/employee/employee-dashboard/my-access-drift" icon={I("activitylog.png")} label="My Access Drift" />
+              <NavItem to="/auth/employee/employee-dashboard/my-access-drift" icon={activityLogImg} label="My Access Drift" />
             </div>
             <div className="em-sidebar-footer">
               <button className="em-theme-toggle" onClick={toggle}>
