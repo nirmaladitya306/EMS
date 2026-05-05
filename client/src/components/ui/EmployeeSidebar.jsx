@@ -3,16 +3,16 @@ import { NavLink, Link } from "react-router-dom"
 import { useTheme } from "../../context/ThemeContext.jsx"
 import { ChatWidget } from "../common/Chat/ChatWidget.jsx"
 
-import dashboardImg from "../../../assets/HR-Dashboard/dashboard.png";
-import leaveImg from "../../../assets/HR-Dashboard/leave.png";
-import salary4Img from "../../../assets/HR-Dashboard/salary4.png";
-import noticeImg from "../../../assets/HR-Dashboard/notice.png";
-import attendanceImg from "../../../assets/HR-Dashboard/attendance.png";
-import requestImg from "../../../assets/HR-Dashboard/request.png";
-import docAlertImg from "../../../assets/HR-Dashboard/docalert.png";
-import activityLogImg from "../../../assets/HR-Dashboard/activitylog.png";
-import leaveRecImg from "../../../assets/HR-Dashboard/leaverec.png";
-import analyticsImg from "../../../assets/HR-Dashboard/analytics.png";
+import dashboardImg from "../../assets/HR-Dashboard/dashboard.png";
+import leaveImg from "../../assets/HR-Dashboard/leave.png";
+import salary4Img from "../../assets/HR-Dashboard/salary4.png";
+import noticeImg from "../../assets/HR-Dashboard/notice.png";
+import attendanceImg from "../../assets/HR-Dashboard/attendance.png";
+import requestImg from "../../assets/HR-Dashboard/request.png";
+import docAlertImg from "../../assets/HR-Dashboard/docalert.png";
+import activityLogImg from "../../assets/HR-Dashboard/activitylog.png";
+import leaveRecImg from "../../assets/HR-Dashboard/leaverec.png";
+import analyticsImg from "../../assets/HR-Dashboard/analytics.png";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
