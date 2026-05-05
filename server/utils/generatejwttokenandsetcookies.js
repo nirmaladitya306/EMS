@@ -20,10 +20,11 @@ export const GenerateJwtTokenAndSetCookiesHR = (res, HRid, HRrole, ORGID) => {
     const token = jwt.sign({ HRid, HRrole, ORGID }, process.env.JWT_SECRET, { expiresIn: '7d' })
 
     res.cookie("HRtoken", token, {
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 👈 ADD THIS (7 Days)
         httpOnly: true,
-        secure: true,           // REQUIRED for HTTPS
-        sameSite: "none",       // REQUIRED for cross-origin
-        path: "/",              // IMPORTANT
+        secure: true,           
+        sameSite: "none",       
+        path: "/",              
     });
     return token
 }

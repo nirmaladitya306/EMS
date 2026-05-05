@@ -1,3 +1,5 @@
+import { AccessDrift } from '../models/AccessDrift.model.js'
+import { ActivityLog } from '../models/ActivityLog.model.js'
 import { Department } from "../models/Department.model.js"
 import { Employee } from "../models/Employee.model.js"
 import { Organization } from "../models/Organization.model.js"
@@ -20,6 +22,23 @@ export const HandleEmployeeUpdate = async (req, res) => {
         if (!employee) {
             return res.status(404).json({ success: false, message: "employee not found" })
         }
+
+        // ── Propagate name/dept changes to all denormalized collections ──────
+        const fullName = `${employee.firstname} ${employee.lastname}`
+        const deptName = employee.department?.name || 'Unknown'
+
+        await Promise.all([
+            // Security Alerts (AccessDrift) — stores employeeName + employeeDepartment as strings
+            AccessDrift.updateMany(
+                { employeeID: employee._id },
+                { $set: { employeeName: fullName, employeeDepartment: deptName } }
+            ),
+            // Activity Log — update actorName where this employee was the actor
+            ActivityLog.updateMany(
+                { actorID: employee._id, actorRole: 'Employee' },
+                { $set: { actorName: fullName } }
+            ),
+        ])
 
         const isHR = !!req.HRid
 

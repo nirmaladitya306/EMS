@@ -8,8 +8,8 @@ import {
     HandleGetHRAssignments,
     HandleAssignRole,
     HandleGetPermissionCatalogue,
-    // Add this to your Thunk imports (we will build it below)
-    HandleCreateDrift 
+    HandleCreateDrift,
+    HandleGetRoleDrifts,
 } from '../../../redux/Thunks/RBACThunk'
 import { Loading } from '../../../components/common/loading'
 import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
@@ -396,13 +396,12 @@ export const RBACPage = () => {
     }
 
     const handleCreateDrift = async (driftData) => {
-        // Calls the new thunk we are creating next
         const res = await dispatch(HandleCreateDrift(driftData))
-        if(res.payload?.success) {
+        if (res.payload?.success) {
             setDriftModalUser(null)
-            alert("Temporary access granted successfully!")
+            dispatch(HandleGetRoleDrifts())
         } else {
-            alert(res.payload?.message || "Failed to grant access")
+            setGlobalError(res.payload?.message || 'Failed to grant temporary access')
         }
     }
 

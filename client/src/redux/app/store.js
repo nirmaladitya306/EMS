@@ -52,6 +52,7 @@ export const store = configureStore({
         PayrollComplianceReducer:   PayrollComplianceReducer,
         ExitClearanceReducer:       ExitClearanceReducer,
         RBACReducer:                RBACReducer,
+        PrivilegeDriftReducer:      RBACReducer,
         permissions:                PermissionReducer,
         OrgStructureReducer:        OrgStructureReducer,
         AnalyticsReducer:           AnalyticsReducer,

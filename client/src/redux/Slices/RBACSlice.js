@@ -8,6 +8,10 @@ import {
     HandleDeleteRole,
     HandleGetHRAssignments,
     HandleAssignRole,
+    HandleGetRoleDrifts,
+    HandleRevokeDrift,
+    HandleExtendDrift,
+    HandleCreateDrift,
 } from '../Thunks/RBACThunk'
 
 const pending  = (state) => { state.isLoading = true;  state.error = { status: false, message: null } }
@@ -20,9 +24,9 @@ const RBACSlice = createSlice({
     name: 'RBAC',
     initialState: {
         // Current HR user's permissions (loaded on login)
-        myPermissions:    null,   // null = unrestricted (super-admin)
-        myRoleName:       null,
-        isUnrestricted:   true,   // true until proven otherwise
+        myPermissions:     null,   // null = unrestricted (super-admin)
+        myRoleName:        null,
+        isUnrestricted:    true,
         permissionsLoaded: false,
 
         // Permission catalogue from backend
@@ -32,13 +36,16 @@ const RBACSlice = createSlice({
         },
 
         // All org roles
-        roles:     [],
+        roles: [],
 
         // HR users with their role assignments
         hrAssignments: [],
 
+        // Privilege drift (temporary roles)
+        drifts: [],
+
         isLoading: false,
-        fetchData: true,
+        fetchData:  true,
         error: { status: false, message: null }
     },
     extraReducers: (builder) => {
@@ -48,7 +55,7 @@ const RBACSlice = createSlice({
             .addCase(HandleGetMyPermissions.pending,   pending)
             .addCase(HandleGetMyPermissions.fulfilled, (state, action) => {
                 state.isLoading        = false
-                state.myPermissions    = action.payload.data.permissions   // null = unrestricted
+                state.myPermissions    = action.payload.data.permissions
                 state.myRoleName       = action.payload.data.roleName
                 state.isUnrestricted   = action.payload.data.isUnrestricted
                 state.permissionsLoaded = true
@@ -56,7 +63,7 @@ const RBACSlice = createSlice({
             })
             .addCase(HandleGetMyPermissions.rejected, (state, action) => {
                 state.isLoading        = false
-                state.permissionsLoaded = true   // mark loaded even on error so app doesn't hang
+                state.permissionsLoaded = true
                 state.error            = { status: true, message: action.payload?.message }
             })
 
@@ -64,9 +71,9 @@ const RBACSlice = createSlice({
         builder
             .addCase(HandleGetPermissionCatalogue.pending,   pending)
             .addCase(HandleGetPermissionCatalogue.fulfilled, (state, action) => {
-                state.isLoading  = false
-                state.catalogue  = action.payload.data
-                state.error      = { status: false, message: null }
+                state.isLoading = false
+                state.catalogue = action.payload.data
+                state.error     = { status: false, message: null }
             })
             .addCase(HandleGetPermissionCatalogue.rejected, rejected)
 
@@ -98,7 +105,6 @@ const RBACSlice = createSlice({
                 state.isLoading = false
                 const updated   = action.payload.data
                 state.roles     = state.roles.map(r => r._id === updated._id ? updated : r)
-                // Also update in hrAssignments if anyone had this role
                 state.hrAssignments = state.hrAssignments.map(hr =>
                     hr.rbacRole?._id === updated._id
                         ? { ...hr, rbacRole: updated }
@@ -115,7 +121,6 @@ const RBACSlice = createSlice({
                 state.isLoading     = false
                 const { roleID }    = action.payload
                 state.roles         = state.roles.filter(r => r._id !== roleID)
-                // Unassign from HR list in UI too
                 state.hrAssignments = state.hrAssignments.map(hr =>
                     hr.rbacRole?._id === roleID ? { ...hr, rbacRole: null } : hr
                 )
@@ -127,9 +132,9 @@ const RBACSlice = createSlice({
         builder
             .addCase(HandleGetHRAssignments.pending,   pending)
             .addCase(HandleGetHRAssignments.fulfilled, (state, action) => {
-                state.isLoading    = false
+                state.isLoading     = false
                 state.hrAssignments = action.payload.data
-                state.error        = { status: false, message: null }
+                state.error         = { status: false, message: null }
             })
             .addCase(HandleGetHRAssignments.rejected, rejected)
 
@@ -145,35 +150,77 @@ const RBACSlice = createSlice({
                 state.error = { status: false, message: null }
             })
             .addCase(HandleAssignRole.rejected, rejected)
+
+        // ── Get role drifts ───────────────────────────────────────────────────
+        builder
+            .addCase(HandleGetRoleDrifts.pending,   pending)
+            .addCase(HandleGetRoleDrifts.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.drifts    = action.payload.data || []
+                state.error     = { status: false, message: null }
+            })
+            .addCase(HandleGetRoleDrifts.rejected, rejected)
+
+        // ── Create drift ──────────────────────────────────────────────────────
+        builder
+            .addCase(HandleCreateDrift.pending,   pending)
+            .addCase(HandleCreateDrift.fulfilled, (state, action) => {
+                state.isLoading = false
+                // Re-fetch will happen via the page's useEffect after success
+                state.error     = { status: false, message: null }
+            })
+            .addCase(HandleCreateDrift.rejected, rejected)
+
+        // ── Revoke drift ──────────────────────────────────────────────────────
+        builder
+            .addCase(HandleRevokeDrift.pending,   pending)
+            .addCase(HandleRevokeDrift.fulfilled, (state, action) => {
+                state.isLoading = false
+                const { driftID } = action.payload
+                // Mark it as revoked in local state so UI updates instantly
+                state.drifts = state.drifts.map(d =>
+                    d._id === driftID
+                        ? { ...d, drift: { ...d.drift, isExpired: true } }
+                        : d
+                )
+                state.error = { status: false, message: null }
+            })
+            .addCase(HandleRevokeDrift.rejected, rejected)
+
+        // ── Extend drift ──────────────────────────────────────────────────────
+        builder
+            .addCase(HandleExtendDrift.pending,   pending)
+            .addCase(HandleExtendDrift.fulfilled, (state, action) => {
+                state.isLoading = false
+                const { driftID, newExpiry } = action.payload
+                state.drifts = state.drifts.map(d =>
+                    d._id === driftID
+                        ? { ...d, drift: { ...d.drift, expiresAt: newExpiry, isExpired: false } }
+                        : d
+                )
+                state.error = { status: false, message: null }
+            })
+            .addCase(HandleExtendDrift.rejected, rejected)
     }
 })
 
 export default RBACSlice.reducer
 
 // ─── Selector helper ──────────────────────────────────────────────────────────
-// Usage in any component: const can = useSelector(selectCan('employee.create'))
 export const selectCan = (permission) => (state) => {
-    const rbac = state.RBACReducer;
-    
-    // Note: Ensure the name here matches how Access Drift is configured in your store
-    const driftState = state.AccessDriftReducer; 
+    const rbac = state.RBACReducer
 
-    // 1. Super-admin or full access
-    if (rbac.isUnrestricted || rbac.myPermissions === null) return true;
+    if (rbac.isUnrestricted || rbac.myPermissions === null) return true
+    if (rbac.myPermissions.includes(permission)) return true
 
-    // 2. Base permissions check
-    if (rbac.myPermissions.includes(permission)) return true;
-
-    // 3. Temporary Privilege (Drift) check
-    if (driftState?.myDrifts?.length > 0) {
-        const hasActiveDrift = driftState.myDrifts.some(drift => {
-            // Ignore revoked or expired drifts
-            if (drift.isRevoked || new Date(drift.expiresAt) < new Date()) return false;
-            // Check if the temporary role has the permission
-            return drift.driftRole?.permissions?.includes(permission);
-        });
-        if (hasActiveDrift) return true;
+    // Check temporary drift permissions
+    if (rbac.drifts?.length > 0) {
+        const hasActiveDrift = rbac.drifts.some(drift => {
+            if (drift.drift?.isExpired) return false
+            return drift.drift?.role?.permissions?.includes(permission)
+        })
+        if (hasActiveDrift) return true
     }
 
-    return false;
+    return false
 }
