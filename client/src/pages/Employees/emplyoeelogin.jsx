@@ -32,9 +32,12 @@ export const EmployeeLogin = () => {
         navigate("/auth/employee/employee-dashboard")
     }
 
-    if (EmployeeState.error.status) {
-        loadingbar.current?.complete()
-    }
+    // 👇 FIXED: Wrapped in useEffect so React doesn't crash during render
+    useEffect(() => {
+        if (EmployeeState.error.status) {
+            loadingbar.current?.complete()
+        }
+    }, [EmployeeState.error.status])
 
     useEffect(() => {
         if (!EmployeeState.isAuthenticated) {

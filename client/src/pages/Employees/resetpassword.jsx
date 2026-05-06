@@ -35,9 +35,12 @@ export const ResetPassword = () => {
         setpasswordform({ ...passwordform, [e.target.name]: e.target.value })
     }
 
-    if (employeestate.error.status) {
-        loadingbar.current?.complete()
-    }
+    // 👇 FIXED: Wrapped in useEffect
+    useEffect(() => {
+        if (employeestate.error.status) {
+            loadingbar.current?.complete()
+        }
+    }, [employeestate.error.status])
 
     useEffect(() => {
         if (employeestate.isResetPasswords) {

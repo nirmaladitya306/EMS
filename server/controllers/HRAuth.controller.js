@@ -2,7 +2,7 @@ import { HumanResources } from "../models/HR.model.js"
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 import { GenerateJwtTokenAndSetCookiesHR } from "../utils/generatejwttokenandsetcookies.js"
-import { SendVerificationEmail, SendWelcomeEmail, SendForgotPasswordEmail, SendResetPasswordConfimation } from "../mailtrap/emails.js"
+import { SendVerificationEmail, SendWelcomeEmail, SendForgotPasswordEmail, SendResetPasswordConfirmation } from "../mailtrap/emails.js"
 import { GenerateVerificationToken } from "../utils/generateverificationtoken.js"
 import { Organization } from "../models/Organization.model.js"
 import { createLog } from "../utils/activityLogger.js"

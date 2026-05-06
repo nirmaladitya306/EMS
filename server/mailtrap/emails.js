@@ -79,7 +79,7 @@ export const SendForgotPasswordEmail = async (
 };
 
 // ✅ Reset password confirmation
-export const SendResetPasswordConfimation = async (
+export const SendResetPasswordConfirmation = async (
   email
 ) => {
   try {

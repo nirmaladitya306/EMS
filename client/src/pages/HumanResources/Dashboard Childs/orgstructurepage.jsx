@@ -97,14 +97,43 @@ const styles = `
   .org-emp-remove { color: var(--org-text-faint, rgba(0,0,0,0.25)); border: none; background: none; cursor: pointer; font-size: 14px; }
 
   /* ── Modal ── */
+  .org-modal-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
   .org-modal {
     background: var(--org-modal-bg, #fff); border-radius: 20px; padding: 28px 30px;
     width: 100%; max-width: 460px; border: 1px solid var(--org-border, transparent);
     box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    max-height: 90vh; overflow-y: auto;
   }
-  .org-modal-title { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--org-text-main, #0f172a); }
+  .org-modal-title { 
+    font-family: 'DM Serif Display', serif; font-size: 1.3rem; 
+    color: var(--org-text-main, #0f172a); margin: 0; margin-bottom: 12px;
+  }
+  .org-divider { height: 1px; background: var(--org-border, rgba(0,0,0,0.06)); margin-bottom: 16px; }
+  .org-field { display: flex; flex-direction: column; gap: 6px; }
+  .org-label { 
+    font-size: 11px; font-weight: 600; text-transform: uppercase; 
+    letter-spacing: 0.06em; color: var(--org-text-muted, rgba(0,0,0,0.5)); 
+  }
+  .org-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .org-input, .org-textarea, .org-select-input {
-    background: var(--org-input-bg, #fff); color: var(--org-text-main, #0f172a); border-color: var(--org-border);
+    width: 100%; padding: 10px 14px; border: 1px solid var(--org-border, rgba(0,0,0,0.12));
+    background: var(--org-input-bg, #fff); color: var(--org-text-main, #0f172a);
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    outline: none; transition: all 0.2s; box-sizing: border-box;
+  }
+  .org-textarea { resize: vertical; min-height: 80px; }
+  .org-input:focus, .org-textarea:focus, .org-select-input:focus {
+    border-color: rgba(99,102,241,0.5); box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  }
+  .org-modal-actions {
+    display: flex; justify-content: flex-end; gap: 10px;
+    padding-top: 16px; margin-top: 8px;
+    border-top: 1px solid var(--org-border, rgba(0,0,0,0.06));
   }
 `
 
@@ -307,12 +336,12 @@ export const OrgStructurePage = () => {
 
                 <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                     {[
-                        { label: 'Total Positions',   value: state.summary.totalPositions        },
-                        { label: 'Filled Positions',  value: state.summary.filledPositions       },
-                        { label: 'Employees Placed',  value: state.summary.totalEmployeesPlaced },
+                        { label: 'Total Positions',   value: state.summary?.totalPositions ?? 0      },
+                        { label: 'Filled Positions',  value: state.summary?.filledPositions ?? 0     },
+                        { label: 'Employees Placed',  value: state.summary?.totalEmployeesPlaced ?? 0},
                     ].map(c => (
                         <div key={c.label} className="pg-stat-card">
-                            <span className="pg-stat-value">{c.value ?? 0}</span>
+                            <span className="pg-stat-value">{c.value}</span>
                             <span className="pg-stat-label">{c.label}</span>
                         </div>
                     ))}

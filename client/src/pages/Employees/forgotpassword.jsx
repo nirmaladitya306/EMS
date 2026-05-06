@@ -24,9 +24,12 @@ export const ForgotPassword = () => {
         dispatch(HandlePostEmployees({ apiroute: "FORGOT_PASSWORD", data: forgotpassowrdform }))
     }
 
-    if ((!EmplyoeeState.isLoading) && (EmplyoeeState.error.status)) { 
-        loadingbar.current?.complete()
-    }
+    // 👇 FIXED: Wrapped in useEffect
+    useEffect(() => {
+        if ((!EmplyoeeState.isLoading) && (EmplyoeeState.error.status)) { 
+            loadingbar.current?.complete()
+        }
+    }, [EmplyoeeState.isLoading, EmplyoeeState.error.status])
 
     useEffect(() => {
         if (EmplyoeeState.data) {

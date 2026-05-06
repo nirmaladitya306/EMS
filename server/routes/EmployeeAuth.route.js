@@ -1,31 +1,28 @@
-import express from "express"
+import express from "express";
 import {
-    HandleAllEmployees,
-    HandleEmployeeUpdate,
-    HandleEmployeeDelete,
-    HandleEmployeeByHR,
-    HandleEmployeeByEmployee,
-    HandleAllEmployeesIDS,
-    HandleSearchBySkills,
-    HandleGetEmployeeTimeline,
-    HandleGetEmployeeTimelineByHR
-} from "../controllers/Employee.controller.js"
-import { VerifyHRToken, VerifyEmployeeToken, VerifyHROrEmployeeToken } from "../middlewares/Auth.middleware.js"
-import { RoleAuthorization } from "../middlewares/RoleAuth.middleware.js"
+    HandleEmployeeSignup,
+    HandleEmployeeVerifyEmail,
+    HandleResetEmployeeVerifyEmail,
+    HandleEmployeeLogin,
+    HandleEmployeeCheck,
+    HandleEmployeeLogout,
+    HandleEmployeeForgotPassword,
+    HandleEmployeeSetPassword,
+    HandleEmployeeCheckVerifyEmail
+} from "../controllers/EmployeeAuth.controller.js";
+import { VerifyEmployeeToken } from "../middlewares/Auth.middleware.js";
 
-const router = express.Router()
+const router = express.Router();
 
-router.get("/all",                  VerifyHRToken, RoleAuthorization("HR-Admin"), HandleAllEmployees)
-router.get("/all-employees-ids",    VerifyHRToken, RoleAuthorization("HR-Admin"), HandleAllEmployeesIDS)
-router.get("/search-by-skills",     VerifyHRToken, RoleAuthorization("HR-Admin"), HandleSearchBySkills)
+// Authentication Routes
+router.post("/signup", HandleEmployeeSignup);
+router.post("/verify-email", HandleEmployeeVerifyEmail);
+router.post("/reset-verify-email", HandleResetEmployeeVerifyEmail);
+router.post("/login", HandleEmployeeLogin);
+router.get("/check-login", VerifyEmployeeToken, HandleEmployeeCheck);
+router.post("/logout", HandleEmployeeLogout);
+router.post("/forgot-password", HandleEmployeeForgotPassword);
+router.post("/reset-password/:token", HandleEmployeeSetPassword);
+router.get("/check-verify-email", VerifyEmployeeToken, HandleEmployeeCheckVerifyEmail);
 
-// VerifyHROrEmployeeToken — accepts HR cookie (Modify button) OR Employee cookie (self-update)
-router.patch("/update-employee",    VerifyHROrEmployeeToken, HandleEmployeeUpdate)
-
-router.delete("/delete-employee/:employeeId", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleEmployeeDelete)
-router.get("/by-HR/:employeeId",    VerifyHRToken, RoleAuthorization("HR-Admin"), HandleEmployeeByHR)
-router.get("/by-employee",          VerifyEmployeeToken, HandleEmployeeByEmployee)
-router.get("/my-timeline",          VerifyEmployeeToken, HandleGetEmployeeTimeline)
-router.get("/timeline/:employeeId", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleGetEmployeeTimelineByHR)
-
-export default router
+export default router;
