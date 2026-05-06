@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { HandlePostEmployees, HandleGetEmployees } from "../../redux/Thunks/EmployeeThunk.js"
 import LoadingBar from 'react-top-loading-bar'
 import { useNavigate, useParams } from 'react-router-dom'
+
 export const ResetPassword = () => {
     const employeestate = useSelector((state) => state.employeereducer)
     const dispatch = useDispatch()
@@ -20,7 +21,7 @@ export const ResetPassword = () => {
     const handlepasswordsubmit = (e) => {
         if (passwordform.password === passwordform.repeatpassword) {
             e.preventDefault();
-            loadingbar.current.continuousStart();
+            loadingbar.current?.continuousStart();
             setpassworderror(false)
             dispatch(HandlePostEmployees({ apiroute: token, data: { password: passwordform.password }, type: "resetpassword" }))
         }
@@ -35,20 +36,20 @@ export const ResetPassword = () => {
     }
 
     if (employeestate.error.status) {
-        loadingbar.current.complete()
+        loadingbar.current?.complete()
     }
 
     useEffect(() => {
         if (employeestate.isResetPasswords) {
-            loadingbar.current.complete()
+            loadingbar.current?.complete()
             navigate("/auth/employee/login")
         }
     }, [employeestate.isResetPasswords])
 
     return (
-    <>
-        <LoadingBar ref={loadingbar} color="#6366f1" />
-        <Reset_Password handlepasswordsubmit={handlepasswordsubmit} handlepasswordform={handlepasswordform} passworderror={passworderror} targetstate={employeestate} />
-    </>
-)
+        <>
+            <LoadingBar ref={loadingbar} color="#6366f1" />
+            <Reset_Password handlepasswordsubmit={handlepasswordsubmit} handlepasswordform={handlepasswordform} passworderror={passworderror} targetstate={employeestate} />
+        </>
+    )
 }

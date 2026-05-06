@@ -8,6 +8,7 @@ import {
 } from '../controllers/ActivityLog.controller.js'
 import { VerifyHRToken, VerifyEmployeeToken } from '../middlewares/Auth.middleware.js'
 import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
+import { CheckPermission } from '../middlewares/Permission.middleware.js'
 
 const router = express.Router()
 
@@ -15,9 +16,9 @@ const router = express.Router()
 router.get('/my-activity',      VerifyEmployeeToken, HandleGetMyActivityLogs)
 
 // HR-only routes
-router.get('/all',              VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetActivityLogs)
-router.get('/summary',          VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetLogSummary)
-router.get('/actor/:actorID',   VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetActorLogs)
-router.delete('/clear',         VerifyHRToken, RoleAuthorization('HR-Admin'), HandleClearOldLogs)
+router.get('/all',              VerifyHRToken, CheckPermission('activitylog.view'), HandleGetActivityLogs)
+router.get('/summary',          VerifyHRToken, CheckPermission('activitylog.view'), HandleGetLogSummary)
+router.get('/actor/:actorID',   VerifyHRToken, CheckPermission('activitylog.view'), HandleGetActorLogs)
+router.delete('/clear',         VerifyHRToken, CheckPermission('activitylog.clear'), HandleClearOldLogs)
 
 export default router

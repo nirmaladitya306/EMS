@@ -11,7 +11,7 @@ import {
 } from '../controllers/OrgStructure.controller.js'
 import { VerifyHRToken } from '../middlewares/Auth.middleware.js'
 // ✅ We completely swap out RoleAuthorization for CheckPermission
-import { CheckPermission } from "../middlewares/RoleAuth.middleware.js"
+import { CheckPermission } from "../middlewares/Permission.middleware.js"
 
 const router = express.Router()
 

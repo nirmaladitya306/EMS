@@ -6,6 +6,7 @@ import {
 import { VerifyHRToken } from '../middlewares/Auth.middleware.js'
 import { VerifyEmployeeToken } from '../middlewares/Auth.middleware.js'
 import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
+import { CheckPermission } from '../middlewares/Permission.middleware.js'
 
 const router = express.Router()
 
@@ -13,7 +14,7 @@ const router = express.Router()
 router.get('/employee/:employeeID', VerifyEmployeeToken, HandleGetRecommendation)
 
 // HR can get recommendation for any employee + org-wide summary
-router.get('/hr/:employeeID',   VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetRecommendation)
-router.get('/org-summary',      VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetOrgLeaveSummary)
+router.get('/hr/:employeeID',   VerifyHRToken, CheckPermission('leaverecommendation.view'), HandleGetRecommendation)
+router.get('/org-summary',      VerifyHRToken, CheckPermission('leaverecommendation.view'), HandleGetOrgLeaveSummary)
 
 export default router

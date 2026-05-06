@@ -11,17 +11,18 @@ import {
 } from '../controllers/ExitClearance.controller.js'
 import { VerifyHRToken } from '../middlewares/Auth.middleware.js'
 import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
+import { CheckPermission } from '../middlewares/Permission.middleware.js'
 
 const router = express.Router()
 
 // All routes HR-only
-router.post('/create',                          VerifyHRToken, RoleAuthorization('HR-Admin'), HandleCreateExitClearance)
-router.get('/all',                              VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetAllClearances)
-router.get('/summary',                          VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetClearanceSummary)
-router.get('/:clearanceID',                     VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetClearance)
-router.patch('/:clearanceID/checklist',         VerifyHRToken, RoleAuthorization('HR-Admin'), HandleToggleChecklistItem)
-router.patch('/:clearanceID/status',            VerifyHRToken, RoleAuthorization('HR-Admin'), HandleUpdateClearanceStatus)
-router.patch('/:clearanceID/details',           VerifyHRToken, RoleAuthorization('HR-Admin'), HandleUpdateClearanceDetails)
-router.delete('/:clearanceID',                  VerifyHRToken, RoleAuthorization('HR-Admin'), HandleDeleteClearance)
+router.post('/create',                          VerifyHRToken, CheckPermission('exitclearance.create'), HandleCreateExitClearance)
+router.get('/all',                              VerifyHRToken, CheckPermission('exitclearance.view'), HandleGetAllClearances)
+router.get('/summary',                          VerifyHRToken, CheckPermission('exitclearance.view'), HandleGetClearanceSummary)
+router.get('/:clearanceID',                     VerifyHRToken, CheckPermission('exitclearance.view'), HandleGetClearance)
+router.patch('/:clearanceID/checklist',         VerifyHRToken, CheckPermission('exitclearance.update'), HandleToggleChecklistItem)
+router.patch('/:clearanceID/status',            VerifyHRToken, CheckPermission('exitclearance.update'), HandleUpdateClearanceStatus)
+router.patch('/:clearanceID/details',           VerifyHRToken, CheckPermission('exitclearance.update'), HandleUpdateClearanceDetails)
+router.delete('/:clearanceID',                  VerifyHRToken, CheckPermission('exitclearance.delete'), HandleDeleteClearance)
 
 export default router

@@ -9,7 +9,7 @@ import {
 import { VerifyHRToken } from "../middlewares/Auth.middleware.js"
 
 // ✅ Import the new CheckPermission middleware instead of RoleAuthorization
-import { CheckPermission } from "../middlewares/RoleAuth.middleware.js" 
+import { CheckPermission } from "../middlewares/Permission.middleware.js" 
 
 const router = express.Router()
 

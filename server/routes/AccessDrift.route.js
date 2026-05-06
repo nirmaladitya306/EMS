@@ -9,6 +9,7 @@ import {
 } from '../controllers/AccessDrift.controller.js'
 import { VerifyHRToken, VerifyEmployeeToken } from '../middlewares/Auth.middleware.js'
 import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
+import { CheckPermission } from '../middlewares/Permission.middleware.js'
 
 const router = express.Router()
 
@@ -16,10 +17,10 @@ const router = express.Router()
 router.get('/my-drifts', VerifyEmployeeToken, HandleGetMyDriftEvents)
 
 // ─── HR-only routes ───────────────────────────────────────────────────────────
-router.get('/all',                    VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetAllDriftEvents)
-router.get('/summary',                VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetDriftSummary)
-router.get('/employee/:employeeID',   VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetEmployeeDrifts)
-router.patch('/resolve/:driftID',     VerifyHRToken, RoleAuthorization('HR-Admin'), HandleResolveDrift)
-router.patch('/dismiss/:driftID',     VerifyHRToken, RoleAuthorization('HR-Admin'), HandleDismissDrift)
+router.get('/all',                    VerifyHRToken, CheckPermission('securityalerts.view'), HandleGetAllDriftEvents)
+router.get('/summary',                VerifyHRToken, CheckPermission('securityalerts.view'), HandleGetDriftSummary)
+router.get('/employee/:employeeID',   VerifyHRToken, CheckPermission('securityalerts.view'), HandleGetEmployeeDrifts)
+router.patch('/resolve/:driftID',     VerifyHRToken, CheckPermission('securityalerts.resolve'), HandleResolveDrift)
+router.patch('/dismiss/:driftID',     VerifyHRToken, CheckPermission('securityalerts.resolve'), HandleDismissDrift)
 
 export default router

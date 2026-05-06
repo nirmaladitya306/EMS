@@ -23,18 +23,17 @@ export const EmployeeLogin = () => {
 
     const handlesigninsubmit = async (e) => {
         e.preventDefault();
-        loadingbar.current.continuousStart();
+        loadingbar.current?.continuousStart();
         dispatch(HandlePostEmployees({ apiroute: "LOGIN", data: signinform }))
     }
 
-
     const RedirectToDashbaord = () => {
-        loadingbar.current.complete()
+        loadingbar.current?.complete()
         navigate("/auth/employee/employee-dashboard")
     }
 
     if (EmployeeState.error.status) {
-        loadingbar.current.complete()
+        loadingbar.current?.complete()
     }
 
     useEffect(() => {
@@ -48,9 +47,9 @@ export const EmployeeLogin = () => {
     }, [EmployeeState.isAuthenticated])
 
     return (
-    <>
-        <LoadingBar ref={loadingbar} color="#6366f1" />
-        <SignIn handlesigninform={handlesigninform} handlesigninsubmit={handlesigninsubmit} targetedstate={EmployeeState} statevalue={signinform} redirectpath={"/auth/employee/forgot-password"} role="Employee" />
-    </>
-)
+        <>
+            <LoadingBar ref={loadingbar} color="#6366f1" />
+            <SignIn handlesigninform={handlesigninform} handlesigninsubmit={handlesigninsubmit} targetedstate={EmployeeState} statevalue={signinform} redirectpath={"/auth/employee/forgot-password"} role="Employee" />
+        </>
+    )
 }

@@ -171,7 +171,7 @@ export function HRdashboardSidebar() {
               {hasAccess('leave.view') && <NavItem to="/hr/dashboard/requests" icon={requestImg} label="Requests" />}
               {hasAccess('attendance.view') && <NavItem to="/hr/dashboard/attendance" icon={attendanceImg} label="Attendance" />}
               {hasAccess('salary.view') && <NavItem to="/hr/dashboard/salary" icon={salaryImg} label="Salary" />}
-              {hasAccess('salary.view') && <NavItem to="/hr/dashboard/payroll-compliance" icon={salaryImg} label="Payroll Compliance" />}
+              {(hasAccess('salary.view') || hasAccess('payroll.manage')) && <NavItem to="/hr/dashboard/payroll-compliance" icon={salaryImg} label="Payroll Compliance" />}
               {hasAccess('employee.view') && <NavItem to="/hr/dashboard/notices" icon={noticeImg} label="Notices" />}
               {hasAccess('employee.view') && <NavItem to="/hr/dashboard/document-expiry" icon={docAlertImg} label="Document Expiry" />}
               {hasAccess('employee.view') && <NavItem to="/hr/dashboard/exit-clearance" icon={leaveImg} label="Exit Clearance" />}

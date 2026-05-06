@@ -3,10 +3,11 @@ import { HandleEmplyoeeSignup, HandleEmplyoeeVerifyEmail, HandleEmplyoeeLogout, 
 import { VerifyEmployeeToken } from '../middlewares/Auth.middleware.js'
 import { VerifyHRToken } from '../middlewares/Auth.middleware.js'
 import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
+import { CheckPermission } from '../middlewares/Permission.middleware.js'
 
 const router = express.Router()
 
-router.post("/signup", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleEmplyoeeSignup)
+router.post("/signup", VerifyHRToken, CheckPermission("employee.create"), HandleEmplyoeeSignup)
 
 router.post("/verify-email", VerifyEmployeeToken, HandleEmplyoeeVerifyEmail)
 

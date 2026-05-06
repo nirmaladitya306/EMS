@@ -1,6 +1,9 @@
 export const PERMISSIONS = [
 
-  // Employee
+    // HR Profiles
+  "hr.view",
+
+  // 
   "employee.create",
   "employee.update",
   "employee.delete",
@@ -17,6 +20,7 @@ export const PERMISSIONS = [
   "salary.update",
 
   // Leave
+  "leave.view",
   "leave.apply",
   "leave.approve",
 
@@ -24,6 +28,7 @@ export const PERMISSIONS = [
   "attendance.view",
 
   // Recruitment
+  "recruitment.view",
   "recruitment.manage",
 
   // Applicant
@@ -33,6 +38,8 @@ export const PERMISSIONS = [
   "interview.view",
 
   // Activity Logs
+  "rbac.view",
+  "analytics.view",
   "activity.view",
 
   // Access Drift

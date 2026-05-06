@@ -182,7 +182,7 @@ export function EmployeeSidebar() {
               <NavItem to="/auth/employee/employee-dashboard/my-analytics" icon={analyticsImg} label="My Analytics" />
 
               <p className="em-nav-section-label">Security</p>
-              <NavItem to="/auth/employee/employee-dashboard/my-access-drift" icon={activityLogImg} label="My Access Drift" />
+              <NavItem to="/auth/employee/employee-dashboard/my-access-drift" icon={activityLogImg} label="My Security Flags" />
             </div>
             <div className="em-sidebar-footer">
               <button className="em-theme-toggle" onClick={toggle}>

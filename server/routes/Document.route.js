@@ -11,6 +11,7 @@ import {
 } from '../controllers/Document.controller.js'
 import { VerifyHRToken, VerifyEmployeeToken } from '../middlewares/Auth.middleware.js'
 import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
+import { CheckPermission } from '../middlewares/Permission.middleware.js'
 
 const router = express.Router()
 
@@ -18,12 +19,12 @@ const router = express.Router()
 router.get('/my-documents',             VerifyEmployeeToken, HandleGetMyDocuments)
 
 // HR-only routes
-router.post('/create',                  VerifyHRToken, RoleAuthorization('HR-Admin'), HandleCreateDocument)
-router.get('/all',                      VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetAllDocuments)
-router.get('/summary',                  VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetDocumentSummary)
-router.get('/employee/:employeeID',     VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetEmployeeDocuments)
-router.patch('/update',                 VerifyHRToken, RoleAuthorization('HR-Admin'), HandleUpdateDocument)
-router.delete('/delete/:documentID',    VerifyHRToken, RoleAuthorization('HR-Admin'), HandleDeleteDocument)
-router.post('/run-alerts',              VerifyHRToken, RoleAuthorization('HR-Admin'), HandleRunAlertEngine)
+router.post('/create',                  VerifyHRToken, CheckPermission('document.create'), HandleCreateDocument)
+router.get('/all',                      VerifyHRToken, CheckPermission('document.view'), HandleGetAllDocuments)
+router.get('/summary',                  VerifyHRToken, CheckPermission('document.view'), HandleGetDocumentSummary)
+router.get('/employee/:employeeID',     VerifyHRToken, CheckPermission('document.view'), HandleGetEmployeeDocuments)
+router.patch('/update',                 VerifyHRToken, CheckPermission('document.update'), HandleUpdateDocument)
+router.delete('/delete/:documentID',    VerifyHRToken, CheckPermission('document.delete'), HandleDeleteDocument)
+router.post('/run-alerts',              VerifyHRToken, CheckPermission('document.view'), HandleRunAlertEngine)
 
 export default router
