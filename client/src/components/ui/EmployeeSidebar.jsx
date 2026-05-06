@@ -3,6 +3,7 @@ import { NavLink, Link } from "react-router-dom"
 import { useTheme } from "../../context/ThemeContext.jsx"
 import { ChatWidget } from "../common/Chat/ChatWidget.jsx"
 
+// ✅ Explicitly imported assets for proper Vite bundling in production
 import dashboardImg from "../../assets/HR-Dashboard/dashboard.png";
 import leaveImg from "../../assets/HR-Dashboard/leave.png";
 import salary4Img from "../../assets/HR-Dashboard/salary4.png";
@@ -18,7 +19,7 @@ const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
   
   /* ═══════════════════════════════════════════════════════
-     DARK MODE OVERRIDES
+      DARK MODE OVERRIDES
   ═══════════════════════════════════════════════════════ */
   [data-theme='dark'] {
     --side-bg: #09090b; /* Zinc 950 */
@@ -33,12 +34,11 @@ const styles = `
   }
 
   /* ═══════════════════════════════════════════════════════
-     SIDEBAR TRIGGER ADJUSTMENT (Moves button to top)
+      SIDEBAR TRIGGER ADJUSTMENT
   ═══════════════════════════════════════════════════════ */
   .sidebar-container {
     align-items: flex-start !important;
     padding-top: 14px !important;
-    /* Ensure it stays at the top if the shell is absolute */
     top: 0;
   }
 
@@ -141,12 +141,10 @@ const styles = `
 
 const NavItem = ({ to, icon, label }) => (
   <NavLink to={to} className={({ isActive }) => `em-nav-link${isActive ? ' active' : ''}`}>
-    <img src={icon} className="em-nav-icon" alt="" />
+    <img src={icon} className="em-nav-icon" alt={label} />
     <span className="em-nav-label">{label}</span>
   </NavLink>
 )
-
-const I = (name) => `/../../src/assets/HR-Dashboard/${name}`
 
 export function EmployeeSidebar() {
   const { dark, toggle } = useTheme()

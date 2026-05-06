@@ -4,6 +4,7 @@ import { useTheme } from "../../context/ThemeContext.jsx"
 import { ChatWidget } from "../common/Chat/ChatWidget.jsx"
 import { useSelector } from "react-redux"
 
+// ✅ Correctly imported assets for Vite bundling
 import dashboardImg from "../../assets/HR-Dashboard/dashboard.png";
 import employeeImg from "../../assets/HR-Dashboard/employee-2.png";
 import departmentImg from "../../assets/HR-Dashboard/department.png";
@@ -12,7 +13,7 @@ import activityLogImg from "../../assets/HR-Dashboard/activitylog.png";
 import leaveImg from "../../assets/HR-Dashboard/leave.png";
 import requestImg from "../../assets/HR-Dashboard/request.png";
 import attendanceImg from "../../assets/HR-Dashboard/attendance.png";
-import salaryImg from "../../assets/HR-Dashboard/Salary.png";
+import salaryImg from "../../assets/HR-Dashboard/Salary.png"; // Note: Capital 'S' to match Linux case-sensitivity
 import noticeImg from "../../assets/HR-Dashboard/notice.png";
 import docAlertImg from "../../assets/HR-Dashboard/docalert.png";
 import analyticsImg from "../../assets/HR-Dashboard/analytics.png";
@@ -87,7 +88,6 @@ const styles = `
   .hr-nav-icon { width: 16px; height: 16px; object-fit: contain; opacity: 0.7; flex-shrink: 0; transition: opacity 0.2s; }
   .hr-nav-label { font-size: 13px; color: var(--side-text-muted, rgba(0,0,0,0.6)); white-space: nowrap; transition: color 0.2s; }
   
-  /* ─── NEW: USER PROFILE STYLES ─── */
   .hr-user-profile {
     display: flex; align-items: center; gap: 10px; padding: 12px 14px;
     border-top: 1px solid var(--side-border, rgba(0,0,0,0.05));
@@ -121,27 +121,19 @@ const styles = `
 
 const NavItem = ({ to, icon, label }) => (
   <NavLink to={to} className={({ isActive }) => `hr-nav-link${isActive ? ' active' : ''}`}>
-    <img src={icon} className="hr-nav-icon" alt="" />
+    <img src={icon} className="hr-nav-icon" alt={label} />
     <span className="hr-nav-label">{label}</span>
   </NavLink>
 )
 
-const I = (name) => `/../../src/assets/HR-Dashboard/${name}`
-
 export function HRdashboardSidebar() {
   const { dark, toggle } = useTheme()
-
-  // ✅ Connect directly to HRReducer
   const hrState = useSelector((state) => state.HRReducer || {});
-  
-  // ✅ Extract the HR user data
   const HR = hrState.data;
 
-  // ✅ Helper to check if user has permission
   const hasAccess = (requiredPermission) => {
     if (!HR) return false;
     if (HR.role === "HR-Admin") return true; 
-
     const permissions = HR.rbacRole?.permissions || [];
     return permissions.includes(requiredPermission);
   };
@@ -211,7 +203,6 @@ export function HRdashboardSidebar() {
               )}
             </div>
 
-            {/* ─── NEW: USER PROFILE BADGE ─── */}
             <div className="hr-user-profile">
               <div className="hr-user-avatar">
                 {HR?.firstname?.charAt(0)?.toUpperCase() || '?'}
