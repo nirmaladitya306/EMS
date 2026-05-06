@@ -141,23 +141,18 @@ const startServer = async () => {
   try {
     await ConnectDB();
     
-    // Only listen on a port if we are NOT in Vercel's production environment
-    if (process.env.NODE_ENV !== 'production') {
-      app.listen(PORT, () => {
-        console.log(`Server running on http://localhost:${PORT}`);
-        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      });
-    }
+    // 👇 Render needs this to run unconditionally
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
   } catch (err) {
     console.error("DB connection failed:", err);
-    // Don't kill the process on Vercel, just log it
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1); 
-    }
+    process.exit(1); // It's safe to exit on Render if the DB fails
   }
 };
 
 startServer();
 
-// 👇 THIS IS THE MAGIC LINE VERCEL NEEDS 👇
+// You can safely leave this line here; Render will just ignore it.
 export default app;
