@@ -1,19 +1,29 @@
 import express from "express"
-import { HandleCreateDepartment, HandleAllDepartments, HandleDepartment, HandleUpdateDepartment, HandleDeleteDepartment } from "../controllers/Department.controller.js"
+import {
+    HandleAllDepartments,
+    HandleDepartment,
+    HandleCreateDepartment,
+    HandleUpdateDepartment,
+    HandleDeleteDepartment,
+} from "../controllers/Department.controller.js"
 import { VerifyHRToken } from "../middlewares/Auth.middleware.js"
-import { RoleAuthorization } from "../middlewares/RoleAuth.middleware.js"
+
+// ✅ Import the new CheckPermission middleware instead of RoleAuthorization
+import { CheckPermission } from "../middlewares/RoleAuth.middleware.js" 
 
 const router = express.Router()
 
-router.post("/create-department", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleCreateDepartment)
+// ✅ Anyone with 'department.view' can FETCH departments
+router.get("/all", VerifyHRToken, CheckPermission("department.view"), HandleAllDepartments)
+router.get("/:departmentId", VerifyHRToken, CheckPermission("department.view"), HandleDepartment)
 
-router.get("/all", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleAllDepartments) 
+// ✅ Anyone with 'department.create' can MAKE departments
+router.post("/create-department", VerifyHRToken, CheckPermission("department.create"), HandleCreateDepartment)
 
-router.get("/:departmentID", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleDepartment)
+// ✅ Anyone with 'department.edit' can UPDATE departments
+router.patch("/update-department", VerifyHRToken, CheckPermission("department.edit"), HandleUpdateDepartment)
 
-router.patch("/update-department", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleUpdateDepartment)
+// ✅ Anyone with 'department.delete' can DELETE departments
+router.delete("/delete-department", VerifyHRToken, CheckPermission("department.delete"), HandleDeleteDepartment)
 
-router.delete("/delete-department", VerifyHRToken, RoleAuthorization("HR-Admin"), HandleDeleteDepartment) 
-
-
-export default router 
+export default router

@@ -1,400 +1,366 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-    HandleGetAllDriftEvents,
-    HandleGetDriftSummary,
-    HandleResolveDrift,
-    HandleDismissDrift
-} from '../../../redux/Thunks/AccessDriftThunk'
+    HandleGetRoleDrifts,
+    HandleRevokeDrift,
+    HandleExtendDrift,
+} from '../../../redux/Thunks/RBACThunk'
 import { Loading } from '../../../components/common/loading'
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
-// ─── Config ───────────────────────────────────────────────────────────────────
-const SEVERITY_STYLES = {
-    CRITICAL: { bg: 'bg-red-100',    text: 'text-red-800',    dot: 'bg-red-600',    border: 'border-red-200'   },
-    HIGH:     { bg: 'bg-orange-100', text: 'text-orange-800', dot: 'bg-orange-500', border: 'border-orange-200'},
-    MEDIUM:   { bg: 'bg-yellow-100', text: 'text-yellow-800', dot: 'bg-yellow-500', border: 'border-yellow-200'},
-    LOW:      { bg: 'bg-blue-100',   text: 'text-blue-800',   dot: 'bg-blue-400',   border: 'border-blue-200'  },
-}
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-const STATUS_STYLES = {
-    OPEN:      { bg: 'bg-red-50',    text: 'text-red-700',   border: 'border-red-200'   },
-    RESOLVED:  { bg: 'bg-green-50',  text: 'text-green-700', border: 'border-green-200' },
-    DISMISSED: { bg: 'bg-gray-100',  text: 'text-gray-500',  border: 'border-gray-200'  },
-}
+  [data-theme='dark'] {
+    --dr-bg: #18181b;
+    --dr-border: #27272a;
+    --dr-text-main: #fafafa;
+    --dr-text-muted: #a1a1aa;
+    --dr-text-faint: #71717a;
+    --dr-row-hover: rgba(255, 255, 255, 0.03);
+    --dr-base-bg: rgba(255, 255, 255, 0.08);
+    --dr-base-text: #e4e4e7;
+    --dr-add-bg: rgba(99, 102, 241, 0.15);
+    --dr-add-text: #818cf8;
+    --dr-add-border: rgba(99, 102, 241, 0.3);
+    --dr-warn-bg: rgba(239, 68, 68, 0.15);
+    --dr-warn-text: #f87171;
+    --dr-warn-border: rgba(239, 68, 68, 0.3);
+    --dr-modal-bg: #18181b;
+    --dr-input-bg: #09090b;
+    --dr-input-border: #27272a;
+  }
 
-const DRIFT_TYPE_LABELS = {
-    UNUSUAL_LOGIN_TIME:        'Unusual Login Time',
-    HIGH_FREQUENCY_ACTIONS:    'High Frequency Actions',
-    SENSITIVE_ENDPOINT_ACCESS: 'Sensitive Endpoint Access',
-    BULK_OPERATION:            'Bulk Operation',
-    OFF_HOURS_ACTIVITY:        'Off-Hours Activity',
-    REPEATED_FAILED_ACCESS:    'Repeated Failed Access',
-    UNUSUAL_ACTION_PATTERN:    'Unusual Action Pattern',
-}
+  .dr-base-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    background: var(--dr-base-bg, #f3f4f6); color: var(--dr-base-text, #4b5563);
+    letter-spacing: 0.03em;
+  }
+  .dr-added-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    background: var(--dr-add-bg, rgba(99,102,241,0.08));
+    color: var(--dr-add-text, #4f46e5);
+    border: 1px solid var(--dr-add-border, rgba(99,102,241,0.2));
+  }
+  .dr-expired-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    background: var(--dr-warn-bg, rgba(239,68,68,0.08));
+    color: var(--dr-warn-text, #dc2626);
+    border: 1px solid var(--dr-warn-border, rgba(239,68,68,0.2));
+  }
 
-const DRIFT_TYPE_ICONS = {
-    UNUSUAL_LOGIN_TIME:        '🕐',
-    HIGH_FREQUENCY_ACTIONS:    '⚡',
-    SENSITIVE_ENDPOINT_ACCESS: '🔐',
-    BULK_OPERATION:            '📦',
-    OFF_HOURS_ACTIVITY:        '🌙',
-    REPEATED_FAILED_ACCESS:    '🚫',
-    UNUSUAL_ACTION_PATTERN:    '⚠️',
-}
+  .dr-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; z-index: 50;
+  }
+  .dr-modal {
+    background: var(--dr-modal-bg, #ffffff);
+    border-radius: 16px; padding: 24px; width: 100%; max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .dr-modal-title  { font-size: 16px; font-weight: 700; color: var(--dr-text-main, #0f172a); margin: 0 0 4px; }
+  .dr-modal-sub    { font-size: 13px; color: var(--dr-text-muted, #6b7280); margin: 0 0 18px; }
+  .dr-modal-label  { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dr-text-muted, #6b7280); margin-bottom: 6px; display: block; }
+  .dr-modal-input  {
+    width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; box-sizing: border-box;
+    background: var(--dr-input-bg, #ffffff); border: 1px solid var(--dr-input-border, rgba(0,0,0,0.12));
+    color: var(--dr-text-main, #0f172a); outline: none; font-family: 'DM Sans', sans-serif;
+  }
+  .dr-modal-input:focus { border-color: rgba(99,102,241,0.4); box-shadow: 0 0 0 3px rgba(99,102,241,0.07); }
+  .dr-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--dr-input-border, rgba(0,0,0,0.07)); }
+`
 
-const relativeTime = (dateStr) => {
-    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000)
-    if (diff < 60)    return `${diff}s ago`
-    if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-    return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+const initials = (first, last) => `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase()
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-const SeverityBadge = ({ severity }) => {
-    const s = SEVERITY_STYLES[severity] || SEVERITY_STYLES.LOW
-    return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${s.bg} ${s.text}`}>
-            <span className={`w-2 h-2 rounded-full ${s.dot}`} />
-            {severity}
-        </span>
-    )
-}
-
-const StatusBadge = ({ status }) => {
-    const s = STATUS_STYLES[status] || STATUS_STYLES.OPEN
-    return (
-        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}>
-            {status}
-        </span>
-    )
-}
-
-const StatCard = ({ label, value, color, icon }) => (
-    <div className={`rounded-xl border p-4 flex flex-col gap-1 ${color}`}>
-        <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold">{value}</span>
-            <span className="text-2xl">{icon}</span>
-        </div>
-        <span className="text-sm font-medium text-gray-600">{label}</span>
+const Avatar = ({ first, last }) => (
+    <div style={{
+        width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'white', fontWeight: 700, fontSize: 13,
+        fontFamily: "'DM Serif Display', serif",
+    }}>
+        {initials(first, last)}
     </div>
 )
 
-// ─── Resolution Modal ─────────────────────────────────────────────────────────
-const ResolutionModal = ({ drift, mode, onConfirm, onClose }) => {
-    const [note, setNote] = useState('')
+const fmtDate = (d) => d
+    ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    : 'No Expiry'
+
+// ─── Extend Modal ─────────────────────────────────────────────────────────────
+const ExtendModal = ({ item, onClose, onSave }) => {
+    const today = new Date().toISOString().split('T')[0]
+    const [newExpiry, setNewExpiry] = useState(today)
+    const [saving, setSaving] = useState(false)
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setSaving(true)
+        await onSave({ driftID: item._id, newExpiry: new Date(newExpiry).toISOString() })
+        setSaving(false)
+    }
+
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-                <h2 className="text-lg font-bold mb-1">
-                    {mode === 'resolve' ? '✅ Resolve Drift Event' : '🗑️ Dismiss Drift Event'}
-                </h2>
-                <p className="text-sm text-gray-500 mb-4">
-                    {mode === 'resolve'
-                        ? 'Mark this drift as investigated and resolved.'
-                        : 'Dismiss this as a false positive or non-issue.'}
+        <div className="dr-modal-overlay" onClick={onClose}>
+            <div className="dr-modal" onClick={e => e.stopPropagation()}>
+                <p className="dr-modal-title">Extend Temporary Access</p>
+                <p className="dr-modal-sub">
+                    Set a new expiry date for{' '}
+                    <strong>{item.employee?.firstname} {item.employee?.lastname}</strong>'s
+                    elevated privilege.
                 </p>
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4 text-sm">
-                    <span className="font-semibold">{drift.employeeName}</span>
-                    <span className="text-gray-500 ml-2">— {DRIFT_TYPE_LABELS[drift.driftType]}</span>
-                </div>
-                <div className="flex flex-col gap-1 mb-5">
-                    <label className="text-xs font-medium text-gray-600">Resolution note (optional)</label>
-                    <textarea
-                        value={note}
-                        onChange={e => setNote(e.target.value)}
-                        rows={3}
-                        placeholder={mode === 'resolve' ? 'e.g. Confirmed with employee, legitimate activity.' : 'e.g. Employee was on call, this was expected.'}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                <form onSubmit={handleSubmit}>
+                    <label className="dr-modal-label">New Expiry Date</label>
+                    <input
+                        type="date"
+                        required
+                        className="dr-modal-input"
+                        value={newExpiry}
+                        min={today}
+                        onChange={e => setNewExpiry(e.target.value)}
                     />
-                </div>
-                <div className="flex justify-end gap-2">
-                    <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button
-                        onClick={() => onConfirm(note)}
-                        className={`px-4 py-2 text-sm rounded-lg text-white ${mode === 'resolve' ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-600'}`}
-                    >
-                        {mode === 'resolve' ? 'Mark Resolved' : 'Dismiss'}
-                    </button>
-                </div>
+                    <div className="dr-modal-footer">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="pg-btn-ghost"
+                            style={{ padding: '8px 16px', fontSize: 13 }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className="pg-btn-primary"
+                            style={{ padding: '8px 18px', fontSize: 13 }}
+                        >
+                            {saving ? 'Saving…' : 'Extend Access'}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     )
 }
-
-// ─── Evidence panel ───────────────────────────────────────────────────────────
-const EvidencePanel = ({ drift, onClose }) => (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-4">
-                <div>
-                    <h2 className="text-lg font-bold">Evidence Details</h2>
-                    <p className="text-sm text-gray-500">{drift.employeeName} — {DRIFT_TYPE_LABELS[drift.driftType]}</p>
-                </div>
-                <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
-            </div>
-
-            <div className="flex gap-3 mb-4 flex-wrap">
-                <SeverityBadge severity={drift.severity} />
-                <StatusBadge status={drift.status} />
-            </div>
-
-            <p className="text-sm text-gray-700 bg-gray-50 rounded-xl p-3 mb-4">{drift.description}</p>
-
-            {drift.evidence?.length > 0 ? (
-                <div className="flex flex-col gap-2">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Evidence log ({drift.evidence.length} entries)</p>
-                    {drift.evidence.map((ev, i) => (
-                        <div key={i} className="border border-gray-200 rounded-lg p-3 text-xs text-gray-600 bg-gray-50">
-                            <div className="flex justify-between mb-1">
-                                <span className="font-semibold text-gray-800">{ev.action?.replace(/_/g, ' ')}</span>
-                                <span className="text-gray-400">{relativeTime(ev.timestamp)}</span>
-                            </div>
-                            {ev.endpoint && <div className="font-mono text-gray-500">{ev.endpoint}</div>}
-                            <div>{ev.description}</div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <p className="text-sm text-gray-400 text-center py-4">No detailed evidence captured for this event.</p>
-            )}
-
-            {drift.status !== 'OPEN' && drift.resolvedByName && (
-                <div className="mt-4 border-t border-gray-100 pt-4 text-xs text-gray-500">
-                    <span className="font-medium">{drift.status === 'RESOLVED' ? 'Resolved' : 'Dismissed'}</span> by {drift.resolvedByName}
-                    {drift.resolutionNote && <p className="mt-1 italic">"{drift.resolutionNote}"</p>}
-                </div>
-            )}
-        </div>
-    </div>
-)
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export const AccessDriftPage = () => {
     const dispatch = useDispatch()
-const state = useSelector(s => s.AccessDriftReducer)
 
-    const [filterStatus,   setFilterStatus]   = useState('ALL')
-    const [filterSeverity, setFilterSeverity] = useState('ALL')
-    const [filterType,     setFilterType]     = useState('ALL')
-    const [currentPage,    setCurrentPage]    = useState(1)
-    const [modalDrift,     setModalDrift]     = useState(null)
-    const [modalMode,      setModalMode]      = useState(null)  // 'resolve' | 'dismiss'
-    const [evidenceDrift,  setEvidenceDrift]  = useState(null)
+    // Reads from RBACReducer (PrivilegeDriftReducer is an alias in store.js)
+    const state = useSelector(s => s.PrivilegeDriftReducer) || { drifts: [], isLoading: false }
 
-    const fetchDrifts = (page = 1) => {
-        dispatch(HandleGetAllDriftEvents({
-            page,
-            limit: 20,
-            status: filterStatus === 'ALL' ? undefined : filterStatus,
-            severity: filterSeverity === 'ALL' ? undefined : filterSeverity,
-            driftType: filterType === 'ALL' ? undefined : filterType,
-        }))
-    }
+    const [search,      setSearch]      = useState('')
+    const [filter,      setFilter]      = useState('All')
+    const [extendItem,  setExtendItem]  = useState(null)
 
     useEffect(() => {
-        dispatch(HandleGetDriftSummary())
-        fetchDrifts(1)
+        dispatch(HandleGetRoleDrifts())
     }, [dispatch])
 
-    const handleApply = () => { setCurrentPage(1); fetchDrifts(1) }
-    const handleClear = () => {
-        setFilterStatus('ALL'); setFilterSeverity('ALL'); setFilterType('ALL')
-        setCurrentPage(1)
-        dispatch(HandleGetAllDriftEvents({ page: 1, limit: 20 }))
+    const handleRevoke = async (driftID) => {
+        if (!window.confirm('Instantly revoke this temporary privilege?')) return
+        await dispatch(HandleRevokeDrift({ driftID }))
+        // Refresh to get the latest state from server
+        dispatch(HandleGetRoleDrifts())
     }
 
-    const handleConfirmModal = (note) => {
-        if (!modalDrift) return
-        const thunk = modalMode === 'resolve' ? HandleResolveDrift : HandleDismissDrift
-        dispatch(thunk({ driftID: modalDrift._id, resolutionNote: note })).then(() => {
-            setModalDrift(null); setModalMode(null)
-            dispatch(HandleGetDriftSummary())
-            fetchDrifts(currentPage)
-        })
+    const handleExtend = async ({ driftID, newExpiry }) => {
+        await dispatch(HandleExtendDrift({ driftID, newExpiry }))
+        setExtendItem(null)
+        dispatch(HandleGetRoleDrifts())
     }
 
-    const drifts     = state?.drifts     || []
-    const pagination = state?.pagination || { totalPages: 0, total: 0, limit: 20 }
-    const summary    = state?.summary    || { total: 0, open: 0, resolved: 0, dismissed: 0, critical: 0, high: 0 }
+    const drifts = state.drifts || []
+
+    const filtered = drifts.filter(d => {
+        const name = `${d.employee?.firstname ?? ''} ${d.employee?.lastname ?? ''}`.toLowerCase()
+        const matchName = name.includes(search.toLowerCase())
+        if (filter === 'Expired') return matchName && d.drift?.isExpired
+        if (filter === 'Active')  return matchName && !d.drift?.isExpired
+        return matchName
+    })
+
+    const totalExpired  = drifts.filter(d => d.drift?.isExpired).length
+    const totalActive   = drifts.filter(d => !d.drift?.isExpired).length
+
+    if (state.isLoading && drifts.length === 0) return <Loading />
 
     return (
-        <div className="access-drift-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
+            <style>{styles}</style>
 
-            {/* ── Header ── */}
-            <div>
-                <h1 className="text-3xl font-bold">Access Drift Detection</h1>
-                <p className="text-sm text-gray-500 mt-1">
-                    Monitor and investigate unusual or out-of-policy employee access patterns
-                </p>
-            </div>
+            <PageHeader
+                eyebrow="Security"
+                title="Access Drift"
+                subtitle="Track employees with temporary roles, expanded access, or expired privileges"
+            />
 
-            {/* ── Summary cards ── */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                <StatCard label="Total Events"  value={summary.total}     color="border-gray-200 bg-gray-50"    icon="📋" />
-                <StatCard label="Open"          value={summary.open}      color="border-red-200 bg-red-50"      icon="🔴" />
-                <StatCard label="Resolved"      value={summary.resolved}  color="border-green-200 bg-green-50"  icon="✅" />
-                <StatCard label="Dismissed"     value={summary.dismissed} color="border-gray-200 bg-gray-50"    icon="🗑️" />
-                <StatCard label="Critical"      value={summary.critical}  color="border-red-300 bg-red-100"     icon="🚨" />
-                <StatCard label="High"          value={summary.high}      color="border-orange-200 bg-orange-50" icon="⚠️" />
-            </div>
-
-            {/* ── Filters ── */}
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-wrap gap-3 items-end">
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-gray-500">Status</label>
-                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        <option value="ALL">All statuses</option>
-                        <option value="OPEN">Open</option>
-                        <option value="RESOLVED">Resolved</option>
-                        <option value="DISMISSED">Dismissed</option>
-                    </select>
+            {/* Stats */}
+            <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                <div className="pg-stat-card">
+                    <span className="pg-stat-value">{drifts.length}</span>
+                    <span className="pg-stat-label">Total Active Drifts</span>
                 </div>
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-gray-500">Severity</label>
-                    <select value={filterSeverity} onChange={e => setFilterSeverity(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        <option value="ALL">All severities</option>
-                        <option value="CRITICAL">Critical</option>
-                        <option value="HIGH">High</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="LOW">Low</option>
-                    </select>
+                <div className="pg-stat-card">
+                    <span
+                        className="pg-stat-value"
+                        style={{ color: totalExpired > 0 ? 'var(--dr-warn-text, #dc2626)' : 'inherit' }}
+                    >
+                        {totalExpired}
+                    </span>
+                    <span className="pg-stat-label">Expired Privileges</span>
                 </div>
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-gray-500">Drift Type</label>
-                    <select value={filterType} onChange={e => setFilterType(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        <option value="ALL">All types</option>
-                        {Object.entries(DRIFT_TYPE_LABELS).map(([k, v]) => (
-                            <option key={k} value={k}>{v}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="flex gap-2 pb-0.5">
-                    <button onClick={handleApply} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Apply</button>
-                    <button onClick={handleClear} className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm hover:bg-gray-100">Clear</button>
+                <div className="pg-stat-card">
+                    <span className="pg-stat-value">{totalActive}</span>
+                    <span className="pg-stat-label">Temporary Roles</span>
                 </div>
             </div>
 
-            {/* ── Events list ── */}
-            <div className="flex flex-col gap-2 overflow-auto flex-1">
-                {/* Table header */}
-                <div className="grid grid-cols-12 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
-                    <span className="col-span-1">Sev.</span>
-                    <span className="col-span-2">Employee</span>
-                    <span className="col-span-2">Type</span>
-                    <span className="col-span-4">Description</span>
-                    <span className="col-span-1">Status</span>
-                    <span className="col-span-2 text-right">Actions</span>
+            {/* Filters */}
+            <div className="pg-filters">
+                <input
+                    className="pg-search"
+                    type="text"
+                    placeholder="Search by employee..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    style={{ minWidth: 260 }}
+                />
+                {['All', 'Active', 'Expired'].map(s => (
+                    <button
+                        key={s}
+                        onClick={() => setFilter(s)}
+                        className={`pg-pill${filter === s ? ' active' : ''}`}
+                    >
+                        {s}
+                    </button>
+                ))}
+            </div>
+
+            {/* Table */}
+            <div className="pg-table-wrap">
+                <div
+                    className="pg-table-head"
+                    style={{ gridTemplateColumns: '2fr 1.5fr 2fr 1fr 140px' }}
+                >
+                    <span className="pg-th">Employee</span>
+                    <span className="pg-th">Base Role</span>
+                    <span className="pg-th">Added Privilege (Drift)</span>
+                    <span className="pg-th">Expiry</span>
+                    <span className="pg-th">Actions</span>
                 </div>
 
-                {state.isLoading && <Loading />}
-
-                {!state.isLoading && drifts.length === 0 && (
-                    <div className="text-center text-gray-400 py-16 flex flex-col items-center gap-2">
-                        <span className="text-4xl">🛡️</span>
-                        <p className="font-medium">No drift events found</p>
-                        <p className="text-sm">Access drift events are automatically detected and will appear here.</p>
+                {filtered.length === 0 && (
+                    <div className="pg-empty">
+                        <span className="pg-empty-icon">🛡️</span>
+                        <p className="pg-empty-title">
+                            {drifts.length === 0
+                                ? 'No privilege drifts recorded'
+                                : 'No drifts match the current filter'}
+                        </p>
+                        <p className="pg-empty-sub">
+                            Grant temporary access via the Access Control → Assign tab.
+                        </p>
                     </div>
                 )}
 
-                {!state.isLoading && drifts.map((drift) => {
-                    const sev = SEVERITY_STYLES[drift.severity] || SEVERITY_STYLES.LOW
-                    const isOpen = drift.status === 'OPEN'
-                    return (
-                        <div key={drift._id}
-                            className={`grid grid-cols-12 bg-white border rounded-lg px-4 py-3 text-sm items-center hover:bg-gray-50 transition-all ${isOpen ? sev.border : 'border-gray-200'}`}>
-                            <span className="col-span-1">
-                                <SeverityBadge severity={drift.severity} />
-                            </span>
-                            <span className="col-span-2">
-                                <p className="font-medium text-gray-800 truncate">{drift.employeeName}</p>
-                                <p className="text-xs text-gray-400 truncate">{drift.employeeDepartment}</p>
-                            </span>
-                            <span className="col-span-2 flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                                <span>{DRIFT_TYPE_ICONS[drift.driftType]}</span>
-                                <span className="truncate">{DRIFT_TYPE_LABELS[drift.driftType]}</span>
-                            </span>
-                            <span className="col-span-4 text-xs text-gray-500 truncate pr-2">
-                                {drift.description}
-                                <span className="ml-2 text-gray-400">{relativeTime(drift.createdAt)}</span>
-                            </span>
-                            <span className="col-span-1">
-                                <StatusBadge status={drift.status} />
-                            </span>
-                            <span className="col-span-2 flex gap-1 justify-end flex-wrap">
-                                <button
-                                    onClick={() => setEvidenceDrift(drift)}
-                                    className="px-2 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-600"
-                                >
-                                    Details
-                                </button>
-                                {isOpen && (
-                                    <>
-                                        <button
-                                            onClick={() => { setModalDrift(drift); setModalMode('resolve') }}
-                                            className="px-2 py-1 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700"
-                                        >
-                                            Resolve
-                                        </button>
-                                        <button
-                                            onClick={() => { setModalDrift(drift); setModalMode('dismiss') }}
-                                            className="px-2 py-1 text-xs border border-gray-300 text-gray-500 rounded-lg hover:bg-gray-100"
-                                        >
-                                            Dismiss
-                                        </button>
-                                    </>
-                                )}
+                {filtered.map(item => (
+                    <div
+                        key={item._id}
+                        className="pg-table-row"
+                        style={{ gridTemplateColumns: '2fr 1.5fr 2fr 1fr 140px' }}
+                    >
+                        {/* Employee */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <Avatar
+                                first={item.employee?.firstname}
+                                last={item.employee?.lastname}
+                            />
+                            <div>
+                                <div className="pg-td-name">
+                                    {item.employee?.firstname} {item.employee?.lastname}
+                                </div>
+                                <div className="pg-td-sub">
+                                    {item.employee?.department?.name ?? item.employee?.email}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Base Role */}
+                        <div>
+                            <span className="dr-base-pill">
+                                🛡️ {item.baseRole?.name ?? 'Full Access'}
                             </span>
                         </div>
-                    )
-                })}
+
+                        {/* Added Privilege */}
+                        <div>
+                            <div className={item.drift?.isExpired ? 'dr-expired-pill' : 'dr-added-pill'}>
+                                + {item.drift?.role?.name ?? '—'}
+                            </div>
+                            <div
+                                className="pg-td-sub"
+                                style={{ marginTop: 6, fontSize: 11, fontStyle: 'italic' }}
+                            >
+                                Reason: {item.drift?.reason ?? '—'}
+                            </div>
+                        </div>
+
+                        {/* Expiry */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <span style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: item.drift?.isExpired
+                                    ? 'var(--dr-warn-text, #dc2626)'
+                                    : 'var(--ems-text-primary, #0f172a)',
+                            }}>
+                                {fmtDate(item.drift?.expiresAt)}
+                            </span>
+                            {item.drift?.isExpired && (
+                                <span style={{
+                                    fontSize: 10, fontWeight: 700,
+                                    color: 'var(--dr-warn-text, #dc2626)',
+                                    textTransform: 'uppercase', letterSpacing: '0.05em'
+                                }}>
+                                    Action Required
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            <button
+                                className="pg-action-btn red"
+                                onClick={() => handleRevoke(item._id)}
+                            >
+                                Revoke
+                            </button>
+                            <button
+                                className="pg-action-btn indigo"
+                                onClick={() => setExtendItem(item)}
+                            >
+                                Extend
+                            </button>
+                        </div>
+                    </div>
+                ))}
             </div>
 
-            {/* ── Pagination ── */}
-            {pagination?.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                    <span className="text-sm text-gray-500">
-                        Showing {((currentPage - 1) * pagination.limit) + 1}–{Math.min(currentPage * pagination.limit, pagination.total)} of {pagination.total} events
-                    </span>
-                    <div className="flex gap-1">
-                        <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); fetchDrifts(currentPage - 1) }}
-                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">← Prev</button>
-                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                            const p = Math.max(1, currentPage - 2) + i
-                            if (p > pagination.totalPages) return null
-                            return (
-                                <button key={p} onClick={() => { setCurrentPage(p); fetchDrifts(p) }}
-                                    className={`px-3 py-1.5 text-sm border rounded-lg ${p === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 hover:bg-gray-50'}`}>
-                                    {p}
-                                </button>
-                            )
-                        })}
-                        <button disabled={currentPage === pagination.totalPages} onClick={() => { setCurrentPage(p => p + 1); fetchDrifts(currentPage + 1) }}
-                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">Next →</button>
-                    </div>
-                </div>
-            )}
-
-            {/* ── Modals ── */}
-            {modalDrift && (
-                <ResolutionModal
-                    drift={modalDrift}
-                    mode={modalMode}
-                    onConfirm={handleConfirmModal}
-                    onClose={() => { setModalDrift(null); setModalMode(null) }}
+            {/* Extend Modal */}
+            {extendItem && (
+                <ExtendModal
+                    item={extendItem}
+                    onClose={() => setExtendItem(null)}
+                    onSave={handleExtend}
                 />
             )}
-            {evidenceDrift && (
-                <EvidencePanel
-                    drift={evidenceDrift}
-                    onClose={() => setEvidenceDrift(null)}
-                />
-            )}
-        </div>
+        </PageShell>
     )
 }

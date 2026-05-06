@@ -11,7 +11,7 @@ const initialState = {
     status: false,
     message: ""
   },
-  data: null
+  data: null // We need to actually fill this!
 };
 
 const HRSlice = createSlice({
@@ -34,13 +34,17 @@ const HRSlice = createSlice({
 
         if (action.payload.success) {
           state.isAuthenticated = true;
+          // ✅ SAVE THE USER DATA HERE!
+          state.data = action.payload.data || null; 
         } else {
           state.isAuthenticated = false;
+          state.data = null; // Clear data if not authenticated
         }
       })
       .addCase(HandleGetHumanResources.rejected, (state) => {
         state.loading = false;
         state.isAuthenticated = false;
+        state.data = null; // Clear data on error/logout
       })
 
       // 🔹 LOGIN
@@ -53,6 +57,10 @@ const HRSlice = createSlice({
 
         if (action.payload.success) {
           state.isAuthenticated = true;
+          // ✅ SAVE THE USER DATA HERE TOO (if your login route sends it back)
+          if (action.payload.data) {
+             state.data = action.payload.data;
+          }
         } else {
           state.error = {
             status: true,

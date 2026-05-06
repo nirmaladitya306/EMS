@@ -1,122 +1,262 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { HandleRunComplianceCheck, HandleRunSingleComplianceCheck } from '../../../redux/Thunks/PayrollComplianceThunk'
-import { clearSingleCheck } from '../../../redux/Slices/PayrollComplianceSlice'
+import { HandleRunComplianceCheck } from '../../../redux/Thunks/PayrollComplianceThunk'
 import { Loading } from '../../../components/common/loading'
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
+
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --pc-card-bg: #18181b;
+    --pc-modal-bg: #18181b;
+    --pc-drawer-bg: #09090b;
+    --pc-border: #27272a;
+    --pc-text-main: #fafafa;
+    --pc-text-muted: #a1a1aa;
+    --pc-text-faint: #71717a;
+    --pc-score-track: rgba(255,255,255,0.1);
+    --pc-subtle-bg: rgba(255,255,255,0.03);
+    
+    /* Semantic Colors Boost */
+    --pc-green-bg: rgba(34, 197, 94, 0.15);
+    --pc-green-text: #4ade80;
+    --pc-yellow-bg: rgba(234, 179, 8, 0.15);
+    --pc-yellow-text: #fbbf24;
+    --pc-red-bg: rgba(239, 68, 68, 0.15);
+    --pc-red-text: #f87171;
+    --pc-indigo-bg: rgba(99, 102, 241, 0.15);
+    --pc-indigo-text: #818cf8;
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--pc-modal-bg) !important;
+    border: 1px solid var(--pc-border) !important;
+  }
+`
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmt = (n, cur) => n != null
-    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: cur || 'INR', maximumFractionDigits: 0 }).format(n)
-    : '—'
+const fmt = (n, cur) =>
+    n != null
+        ? new Intl.NumberFormat('en-IN', {
+              style: 'currency', currency: cur || 'INR', maximumFractionDigits: 0,
+          }).format(n)
+        : '—'
 
-// ─── Status colour maps ────────────────────────────────────────────────────────
-const ELIGIBILITY_STYLES = {
-    Eligible:         { badge: 'bg-green-100 text-green-800 border-green-300',  dot: 'bg-green-500' },
-    'Review Required':{ badge: 'bg-yellow-100 text-yellow-800 border-yellow-300', dot: 'bg-yellow-500' },
-    Ineligible:       { badge: 'bg-red-100 text-red-800 border-red-300',        dot: 'bg-red-500' },
+const initials = (name) =>
+    (name || '')
+        .split(' ')
+        .slice(0, 2)
+        .map(w => w[0]?.toUpperCase() ?? '')
+        .join('')
+
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+const Avatar = ({ name, size = 30, fontSize = 11 }) => (
+    <div style={{
+        width: size, height: size, borderRadius: '50%', flexShrink: 0,
+        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'white', fontWeight: 700, fontSize,
+        fontFamily: "'DM Serif Display', serif", letterSpacing: '0.03em',
+    }}>
+        {initials(name)}
+    </div>
+)
+
+// ─── Eligibility pill ─────────────────────────────────────────────────────────
+const ELIGIBILITY = {
+    Eligible:          { bg: 'var(--pc-green-bg, rgba(22,163,74,0.08))',  color: 'var(--pc-green-text, #15803d)', border: 'rgba(22,163,74,0.22)'  },
+    'Review Required': { bg: 'var(--pc-yellow-bg, rgba(234,179,8,0.09))',  color: 'var(--pc-yellow-text, #854d0e)', border: 'rgba(234,179,8,0.3)'   },
+    Ineligible:        { bg: 'var(--pc-red-bg, rgba(220,38,38,0.07))', color: 'var(--pc-red-text, #dc2626)', border: 'rgba(220,38,38,0.2)'   },
 }
 
-const SEVERITY_STYLES = {
-    critical: { pill: 'bg-red-100 text-red-700 border-red-300',     icon: '🔴' },
-    warning:  { pill: 'bg-yellow-100 text-yellow-700 border-yellow-300', icon: '🟡' },
-    info:     { pill: 'bg-blue-100 text-blue-700 border-blue-300',   icon: '🔵' },
-}
-
-// ─── Score ring ────────────────────────────────────────────────────────────────
-const ScoreRing = ({ score }) => {
-    const colour = score >= 75 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444'
-    const r = 26, cx = 32, cy = 32, stroke = 6
-    const circumference = 2 * Math.PI * r
-    const dash = (score / 100) * circumference
-
+const EligibilityPill = ({ status }) => {
+    const s = ELIGIBILITY[status] || { bg: 'var(--pc-subtle-bg, rgba(0,0,0,0.04))', color: 'var(--pc-text-muted, rgba(0,0,0,0.45))', border: 'var(--pc-border, rgba(0,0,0,0.1))' }
     return (
-        <svg width={64} height={64} viewBox="0 0 64 64">
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e5e7eb" strokeWidth={stroke} />
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke={colour} strokeWidth={stroke}
-                strokeDasharray={`${dash} ${circumference}`} strokeLinecap="round"
-                transform="rotate(-90 32 32)" />
-            <text x={cx} y={cy + 5} textAnchor="middle" fontSize="13" fontWeight="700" fill={colour}>{score}</text>
-        </svg>
-    )
-}
-
-// ─── Org Summary Cards ─────────────────────────────────────────────────────────
-const OrgSummaryBar = ({ summary }) => {
-    if (!summary) return null
-    const cards = [
-        { label: 'Total Employees',    value: summary.totalEmployees,     color: 'border-gray-200 bg-gray-50' },
-        { label: 'Eligible',           value: summary.eligible,           color: 'border-green-200 bg-green-50 text-green-700' },
-        { label: 'Review Required',    value: summary.reviewRequired,     color: 'border-yellow-200 bg-yellow-50 text-yellow-700' },
-        { label: 'Ineligible',         value: summary.ineligible,         color: 'border-red-200 bg-red-50 text-red-700' },
-        { label: 'Avg Compliance',     value: `${summary.avgComplianceScore}%`, color: 'border-blue-200 bg-blue-50 text-blue-700' },
-    ]
-    return (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {cards.map(c => (
-                <div key={c.label} className={`rounded-xl border p-4 ${c.color}`}>
-                    <p className="text-xl font-bold">{c.value}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{c.label}</p>
-                </div>
-            ))}
-        </div>
-    )
-}
-
-// ─── Flag pill ─────────────────────────────────────────────────────────────────
-const FlagPill = ({ flag }) => {
-    const s = SEVERITY_STYLES[flag.severity] || SEVERITY_STYLES.info
-    return (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${s.pill}`}>
-            {s.icon} {flag.message}
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '3px 10px', borderRadius: 100, fontSize: 11, fontWeight: 600,
+            background: s.bg, color: s.color, border: `1px solid ${s.border}`,
+            whiteSpace: 'nowrap',
+        }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+            {status}
         </span>
     )
 }
 
-// ─── Employee Detail Drawer ────────────────────────────────────────────────────
+// ─── Score ring (SVG donut) ───────────────────────────────────────────────────
+const ScoreRing = ({ score }) => {
+    const colour = score >= 75 ? 'var(--pc-green-text, #16a34a)' : score >= 50 ? 'var(--pc-yellow-text, #d97706)' : 'var(--pc-red-text, #dc2626)'
+    const r = 22, cx = 28, cy = 28, strokeW = 5
+    const circ = 2 * Math.PI * r
+    const dash  = (score / 100) * circ
+    return (
+        <svg width={56} height={56} viewBox="0 0 56 56" style={{ flexShrink: 0 }}>
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--pc-score-track, rgba(0,0,0,0.07))" strokeWidth={strokeW} />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke={colour} strokeWidth={strokeW}
+                strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+                transform="rotate(-90 28 28)" />
+            <text x={cx} y={cy + 4} textAnchor="middle" fontSize="11" fontWeight="700" fill={colour}>
+                {score}
+            </text>
+        </svg>
+    )
+}
+
+// ─── Severity flag row ────────────────────────────────────────────────────────
+const SEVERITY = {
+    critical: { bg: 'var(--pc-red-bg, rgba(220,38,38,0.07))',  color: 'var(--pc-red-text, #dc2626)', border: 'rgba(220,38,38,0.2)',  dot: 'var(--pc-red-text, #dc2626)' },
+    warning:  { bg: 'var(--pc-yellow-bg, rgba(234,179,8,0.08))',  color: 'var(--pc-yellow-text, #854d0e)', border: 'rgba(234,179,8,0.25)', dot: '#d97706' },
+    info:     { bg: 'var(--pc-indigo-bg, rgba(99,102,241,0.07))', color: 'var(--pc-indigo-text, #4f46e5)', border: 'rgba(99,102,241,0.2)', dot: '#6366f1' },
+}
+
+const FlagRow = ({ flag }) => {
+    const s = SEVERITY[flag.severity] || SEVERITY.info
+    return (
+        <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10,
+            padding: '9px 12px', borderRadius: 10,
+            background: s.bg, border: `1px solid ${s.border}`,
+        }}>
+            <span style={{
+                width: 7, height: 7, borderRadius: '50%', background: s.dot,
+                flexShrink: 0, marginTop: 4,
+            }} />
+            <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: s.color, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>
+                    {flag.rule?.replace(/_/g, ' ')}
+                </div>
+                <div style={{ fontSize: 12, color: s.color, opacity: 0.85 }}>{flag.message}</div>
+            </div>
+        </div>
+    )
+}
+
+// ─── Detail drawer (slides from right) ───────────────────────────────────────
 const DetailDrawer = ({ record, onClose }) => {
     if (!record) return null
-    const style = ELIGIBILITY_STYLES[record.eligibilityStatus] || ELIGIBILITY_STYLES.Eligible
-    return (
-        <div className="fixed inset-0 bg-black/40 z-50 flex justify-end" onClick={onClose}>
-            <div className="bg-white w-full max-w-lg h-full overflow-y-auto shadow-2xl"
-                onClick={e => e.stopPropagation()}>
-                {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b">
-                    <div>
-                        <h2 className="text-lg font-bold">{record.name}</h2>
-                        <p className="text-xs text-gray-400">{record.email}</p>
-                    </div>
-                    <button onClick={onClose}
-                        className="text-gray-400 hover:text-gray-700 text-xl font-bold">✕</button>
-                </div>
 
-                <div className="p-5 flex flex-col gap-5">
-                    {/* Score + eligibility */}
-                    <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-4 border">
-                        <ScoreRing score={record.complianceScore} />
+    const summaryRows = [
+        { label: 'Salary Records',   value: record.summary.totalSalaryRecords },
+        { label: 'Latest Net Pay',   value: fmt(record.summary.latestNetPay, record.summary.latestCurrency) },
+        { label: 'Latest Status',    value: record.summary.latestStatus  ?? '—' },
+        { label: 'Attendance Rate',  value: record.summary.attendanceRate != null ? `${record.summary.attendanceRate}%` : '—' },
+        { label: 'Pending Leaves',   value: record.summary.pendingLeaves },
+        { label: 'Delayed Payments', value: record.summary.delayedCount  },
+    ]
+
+    const criticals = record.flags.filter(f => f.severity === 'critical').length
+    const warnings  = record.flags.filter(f => f.severity === 'warning').length
+
+    return (
+        <div
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 50, display: 'flex', justifyContent: 'flex-end' }}
+            onClick={onClose}
+        >
+            <div
+                style={{
+                    background: 'var(--pc-drawer-bg, #ffffff)', width: '100%', maxWidth: 480,
+                    height: '100%', overflowY: 'auto', boxShadow: '-24px 0 64px rgba(0,0,0,0.12)',
+                    display: 'flex', flexDirection: 'column',
+                    fontFamily: "'DM Sans', sans-serif",
+                }}
+                onClick={e => e.stopPropagation()}
+                className="ems-drawer"
+            >
+                {/* Drawer header */}
+                <div className="ems-drawer-header" style={{
+                    padding: '20px 24px', borderBottom: '1px solid var(--pc-border, rgba(0,0,0,0.06))',
+                    display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
+                    flexShrink: 0,
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <Avatar name={record.name} size={44} fontSize={15} />
                         <div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${style.badge}`}>
-                                {record.eligibilityStatus}
-                            </span>
-                            <p className="text-xs text-gray-500 mt-1">Compliance Score: {record.complianceScore}/100</p>
+                            <div style={{
+                                fontFamily: "'DM Serif Display', serif",
+                                fontSize: '1.1rem', color: 'var(--pc-text-main, #0f172a)',
+                                letterSpacing: '-0.02em', lineHeight: 1.2,
+                            }}>
+                                {record.name}
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--pc-text-muted, rgba(0,0,0,0.38))', marginTop: 3 }}>
+                                {record.email}
+                            </div>
                         </div>
                     </div>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            fontSize: 18, color: 'var(--pc-text-faint, rgba(0,0,0,0.35))', lineHeight: 1,
+                            padding: 4, marginTop: 2,
+                        }}
+                    >
+                        ✕
+                    </button>
+                </div>
 
-                    {/* Summary stats */}
+                {/* Drawer body */}
+                <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
+
+                    {/* Score + eligibility */}
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 16,
+                        background: 'var(--pc-subtle-bg, rgba(0,0,0,0.012))', border: '1px solid var(--pc-border, rgba(0,0,0,0.07))',
+                        borderRadius: 14, padding: '14px 18px',
+                    }}>
+                        <ScoreRing score={record.complianceScore} />
+                        <div>
+                            <EligibilityPill status={record.eligibilityStatus} />
+                            <div style={{ fontSize: 11, color: 'var(--pc-text-muted, rgba(0,0,0,0.38))', marginTop: 6 }}>
+                                Compliance score: <strong style={{ color: 'var(--pc-text-main, #0f172a)' }}>{record.complianceScore}</strong> / 100
+                            </div>
+                        </div>
+                        {(criticals > 0 || warnings > 0) && (
+                            <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                {criticals > 0 && (
+                                    <span style={{
+                                        fontSize: 11, fontWeight: 600, padding: '3px 9px',
+                                        borderRadius: 100, background: 'var(--pc-red-bg, rgba(220,38,38,0.08))',
+                                        color: 'var(--pc-red-text, #dc2626)', border: '1px solid rgba(220,38,38,0.2)',
+                                    }}>
+                                        {criticals} critical
+                                    </span>
+                                )}
+                                {warnings > 0 && (
+                                    <span style={{
+                                        fontSize: 11, fontWeight: 600, padding: '3px 9px',
+                                        borderRadius: 100, background: 'var(--pc-yellow-bg, rgba(234,179,8,0.09))',
+                                        color: 'var(--pc-yellow-text, #854d0e)', border: '1px solid rgba(234,179,8,0.3)',
+                                    }}>
+                                        {warnings} warning
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Payroll summary grid */}
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-600 mb-2">Payroll Summary</h3>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                            {[
-                                ['Salary Records',      record.summary.totalSalaryRecords],
-                                ['Latest Net Pay',      fmt(record.summary.latestNetPay, record.summary.latestCurrency)],
-                                ['Latest Status',       record.summary.latestStatus  ?? '—'],
-                                ['Attendance Rate',     record.summary.attendanceRate != null ? `${record.summary.attendanceRate}%` : '—'],
-                                ['Pending Leaves',      record.summary.pendingLeaves],
-                                ['Delayed Payments',    record.summary.delayedCount],
-                            ].map(([k, v]) => (
-                                <div key={k} className="bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
-                                    <p className="text-xs text-gray-400">{k}</p>
-                                    <p className="font-semibold">{v}</p>
+                        <div style={{
+                            fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
+                            textTransform: 'uppercase', color: 'var(--pc-text-faint, rgba(0,0,0,0.35))',
+                            marginBottom: 10,
+                        }}>
+                            Payroll Summary
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                            {summaryRows.map(({ label, value }) => (
+                                <div key={label} style={{
+                                    background: 'var(--pc-subtle-bg, rgba(0,0,0,0.012))', border: '1px solid var(--pc-border, rgba(0,0,0,0.07))',
+                                    borderRadius: 10, padding: '10px 12px',
+                                }}>
+                                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--pc-text-muted, rgba(0,0,0,0.35))', marginBottom: 4 }}>
+                                        {label}
+                                    </div>
+                                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--pc-text-main, #0f172a)' }}>
+                                        {value}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -125,36 +265,42 @@ const DetailDrawer = ({ record, onClose }) => {
                     {/* Flags */}
                     {record.flags.length > 0 && (
                         <div>
-                            <h3 className="text-sm font-semibold text-gray-600 mb-2">Compliance Flags ({record.flags.length})</h3>
-                            <div className="flex flex-col gap-2">
-                                {record.flags.map((f, i) => {
-                                    const s = SEVERITY_STYLES[f.severity] || SEVERITY_STYLES.info
-                                    return (
-                                        <div key={i} className={`flex items-start gap-2 rounded-lg border px-3 py-2 ${s.pill}`}>
-                                            <span className="mt-0.5">{s.icon}</span>
-                                            <div>
-                                                <p className="text-xs font-semibold">{f.rule.replace(/_/g, ' ')}</p>
-                                                <p className="text-xs">{f.message}</p>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
+                            <div style={{
+                                fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
+                                textTransform: 'uppercase', color: 'var(--pc-text-faint, rgba(0,0,0,0.35))',
+                                marginBottom: 10,
+                            }}>
+                                Compliance Flags ({record.flags.length})
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {record.flags.map((f, i) => <FlagRow key={i} flag={f} />)}
                             </div>
                         </div>
                     )}
 
                     {/* Recommendations */}
-                    {record.recommendations.length > 0 && (
+                    {record.recommendations?.length > 0 && (
                         <div>
-                            <h3 className="text-sm font-semibold text-gray-600 mb-2">Recommendations</h3>
-                            <ul className="flex flex-col gap-1.5">
-                                {record.recommendations.map((r, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-xs text-gray-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                                        <span className="text-blue-500 mt-0.5">💡</span>
-                                        {r}
-                                    </li>
+                            <div style={{
+                                fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
+                                textTransform: 'uppercase', color: 'var(--pc-text-faint, rgba(0,0,0,0.35))',
+                                marginBottom: 10,
+                            }}>
+                                Recommendations
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {record.recommendations.map((rec, i) => (
+                                    <div key={i} style={{
+                                        display: 'flex', alignItems: 'flex-start', gap: 10,
+                                        padding: '9px 12px', borderRadius: 10,
+                                        background: 'var(--pc-indigo-bg, rgba(99,102,241,0.05))',
+                                        border: '1px solid rgba(99,102,241,0.15)',
+                                    }}>
+                                        <span style={{ fontSize: 13, flexShrink: 0, marginTop: 1 }}>💡</span>
+                                        <span style={{ fontSize: 12, color: 'var(--pc-indigo-text, #4f46e5)', lineHeight: 1.5 }}>{rec}</span>
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -163,36 +309,67 @@ const DetailDrawer = ({ record, onClose }) => {
     )
 }
 
-// ─── Rules Reference Panel ─────────────────────────────────────────────────────
-const RulesPanel = ({ rules, onClose }) => (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={onClose}>
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 mx-4" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold">Compliance Rules</h2>
-                <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold">✕</button>
+// ─── Rules modal ──────────────────────────────────────────────────────────────
+const RulesModal = ({ rules, onClose }) => (
+    <div className="pg-modal-overlay">
+        <div className="pg-modal">
+            <div>
+                <div style={{
+                    fontFamily: "'DM Serif Display', serif",
+                    fontSize: '1.25rem', color: 'var(--pc-text-main, #0f172a)',
+                    letterSpacing: '-0.02em', marginBottom: 4,
+                }}>
+                    Compliance Rules
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--pc-text-muted, rgba(0,0,0,0.38))', margin: 0 }}>
+                    Thresholds applied during the last compliance check.
+                </p>
             </div>
-            <div className="flex flex-col gap-3 text-sm">
-                {Object.entries(rules).map(([key, val]) => (
-                    <div key={key} className="flex justify-between items-center border-b pb-2">
-                        <span className="text-gray-600">{key.replace(/_/g, ' ')}</span>
-                        <span className="font-semibold text-blue-700">{val}{typeof val === 'number' && key.includes('PCT') ? '%' : ''}</span>
+
+            <div className="pg-divider" />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {Object.entries(rules).map(([key, val], i, arr) => (
+                    <div key={key} style={{
+                        display: 'flex', justifyContent: 'space-between',
+                        alignItems: 'center', gap: 16, padding: '9px 0',
+                        borderBottom: i < arr.length - 1 ? '1px solid var(--pc-border, rgba(0,0,0,0.05))' : 'none',
+                    }}>
+                        <span style={{
+                            fontSize: 12, color: 'var(--pc-text-muted, rgba(0,0,0,0.55))',
+                            textTransform: 'capitalize',
+                        }}>
+                            {key.replace(/_/g, ' ').toLowerCase()}
+                        </span>
+                        <span style={{
+                            fontSize: 13, fontWeight: 700, color: 'var(--pc-indigo-text, #4f46e5)',
+                            background: 'var(--pc-indigo-bg, rgba(99,102,241,0.07))',
+                            border: '1px solid rgba(99,102,241,0.18)',
+                            borderRadius: 8, padding: '2px 10px',
+                        }}>
+                            {val}{typeof val === 'number' && key.includes('PCT') ? '%' : ''}
+                        </span>
                     </div>
                 ))}
+            </div>
+
+            <div className="pg-modal-actions">
+                <button className="pg-btn-ghost" onClick={onClose}>Close</button>
             </div>
         </div>
     </div>
 )
 
-// ─── Main Page ─────────────────────────────────────────────────────────────────
+// ─── Main page ────────────────────────────────────────────────────────────────
 export const PayrollCompliancePage = () => {
     const dispatch = useDispatch()
     const { data, orgSummary, isLoading, error } = useSelector(s => s.PayrollComplianceReducer || {})
 
-    const [search,         setSearch]         = useState('')
-    const [filterStatus,   setFilterStatus]   = useState('All')
+    const [search,          setSearch]         = useState('')
+    const [filterStatus,    setFilterStatus]   = useState('All')
     const [selectedRecord, setSelectedRecord] = useState(null)
-    const [showRules,      setShowRules]       = useState(false)
-    const [hasRun,         setHasRun]         = useState(false)
+    const [showRules,       setShowRules]      = useState(false)
+    const [hasRun,          setHasRun]         = useState(false)
 
     const handleRun = () => {
         dispatch(HandleRunComplianceCheck())
@@ -208,154 +385,241 @@ export const PayrollCompliancePage = () => {
     if (isLoading) return <Loading />
 
     return (
-        <div className="w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
+            <style>{styles}</style>
 
-            {/* ── Header ───────────────────────────────────────────────── */}
-            <div className="flex justify-between items-start flex-wrap gap-3">
-                <div>
-                    <h1 className="text-3xl font-bold">Payroll Eligibility & Compliance</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Validate employee payroll eligibility against organisation compliance rules
-                    </p>
-                </div>
-                <div className="flex gap-2">
-                    <button onClick={() => setShowRules(true)}
-                        className="px-4 py-2 border border-gray-300 text-sm rounded-lg hover:bg-gray-50">
-                        📋 View Rules
-                    </button>
-                    <button onClick={handleRun}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
-                        {hasRun ? '🔄 Re-run Check' : '▶ Run Compliance Check'}
+            {/* ── Page header ── */}
+            <PageHeader
+                eyebrow="Intelligence"
+                title="Payroll Compliance"
+                subtitle="Validate employee payroll eligibility against organisation rules"
+            >
+                <div style={{ display: 'flex', gap: 8 }}>
+                    {orgSummary?.rulesApplied && (
+                        <button className="pg-btn-ghost" onClick={() => setShowRules(true)}>
+                            📋 View Rules
+                        </button>
+                    )}
+                    <button className="pg-btn-primary" onClick={handleRun}>
+                        {hasRun ? '↺ Re-run Check' : '▶ Run Check'}
                     </button>
                 </div>
-            </div>
+            </PageHeader>
 
-            {/* ── Error ────────────────────────────────────────────────── */}
+            {/* ── Error ── */}
             {error?.status && (
-                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
-                    ⚠️ {error.message}
+                <div style={{
+                    background: 'var(--pc-red-bg, rgba(220,38,38,0.06))', border: '1px solid var(--pc-red-border, rgba(220,38,38,0.2))',
+                    borderRadius: 12, padding: '12px 16px', fontSize: 13, color: 'var(--pc-red-text, #dc2626)',
+                }}>
+                    {error.message}
                 </div>
             )}
 
-            {/* ── Prompt before first run ───────────────────────────────── */}
-            {!hasRun && !data && (
-                <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-                    <div className="w-20 h-20 bg-blue-50 border border-blue-200 rounded-full flex items-center justify-center text-4xl">
+            {/* ── Pre-run prompt ── */}
+            {!data && !isLoading && (
+                <div style={{
+                    flex: 1, display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center',
+                    gap: 20, textAlign: 'center', padding: '40px 20px',
+                }}>
+                    {/* Icon tile */}
+                    <div style={{
+                        width: 72, height: 72, borderRadius: 18,
+                        background: 'var(--pc-indigo-bg, rgba(99,102,241,0.07))',
+                        border: '1px solid var(--pc-border, rgba(99,102,241,0.18))',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 32,
+                    }}>
                         🛡️
                     </div>
+
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-700">Ready to Check Payroll Compliance</h2>
-                        <p className="text-gray-400 text-sm mt-1 max-w-md">
-                            Click "Run Compliance Check" to analyse all employees against your
+                        <div style={{
+                            fontFamily: "'DM Serif Display', serif",
+                            fontSize: '1.4rem', color: 'var(--pc-text-main, #0f172a)',
+                            letterSpacing: '-0.02em', marginBottom: 8,
+                        }}>
+                            Ready to check payroll compliance
+                        </div>
+                        <p style={{
+                            fontSize: 13, color: 'var(--pc-text-muted, rgba(0,0,0,0.38))',
+                            lineHeight: 1.7, maxWidth: 400, margin: '0 auto',
+                        }}>
+                            Run the compliance engine to analyse all employees against your
                             organisation's payroll rules — attendance thresholds, salary caps,
                             overdue payments, and more.
                         </p>
                     </div>
-                    <button onClick={handleRun}
-                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
+
+                    <button className="pg-btn-primary" onClick={handleRun} style={{ padding: '10px 28px' }}>
                         ▶ Run Compliance Check
                     </button>
                 </div>
             )}
 
-            {/* ── Results ──────────────────────────────────────────────── */}
+            {/* ── Results ── */}
             {data && (
                 <>
-                    {/* Org summary */}
-                    <OrgSummaryBar summary={orgSummary} />
+                    {/* Stats strip */}
+                    <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+                        {[
+                            { label: 'Total Employees',  value: orgSummary?.totalEmployees ?? data.length },
+                            { label: 'Eligible',         value: orgSummary?.eligible         ?? '—' },
+                            { label: 'Review Required',  value: orgSummary?.reviewRequired   ?? '—' },
+                            { label: 'Ineligible',       value: orgSummary?.ineligible       ?? '—' },
+                            { label: 'Avg Compliance',   value: orgSummary?.avgComplianceScore != null ? `${orgSummary.avgComplianceScore}%` : '—' },
+                        ].map(s => (
+                            <div key={s.label} className="pg-stat-card">
+                                <span className="pg-stat-value" style={{ fontSize: '1.5rem' }}>{s.value}</span>
+                                <span className="pg-stat-label">{s.label}</span>
+                            </div>
+                        ))}
+                    </div>
 
                     {/* Last checked */}
                     {orgSummary?.checkedAt && (
-                        <p className="text-xs text-gray-400">
+                        <p style={{ fontSize: 11, color: 'var(--pc-text-faint, rgba(0,0,0,0.3))', marginTop: -8 }}>
                             Last checked: {new Date(orgSummary.checkedAt).toLocaleString('en-IN')}
                         </p>
                     )}
 
                     {/* Filters */}
-                    <div className="flex flex-wrap gap-3 items-center">
-                        <input type="text" placeholder="Search by name..."
-                            value={search} onChange={e => setSearch(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                    <div className="pg-filters">
+                        <input
+                            className="pg-search"
+                            type="text"
+                            placeholder="Search by employee name…"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            style={{ minWidth: 240 }}
+                        />
                         {['All', 'Eligible', 'Review Required', 'Ineligible'].map(s => (
-                            <button key={s} onClick={() => setFilterStatus(s)}
-                                className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:border-blue-400'}`}>
+                            <button
+                                key={s}
+                                className={`pg-pill${filterStatus === s ? ' active' : ''}`}
+                                onClick={() => setFilterStatus(s)}
+                            >
                                 {s}
                             </button>
                         ))}
-                        <span className="text-xs text-gray-400 ml-auto">{filtered.length} employee(s)</span>
+                        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--pc-text-muted, rgba(0,0,0,0.3))' }}>
+                            {filtered.length} employee{filtered.length !== 1 ? 's' : ''}
+                        </span>
                     </div>
 
-                    {/* Table header */}
-                    <div className="flex flex-col gap-2 overflow-auto flex-1">
-                        <div className="grid grid-cols-12 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
-                            <span className="col-span-3">Employee</span>
-                            <span className="col-span-2 text-center">Score</span>
-                            <span className="col-span-2">Status</span>
-                            <span className="col-span-2">Latest Pay</span>
-                            <span className="col-span-2">Flags</span>
-                            <span className="col-span-1">Details</span>
+                    {/* Table */}
+                    <div className="pg-table-wrap">
+
+                        {/* Header */}
+                        <div
+                            className="pg-table-head"
+                            style={{ gridTemplateColumns: '2fr 60px 140px 1fr 140px 80px' }}
+                        >
+                            <span className="pg-th">Employee</span>
+                            <span className="pg-th">Score</span>
+                            <span className="pg-th">Eligibility</span>
+                            <span className="pg-th">Latest Pay</span>
+                            <span className="pg-th">Flags</span>
+                            <span className="pg-th">Details</span>
                         </div>
 
-                        {filtered.length === 0 ? (
-                            <div className="text-center text-gray-400 py-16">No records match your filter.</div>
-                        ) : filtered.map(r => {
-                            const style = ELIGIBILITY_STYLES[r.eligibilityStatus] || ELIGIBILITY_STYLES.Eligible
+                        {/* Empty */}
+                        {filtered.length === 0 && (
+                            <div className="pg-empty">
+                                <span className="pg-empty-icon">🔍</span>
+                                <p className="pg-empty-title">No records match your filters</p>
+                                <p className="pg-empty-sub">Try adjusting your search or status filter.</p>
+                            </div>
+                        )}
+
+                        {/* Rows */}
+                        {filtered.map(r => {
                             const criticals = r.flags.filter(f => f.severity === 'critical').length
                             const warnings  = r.flags.filter(f => f.severity === 'warning').length
 
                             return (
-                                <div key={r.employeeID}
-                                    className="grid grid-cols-12 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-gray-50 transition-all">
-                                    {/* Name */}
-                                    <div className="col-span-3">
-                                        <p className="font-medium">{r.name}</p>
-                                        <p className="text-xs text-gray-400">{r.email}</p>
+                                <div
+                                    key={r.employeeID}
+                                    className="pg-table-row"
+                                    style={{ gridTemplateColumns: '2fr 60px 140px 1fr 140px 80px' }}
+                                >
+                                    {/* Employee */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <Avatar name={r.name} />
+                                        <div>
+                                            <div className="pg-td-name">{r.name}</div>
+                                            <div className="pg-td-sub">{r.email}</div>
+                                        </div>
                                     </div>
 
                                     {/* Score ring */}
-                                    <div className="col-span-2 flex justify-center">
+                                    <span>
                                         <ScoreRing score={r.complianceScore} />
-                                    </div>
+                                    </span>
 
-                                    {/* Eligibility badge */}
-                                    <div className="col-span-2">
-                                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${style.badge}`}>
-                                            {r.eligibilityStatus}
-                                        </span>
-                                    </div>
+                                    {/* Eligibility */}
+                                    <span>
+                                        <EligibilityPill status={r.eligibilityStatus} />
+                                    </span>
 
-                                    {/* Latest net pay */}
-                                    <div className="col-span-2 text-xs">
-                                        <p className="font-semibold">{fmt(r.summary.latestNetPay, r.summary.latestCurrency)}</p>
-                                        <p className="text-gray-400">{r.summary.latestStatus ?? '—'}</p>
+                                    {/* Latest pay */}
+                                    <div>
+                                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--pc-text-main, #0f172a)' }}>
+                                            {fmt(r.summary.latestNetPay, r.summary.latestCurrency)}
+                                        </div>
+                                        <div className="pg-td-sub">{r.summary.latestStatus ?? '—'}</div>
                                     </div>
 
                                     {/* Flag summary */}
-                                    <div className="col-span-2 flex gap-1 flex-wrap">
-                                        {criticals > 0 && (
-                                            <span className="px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700 border border-red-200">
-                                                🔴 {criticals}
+                                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                                        {r.flags.length === 0 ? (
+                                            <span style={{
+                                                fontSize: 11, fontWeight: 600, padding: '3px 9px',
+                                                borderRadius: 100,
+                                                background: 'var(--pc-green-bg, rgba(22,163,74,0.08))',
+                                                color: 'var(--pc-green-text, #15803d)',
+                                                border: '1px solid rgba(22,163,74,0.22)',
+                                            }}>
+                                                ✓ Clean
                                             </span>
-                                        )}
-                                        {warnings > 0 && (
-                                            <span className="px-1.5 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700 border border-yellow-200">
-                                                🟡 {warnings}
-                                            </span>
-                                        )}
-                                        {r.flags.length === 0 && (
-                                            <span className="px-1.5 py-0.5 rounded-full text-xs bg-green-100 text-green-700 border border-green-200">
-                                                ✅ Clean
-                                            </span>
+                                        ) : (
+                                            <>
+                                                {criticals > 0 && (
+                                                    <span style={{
+                                                        fontSize: 11, fontWeight: 600, padding: '3px 9px',
+                                                        borderRadius: 100,
+                                                        background: 'var(--pc-red-bg, rgba(220,38,38,0.08))',
+                                                        color: 'var(--pc-red-text, #dc2626)',
+                                                        border: '1px solid rgba(220,38,38,0.2)',
+                                                    }}>
+                                                        {criticals} crit
+                                                    </span>
+                                                )}
+                                                {warnings > 0 && (
+                                                    <span style={{
+                                                        fontSize: 11, fontWeight: 600, padding: '3px 9px',
+                                                        borderRadius: 100,
+                                                        background: 'var(--pc-yellow-bg, rgba(234,179,8,0.09))',
+                                                        color: 'var(--pc-yellow-text, #854d0e)',
+                                                        border: '1px solid rgba(234,179,8,0.3)',
+                                                    }}>
+                                                        {warnings} warn
+                                                    </span>
+                                                )}
+                                            </>
                                         )}
                                     </div>
 
-                                    {/* View button */}
-                                    <div className="col-span-1">
-                                        <button onClick={() => setSelectedRecord(r)}
-                                            className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50">
+                                    {/* View */}
+                                    <span>
+                                        <button
+                                            className="pg-action-btn indigo"
+                                            onClick={() => setSelectedRecord(r)}
+                                        >
                                             View
                                         </button>
-                                    </div>
+                                    </span>
                                 </div>
                             )
                         })}
@@ -363,11 +627,16 @@ export const PayrollCompliancePage = () => {
                 </>
             )}
 
-            {/* ── Drawers / Modals ────────────────────────────────────── */}
-            <DetailDrawer record={selectedRecord} onClose={() => setSelectedRecord(null)} />
-            {showRules && orgSummary?.rulesApplied && (
-                <RulesPanel rules={orgSummary.rulesApplied} onClose={() => setShowRules(false)} />
+            {/* ── Detail drawer ── */}
+            {selectedRecord && (
+                <DetailDrawer record={selectedRecord} onClose={() => setSelectedRecord(null)} />
             )}
-        </div>
+
+            {/* ── Rules modal ── */}
+            {showRules && orgSummary?.rulesApplied && (
+                <RulesModal rules={orgSummary.rulesApplied} onClose={() => setShowRules(false)} />
+            )}
+
+        </PageShell>
     )
 }

@@ -10,21 +10,29 @@ import {
     HandleGetReportingChain,
 } from '../controllers/OrgStructure.controller.js'
 import { VerifyHRToken } from '../middlewares/Auth.middleware.js'
-import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
-import { VerifyEmployeeToken } from '../middlewares/Auth.middleware.js'
+// ✅ We completely swap out RoleAuthorization for CheckPermission
+import { CheckPermission } from "../middlewares/RoleAuth.middleware.js"
 
 const router = express.Router()
 
 // ── HR-only ────────────────────────────────────────────────────────────────────
-router.post('/',                           VerifyHRToken, RoleAuthorization('HR-Admin'), HandleCreatePosition)
-router.get('/all',                         VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetAllPositions)
-router.get('/tree',                        VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetOrgTree)
-router.patch('/:positionID',               VerifyHRToken, RoleAuthorization('HR-Admin'), HandleUpdatePosition)
-router.delete('/:positionID',              VerifyHRToken, RoleAuthorization('HR-Admin'), HandleDeletePosition)
-router.post('/:positionID/assign',         VerifyHRToken, RoleAuthorization('HR-Admin'), HandleAssignEmployee)
-router.post('/:positionID/remove',         VerifyHRToken, RoleAuthorization('HR-Admin'), HandleRemoveEmployee)
+
+// CREATE
+router.post('/', VerifyHRToken, CheckPermission('department.create'), HandleCreatePosition)
+
+// READ (View) - ✅ Arjun has 'department.view', so these will now let him through!
+router.get('/all',  VerifyHRToken, CheckPermission('department.view'), HandleGetAllPositions)
+router.get('/tree', VerifyHRToken, CheckPermission('department.view'), HandleGetOrgTree)
+
+// UPDATE
+router.patch('/:positionID',       VerifyHRToken, CheckPermission('department.edit'), HandleUpdatePosition)
+router.post('/:positionID/assign', VerifyHRToken, CheckPermission('department.edit'), HandleAssignEmployee)
+router.post('/:positionID/remove', VerifyHRToken, CheckPermission('department.edit'), HandleRemoveEmployee)
+
+// DELETE
+router.delete('/:positionID', VerifyHRToken, CheckPermission('department.delete'), HandleDeletePosition)
 
 // ── HR + Employee ──────────────────────────────────────────────────────────────
-router.get('/reporting-chain/:employeeId', VerifyHRToken, RoleAuthorization('HR-Admin'), HandleGetReportingChain)
+router.get('/reporting-chain/:employeeId', VerifyHRToken, CheckPermission('department.view'), HandleGetReportingChain)
 
 export default router

@@ -77,7 +77,7 @@ export const EmployeeRoutes = [
                 element: <MyAnalyticsPage />
             },
             {
-                path: "my-security-flags",
+                path: "my-access-drift",
                 element: <MyAccessDriftPage />
             },
         ]

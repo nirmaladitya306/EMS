@@ -30,7 +30,7 @@ import { ExitClearancePage } from '../pages/HumanResources/Dashboard Childs/exit
 import { HRAnalyticsPage }   from '../pages/HumanResources/Dashboard Childs/hranalyticspage.jsx'
 import { RBACPage }          from '../pages/HumanResources/Dashboard Childs/rbacpage.jsx'
 import { OrgStructurePage }  from '../pages/HumanResources/Dashboard Childs/orgstructurepage.jsx'
-
+import { SecurityAlertsPage } from "../pages/HumanResources/Dashboard Childs/securityalertspage.jsx"
 export const HRRoutes = [
     {
         path: "/auth/hr/signup",
@@ -61,7 +61,7 @@ export const HRRoutes = [
             element: <HRDepartmentPage />
         },
         {
-            path: "documents",
+            path: "document-expiry",
             element: <DocumentExpiryPage />
         },
         {
@@ -93,7 +93,7 @@ export const HRRoutes = [
             element: <RecruitmentPage />
         },
         {
-            path: "interview-insights",
+            path: "interviews",
             element: <InterviewPage />
         },
         {
@@ -127,6 +127,10 @@ export const HRRoutes = [
         {
             path: 'org-structure',
             element: <OrgStructurePage />
+        },
+        {
+            path: 'security-alerts',
+            element: <SecurityAlertsPage />
         },
 
     ]

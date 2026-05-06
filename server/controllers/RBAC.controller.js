@@ -219,3 +219,107 @@ export const HandleGetMyPermissions = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Internal server error' })
     }
 }
+
+import { RoleDrift } from '../models/RoleDrift.model.js';
+
+// ─── GET /v1/rbac/drifts ─────────────────────────────────────────────────────
+export const HandleGetRoleDrifts = async (req, res) => {
+    try {
+        const drifts = await RoleDrift.find({ organizationID: req.ORGID })
+            .populate({
+                path: 'hrUserID',
+                select: 'firstname lastname email department',
+                populate: { path: 'department', select: 'name' }
+            })
+            .populate('baseRole', 'name')
+            .populate('driftRole', 'name')
+            .sort({ createdAt: -1 });
+
+        // Map the data to exactly match what our new React UI expects
+        const formattedDrifts = drifts.map(d => ({
+            _id: d._id,
+            employee: d.hrUserID, 
+            baseRole: d.baseRole,
+            drift: {
+                role: d.driftRole,
+                reason: d.reason,
+                expiresAt: d.expiresAt,
+                isExpired: d.isExpired 
+            }
+        }));
+
+        return res.status(200).json({ success: true, data: formattedDrifts });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Failed to fetch access drifts' });
+    }
+}
+
+// ─── POST /v1/rbac/drifts/:driftID/revoke ────────────────────────────────────
+export const HandleRevokeDrift = async (req, res) => {
+    try {
+        const { driftID } = req.params;
+
+        const drift = await RoleDrift.findOneAndUpdate(
+            { _id: driftID, organizationID: req.ORGID },
+            { isRevoked: true },
+            { new: true }
+        );
+
+        if (!drift) return res.status(404).json({ success: false, message: 'Drift record not found' });
+
+        return res.status(200).json({ success: true, message: 'Privilege revoked successfully' });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Failed to revoke privilege' });
+    }
+}
+
+// ─── POST /v1/rbac/drifts/:driftID/extend ────────────────────────────────────
+export const HandleExtendDrift = async (req, res) => {
+    try {
+        const { driftID } = req.params;
+        const { newExpiry } = req.body;
+
+        const drift = await RoleDrift.findOneAndUpdate(
+            { _id: driftID, organizationID: req.ORGID },
+            { 
+                expiresAt: new Date(newExpiry),
+                isRevoked: false // Un-revoke if it was previously revoked
+            },
+            { new: true }
+        );
+
+        if (!drift) return res.status(404).json({ success: false, message: 'Drift record not found' });
+
+        return res.status(200).json({ success: true, message: 'Privilege extended successfully' });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Failed to extend privilege' });
+    }
+}
+
+// ─── POST /v1/rbac/drifts ────────────────────────────────────────────────────
+export const HandleCreateDrift = async (req, res) => {
+    try {
+        const { hrUserID, driftRoleID, reason, expiresAt } = req.body;
+
+        if (!hrUserID || !driftRoleID || !reason || !expiresAt) {
+            return res.status(400).json({ success: false, message: 'All drift fields are required' });
+        }
+
+        const hr = await HumanResources.findOne({ _id: hrUserID, organizationID: req.ORGID });
+        if (!hr) return res.status(404).json({ success: false, message: 'HR user not found' });
+
+        const drift = await RoleDrift.create({
+            organizationID: req.ORGID,
+            hrUserID,
+            baseRole: hr.rbacRole || null,
+            driftRole: driftRoleID,
+            reason,
+            expiresAt: new Date(expiresAt),
+            grantedBy: req.HRid
+        });
+
+        return res.status(201).json({ success: true, message: 'Privilege granted successfully', data: drift });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Failed to initiate access drift' });
+    }
+}

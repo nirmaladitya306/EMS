@@ -1,148 +1,111 @@
-import { TrendingUp } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+  Area, AreaChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer,
+} from "recharts";
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{
+      background: "var(--ems-surface, #fff)",
+      border: "1px solid var(--ems-border, rgba(0,0,0,0.08))",
+      borderRadius: 10, padding: "8px 12px", fontSize: 12,
+      fontFamily: "'DM Sans', sans-serif",
+      boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+    }}>
+      <p style={{ color: "var(--ems-text-faint, rgba(0,0,0,0.5))", marginBottom: 4 }}>{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color, fontWeight: 500 }}>
+          {p.name}: {p.value?.toLocaleString()}
+        </p>
+      ))}
+    </div>
+  );
+};
 
 export const SalaryChart = ({ balancedata }) => {
   const chartData = [];
 
-  // ✅ Safe data extraction
   if (balancedata?.balance?.length) {
-    for (let index = 0; index < balancedata.balance.length; index++) {
+    balancedata.balance.forEach((b) => {
       chartData.push({
-        month: balancedata.balance[index]["expensemonth"],
-        SalriesPaid: balancedata.balance[index]["totalexpenses"],
-        AvailableAmount: balancedata.balance[index]["availableamount"],
+        month: b.expensemonth,
+        Paid: b.totalexpenses,
+        Available: b.availableamount,
       });
-    }
+    });
   }
 
-  const chartConfig = {
-    desktop: {
-      label: "Salaries Paid",
-      color: "hsl(var(--chart-1))",
-    },
-    mobile: {
-      label: "Available Balance",
-      color: "hsl(var(--chart-2))",
-    },
-  };
-
-  // ✅ Safe trending calculation
-  let trendingUp = 0;
-
+  let trendPct = 0;
   if (chartData.length >= 2) {
-    const last = chartData[chartData.length - 1]?.AvailableAmount || 0;
-    const prev = chartData[chartData.length - 2]?.AvailableAmount || 1;
-
-    const difference = last - prev;
-    trendingUp = Math.round((difference * 100) / prev);
+    const last = chartData[chartData.length - 1]?.Available || 0;
+    const prev = chartData[chartData.length - 2]?.Available || 1;
+    trendPct = Math.round(((last - prev) / Math.abs(prev)) * 100);
   }
+
+  const latest   = chartData[chartData.length - 1]?.Available ?? 0;
+  const dateRange = chartData.length > 0
+    ? `${chartData[0]?.month} – ${chartData[chartData.length - 1]?.month}`
+    : "No data";
 
   return (
-    <div className="salary-container flex flex-col min-[250px]:gap-3 sm:gap-1 h-auto">
-      <div className="heading px-2 my-2 min-[250px]:px-3">
-        <h1 className="min-[250px]:text-xl xl:text-3xl font-bold min-[250px]:text-center sm:text-start">
-          Balance Chart
-        </h1>
+    <div className="sc-root">
+      <div className="sc-header">
+        <p className="sc-title">Balance</p>
+        <p className="sc-sub">Salaries vs Available — {dateRange}</p>
       </div>
 
-      <Card className="mx-2">
-        <CardHeader>
-          <CardTitle className="min-[250px]:text-xs sm:text-md md:text-lg lg:text-xl">
-            Available Salary Amount:{" "}
-            {chartData.length > 0
-              ? chartData[chartData.length - 1]?.AvailableAmount || 0
-              : 0}
-          </CardTitle>
+      <div className="sc-chart-area">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ left: 0, right: 0, top: 4, bottom: 0 }}>
+            <defs>
+              <linearGradient id="gPaid" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="#8b5cf6" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="gAvail" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} stroke="var(--ems-border, rgba(0,0,0,0.05))" />
+            <XAxis dataKey="month" tickLine={false} axisLine={false}
+              tick={{ fontSize: 11, fill: "var(--ems-label-color, rgba(0,0,0,0.35))" }}
+              tickFormatter={(v) => v?.slice(0, 3) || ""} />
+            <Tooltip content={<CustomTooltip />} />
+            <Area dataKey="Paid"      name="Salaries Paid" type="monotone" stroke="#8b5cf6" strokeWidth={1.5} fill="url(#gPaid)" />
+            <Area dataKey="Available" name="Available"      type="monotone" stroke="#6366f1" strokeWidth={1.5} fill="url(#gAvail)" />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
 
-          <CardDescription className="min-[250px]:text-xs sm:text-md md:text-lg lg:text-xl">
-            Salaries Chart
-          </CardDescription>
-        </CardHeader>
+      <div className="sc-footer">
+        <div className="sc-balance">Available: {latest.toLocaleString()}</div>
+        <div className={trendPct >= 0 ? "sc-trend-up" : "sc-trend-down"}>
+          {trendPct >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
+          {Math.abs(trendPct)}% this month
+        </div>
+      </div>
 
-        <CardContent>
-          <ChartContainer config={chartConfig}>
-            <AreaChart
-              accessibilityLayer
-              data={chartData}
-              margin={{ left: 12, right: 12 }}
-            >
-              <CartesianGrid vertical={false} />
-
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={(value) =>
-                  value ? value.slice(0, 3) : ""
-                }
-              />
-
-              <ChartTooltip
-                cursor={false}
-                content={
-                  <ChartTooltipContent indicator="line" className="p-2" />
-                }
-                className="p-[2px] flex gap-1 items-center min-[250px]:text-xs sm:text-xs"
-              />
-
-              <Area
-                dataKey="SalriesPaid"
-                type="natural"
-                fill="var(--color-mobile)"
-                fillOpacity={0.4}
-                stroke="var(--color-mobile)"
-                stackId="a"
-              />
-
-              <Area
-                dataKey="AvailableAmount"
-                type="natural"
-                fill="var(--color-desktop)"
-                fillOpacity={0.4}
-                stroke="var(--color-desktop)"
-                stackId="a"
-              />
-
-              <ChartLegend content={<ChartLegendContent />} />
-            </AreaChart>
-          </ChartContainer>
-        </CardContent>
-
-        <CardFooter>
-          <div className="flex w-full items-start gap-2 text-sm">
-            <div className="grid gap-2">
-              <div className="flex items-center gap-2 font-medium leading-none">
-                Trending up by {trendingUp}% this month
-                <TrendingUp className="h-4 w-4" />
-              </div>
-
-              <div className="flex items-center gap-2 leading-none text-muted-foreground">
-                {chartData.length > 0
-                  ? `${chartData[0]?.month} 2024 - ${
-                      chartData[chartData.length - 1]?.month
-                    } 2024`
-                  : "No data available"}
-              </div>
-            </div>
-          </div>
-        </CardFooter>
-      </Card>
+      <style>{`
+        .sc-root { display: flex; flex-direction: column; height: 100%; gap: 10px; }
+        .sc-header { display: flex; flex-direction: column; gap: 2px; }
+        .sc-title {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--ems-label-color, rgba(0,0,0,0.35));
+          font-family: 'DM Sans', sans-serif;
+        }
+        .sc-sub { font-size: 12px; color: var(--ems-text-faint, rgba(0,0,0,0.4)); font-family: 'DM Sans', sans-serif; }
+        .sc-chart-area { flex: 1; min-height: 180px; }
+        .sc-footer {
+          display: flex; justify-content: space-between; align-items: center;
+          font-size: 12px; border-top: 1px solid var(--ems-border, rgba(0,0,0,0.05));
+          padding-top: 8px; font-family: 'DM Sans', sans-serif;
+        }
+        .sc-balance { font-weight: 500; color: var(--ems-text-primary, #0f172a); }
+        .sc-trend-up   { color: #16a34a; display: flex; align-items: center; gap: 4px; font-weight: 500; }
+        .sc-trend-down { color: #dc2626; display: flex; align-items: center; gap: 4px; font-weight: 500; }
+      `}</style>
     </div>
   );
 };

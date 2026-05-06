@@ -8,8 +8,6 @@ import { Organization } from "../models/Organization.model.js"
 import { createLog } from "../utils/activityLogger.js"
 import { seedDefaultRoles } from "../controllers/RBAC.controller.js"
 
-
-
 export const HandleHRLogin = async (req, res) => {
     const { email, password } = req.body;
 
@@ -77,11 +75,19 @@ export const HandleHRLogin = async (req, res) => {
 
 export const HandleHRCheck = async (req, res) => {
     try {
-        const HR = await HumanResources.findOne({ _id: req.HRid, organizationID: req.ORGID })
-        if (!HR) {
-            return res.status(404).json({ success: false, message: "HR not found", type: "checkHR" })
-        }
-        return res.status(200).json({ success: true, message: "HR Already Logged In", type: "checkHR" })
+        const HR = await HumanResources.findOne({ 
+            _id: req.HRid, 
+            organizationID: req.ORGID 
+        }).populate("rbacRole"); 
+
+        if (!HR) return res.status(404).json({ success: false, message: "HR not found", type: "checkHR" })
+        
+        return res.status(200).json({ 
+            success: true, 
+            message: "HR Already Logged In", 
+            type: "checkHR",
+            data: HR // ✅ CHANGED from hrData to data!
+        })
     } catch (error) {
         return res.status(500).json({ success: false, error: error, message: "internal error", type: "checkHR" })
     }
@@ -347,7 +353,8 @@ export const HandleHRSignup = async (req, res) => {
             // ─── Seed the default HR_ADMIN role for this new organisation ─────
             await seedDefaultRoles(newOrganization._id)
 
-            // ❌ REMOVED: GenerateJwtTokenAndSetCookiesHR
+            // ✅ RESTORED: Generate cookie so the verify email endpoint knows who this is
+            GenerateJwtTokenAndSetCookiesHR(res, newHR._id, newHR.role, newOrganization._id);
 
             const VerificationEmailStatus = await SendVerificationEmail(email, verificationcode);
 
@@ -379,7 +386,8 @@ export const HandleHRSignup = async (req, res) => {
         organization.HRs.push(newHR._id);
         await organization.save();
 
-        // ❌ REMOVED: GenerateJwtTokenAndSetCookiesHR
+        // ✅ RESTORED: Generate cookie so the verify email endpoint knows who this is
+        GenerateJwtTokenAndSetCookiesHR(res, newHR._id, newHR.role, organization._id);
 
         const VerificationEmailStatus = await SendVerificationEmail(email, verificationcode);
 
@@ -391,17 +399,36 @@ export const HandleHRSignup = async (req, res) => {
             HRid: newHR._id
         });
 
-
-
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message,
-            type: "signup"
+        console.error("Signup Error:", error);
+
+        // ─── Catch MongoDB Duplicate Key Errors (Error 11000) ───
+        if (error.code === 11000) {
+            
+            // 1. Duplicate Organization Name
+            if (error.keyPattern && error.keyPattern.name) {
+                return res.status(409).json({ 
+                    success: false, 
+                    message: "An organisation with this name already exists. If you belong to this company, please ask your administrator for an invite." 
+                });
+            }
+            
+            // 2. Duplicate Email Address
+            if (error.keyPattern && error.keyPattern.email) {
+                return res.status(409).json({ 
+                    success: false, 
+                    message: "An account with this email already exists. Please sign in." 
+                });
+            }
+        }
+        
+        // ─── Standard Fallback Error ───
+        return res.status(500).json({ 
+            success: false, 
+            message: "Failed to create account. Please try again later." 
         });
     }
 };
-
 
 export const HandleHRLogout = async (req, res) => {
     try {
@@ -426,3 +453,60 @@ export const HandleHRLogout = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal server Error" })
     }
 }
+
+
+// ─── HR ADMIN: Create a new HR User for the same organization ────────────────
+export const HandleCreateHRByAdmin = async (req, res) => {
+    try {
+        const { firstname, lastname, email, contactnumber, roleID } = req.body;
+
+        const admin = await HumanResources.findById(req.HRid);
+        if (!admin) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const existingHR = await HumanResources.findOne({ email });
+        if (existingHR) return res.status(400).json({ success: false, message: "HR user already exists." });
+
+        const tempPassword = Math.random().toString(36).slice(-8) + "A1!"; 
+        const hashedpassword = await bcrypt.hash(tempPassword, 10);
+
+        // ✅ FIXED: Using "HR-Admin" instead of "HR" to match your Schema Enum
+        const newHR = await HumanResources.create({
+            firstname,
+            lastname,
+            email,
+            password: hashedpassword,
+            contactnumber: contactnumber || "",
+            role: "HR-Admin", 
+            rbacRole: roleID || null,
+            organizationID: req.ORGID,
+            isverified: true 
+        });
+
+        await Organization.findByIdAndUpdate(req.ORGID, { 
+            $push: { HRs: newHR._id } 
+        });
+
+        await createLog({
+            actorID: admin._id,
+            actorName: `${admin.firstname} ${admin.lastname}`,
+            action: 'HR_CREATED',
+            description: `Admin added new HR user: ${firstname} ${lastname}`,
+            organizationID: req.ORGID,
+            req
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: `Successfully added ${firstname} to NovaCore.`,
+            tempPassword: tempPassword 
+        });
+
+    } catch (error) {
+        console.error("Create HR Error Details:", error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Failed to create HR user.",
+            error: error.message 
+        });
+    }
+};

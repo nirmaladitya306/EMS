@@ -4,11 +4,11 @@ import cors from "cors";
 import cookieParser from 'cookie-parser';
 import helmet from "helmet";
 import morgan from "morgan";
-import AccessDriftRouter from './routes/AccessDrift.route.js'
 
 import { ConnectDB } from './config/connectDB.js';
 
 // routes
+import AccessDriftRouter from './routes/AccessDrift.route.js';
 import EmployeeAuthRouter from './routes/EmployeeAuth.route.js';
 import HRAuthrouter from './routes/HRAuth.route.js';
 import DashboardRouter from './routes/Dashboard.route.js';
@@ -32,12 +32,16 @@ import PayrollComplianceRouter from './routes/PayrollCompliance.route.js';
 import ExitClearanceRouter from './routes/ExitClearance.route.js';
 import AnalyticsRouter from './routes/Analytics.routes.js';
 import RBACRouter from './routes/RBAC.route.js';
-import PermissionRouter from './routes/Permission.route.js'
-import OrgStructureRouter from './routes/OrgStructure.route.js'
+import PermissionRouter from './routes/Permission.route.js';
+import OrgStructureRouter from './routes/OrgStructure.route.js';
+import ChatRouter from "./routes/Chat.route.js";
 
 dotenv.config();
 
 const app = express();
+
+// 👇 REQUIRED FOR VERCEL & DEV TUNNELS COOKIES TO WORK
+app.set("trust proxy", 1); 
 
 // middleware
 app.use(helmet());
@@ -49,20 +53,47 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    // normalize origin (remove trailing slash)
+    const normalizedOrigin = origin.replace(/\/$/, "");
+
+    const normalizedAllowed = allowedOrigins.map(o =>
+      o.replace(/\/$/, "")
+    );
+
+    // allow localhost + env
+    if (normalizedAllowed.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    // ✅ allow Codespaces / DevTunnels / Vercel
+    if (
+      normalizedOrigin.includes(".app.github.dev") ||
+      normalizedOrigin.includes(".devtunnels.ms") ||
+      normalizedOrigin.includes(".vercel.app")
+    ) {
+      return callback(null, true);
+    }
+
+    console.log("Blocked by CORS:", origin);
+    return callback(new Error("CORS not allowed"));
+  },
   credentials: true
 }));
 
 app.use(express.json());
 app.use(cookieParser());
 
-// routes
+// health check route
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-app.use('/v1/permissions', PermissionRouter)
-app.use('/v1/access-drift',        AccessDriftRouter)
+// API routes
+app.use('/v1/permissions',          PermissionRouter);
+app.use('/v1/access-drift',         AccessDriftRouter);
 app.use("/auth/employee",           EmployeeAuthRouter);
 app.use("/auth/hr",                 HRAuthrouter);
 app.use("/v1/dashboard",            DashboardRouter);
@@ -87,13 +118,20 @@ app.use("/v1/exit-clearance",       ExitClearanceRouter);
 app.use('/v1/analytics',            AnalyticsRouter);
 app.use('/v1/rbac',                 RBACRouter);
 app.use('/v1/org-structure',        OrgStructureRouter);
+app.use("/v1/chat",                 ChatRouter);
 
-// global error handler
+// ─── Environment-Aware Global Error Handler ───
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
-    message: err.message || "Internal Server Error"
-  });
+  
+  const statusCode = err.statusCode || 500;
+  
+  // Hide actual error messages from clients in production for 500 errors
+  const message = process.env.NODE_ENV === 'production' && statusCode === 500
+    ? "An unexpected internal server error occurred."
+    : err.message || "Internal Server Error";
+
+  res.status(statusCode).json({ message });
 });
 
 // start server
@@ -102,13 +140,24 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await ConnectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
+    
+    // Only listen on a port if we are NOT in Vercel's production environment
+    if (process.env.NODE_ENV !== 'production') {
+      app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      });
+    }
   } catch (err) {
     console.error("DB connection failed:", err);
-    process.exit(1);
+    // Don't kill the process on Vercel, just log it
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1); 
+    }
   }
 };
 
 startServer();
+
+// 👇 THIS IS THE MAGIC LINE VERCEL NEEDS 👇
+export default app;

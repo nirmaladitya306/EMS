@@ -1,141 +1,155 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { HandleGetAllNotices, HandleCreateNotice, HandleUpdateNotice, HandleDeleteNotice } from '../../../redux/Thunks/NoticeThunk'
+import { 
+    HandleGetAllNotices, 
+    HandleCreateNotice, 
+    HandleUpdateNotice, 
+    HandleDeleteNotice 
+} from '../../../redux/Thunks/NoticeThunk'
 import { HandleGetHREmployees } from '../../../redux/Thunks/HREmployeesThunk'
 import { HandleGetHRDepartments } from '../../../redux/Thunks/HRDepartmentPageThunk'
 import { Loading } from '../../../components/common/loading'
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
-// ─── Audience badge ───────────────────────────────────────────────────────────
-const AudienceBadge = ({ audience }) => (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${
-        audience === 'Department-Specific'
-            ? 'bg-blue-100 text-blue-800 border-blue-300'
-            : 'bg-purple-100 text-purple-800 border-purple-300'
-    }`}>
-        {audience === 'Department-Specific' ? 'Department' : 'Employee'}
-    </span>
+const fmtDate = (d) =>
+    d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
+// ─── Audience pill ────────────────────────────────────────────────────────────
+const AudiencePill = ({ audience }) => {
+    const isDept = audience === 'Department-Specific'
+    return (
+        <span className={isDept ? 'nt-pill-dept' : 'nt-pill-emp'} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '3px 10px', borderRadius: 100, fontSize: 11, fontWeight: 600,
+            whiteSpace: 'nowrap', border: '1px solid'
+        }}>
+            {isDept ? 'Department' : 'Employee'}
+        </span>
+    )
+}
+
+// ─── Notice card ──────────────────────────────────────────────────────────────
+const NoticeCard = ({ notice, onEdit, onDelete }) => (
+    <div className="notice-card" style={{
+        borderRadius: 14, padding: '16px 18px',
+        display: 'flex', flexDirection: 'column', gap: 10,
+        transition: 'border-color 0.2s, background 0.2s',
+        fontFamily: "'DM Sans', sans-serif",
+    }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontSize: 14, fontWeight: 600 }} className="notice-title">
+                    {String(notice.title || 'Untitled Notice')}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <AudiencePill audience={notice.audience} />
+                    <span style={{ fontSize: 11 }} className="notice-meta">
+                        {notice.audience === 'Department-Specific'
+                            ? `Dept: ${notice.department?.name || 'Organisation-wide'}`
+                            : `To: ${notice.employee?.firstname || ''} ${notice.employee?.lastname || ''}`}
+                    </span>
+                    <span style={{ fontSize: 11 }} className="notice-meta">· {fmtDate(notice.createdAt)}</span>
+                </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <button className="pg-action-btn indigo" onClick={() => onEdit(notice)}>Edit</button>
+                <button className="pg-action-btn red" onClick={() => onDelete(notice._id)}>Delete</button>
+            </div>
+        </div>
+        <p style={{
+            fontSize: 13, lineHeight: 1.65,
+            borderTop: '1px solid', paddingTop: 10, margin: 0,
+            whiteSpace: 'pre-line',
+        }} className="notice-content">
+            {String(notice.content || '')}
+        </p>
+        {notice.createdby && (
+            <p style={{ fontSize: 11, textAlign: 'right', margin: 0 }} className="notice-meta">
+                Issued by {String(notice.createdby?.firstname || '')} {String(notice.createdby?.lastname || '')}
+            </p>
+        )}
+    </div>
 )
 
-// ─── Format date ──────────────────────────────────────────────────────────────
-const fmtDate = (d) => d
-    ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-    : '—'
-
-// ─── Compose / Edit dialog ────────────────────────────────────────────────────
+// ─── Notice dialog ────────────────────────────────────────────────────────────
 const NoticeDialog = ({ open, onClose, onSubmit, employeeList, departmentList, HRID, initialData }) => {
     const isEdit = !!initialData
-    const empty = { title: '', content: '', audience: 'Department-Specific', departmentID: '', employeeID: '' }
+    const empty  = { title: '', content: '', audience: 'Department-Specific', departmentID: '', employeeID: '' }
     const [form, setForm] = useState(empty)
 
     useEffect(() => {
         if (!open) return
         if (isEdit) {
             setForm({
-                noticeID:   initialData._id,
-                title:      initialData.title,
-                content:    initialData.content,
-                audience:   initialData.audience,
+                noticeID:     initialData._id,
+                title:        initialData.title || '',
+                content:      initialData.content || '',
+                audience:     initialData.audience || 'Department-Specific',
                 departmentID: initialData.department?._id || initialData.department || '',
                 employeeID:   initialData.employee?._id   || initialData.employee   || '',
             })
-        } else {
-            setForm(empty)
-        }
-    }, [open, initialData])
+        } else { setForm(empty) }
+    }, [open, initialData, isEdit])
 
     if (!open) return null
 
     const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-
     const submit = (e) => {
         e.preventDefault()
-        if (isEdit) {
-            const UpdatedData = { title: form.title, content: form.content }
-            onSubmit({ noticeID: form.noticeID, UpdatedData })
-        } else {
-            onSubmit({ ...form, HRID })
-        }
+        onSubmit(form)
     }
 
-    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-    const lc = "block text-xs font-medium text-gray-600 mb-1"
-
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 mx-4">
-                <h2 className="text-xl font-bold mb-5">{isEdit ? 'Edit Notice' : 'Issue New Notice'}</h2>
-                <form onSubmit={submit} className="flex flex-col gap-4">
-
-                    {/* Audience selector — only on create */}
+        <div className="pg-modal-overlay">
+            <div className="pg-modal" style={{ maxWidth: 520 }}>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.25rem', letterSpacing: '-0.02em', marginBottom: 4 }} className="notice-title">
+                    {isEdit ? 'Edit Notice' : 'Issue New Notice'}
+                </div>
+                <div className="pg-divider" />
+                <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {!isEdit && (
-                        <div>
-                            <label className={lc}>Send To</label>
-                            <div className="flex gap-2">
+                        <div className="pg-field">
+                            <label className="pg-label">Send To</label>
+                            <div style={{ display: 'flex', gap: 8 }}>
                                 {['Department-Specific', 'Employee-Specific'].map(a => (
-                                    <button
-                                        key={a} type="button"
+                                    <button key={a} type="button"
                                         onClick={() => setForm(f => ({ ...f, audience: a, departmentID: '', employeeID: '' }))}
-                                        className={`flex-1 py-2 rounded-lg text-sm border transition-all ${
-                                            form.audience === a
-                                                ? 'bg-blue-600 text-white border-blue-600'
-                                                : 'border-gray-300 text-gray-600 hover:border-blue-400'
-                                        }`}
-                                    >
+                                        className={form.audience === a ? 'nt-tab-btn active' : 'nt-tab-btn'}>
                                         {a === 'Department-Specific' ? 'Department' : 'Employee'}
                                     </button>
                                 ))}
                             </div>
                         </div>
                     )}
-
-                    {/* Target dropdown */}
                     {!isEdit && form.audience === 'Department-Specific' && (
-                        <div>
-                            <label className={lc}>Department</label>
-                            <select name="departmentID" value={form.departmentID} onChange={handle} required className={fc}>
+                        <div className="pg-field">
+                            <label className="pg-label">Department</label>
+                            <select name="departmentID" value={form.departmentID} onChange={handle} required className="pg-input">
                                 <option value="">Select department</option>
-                                {departmentList.map(d => (
-                                    <option key={d._id} value={d._id}>{d.name}</option>
-                                ))}
+                                {departmentList.map(d => <option key={d._id} value={d._id}>{d.name}</option>)}
                             </select>
                         </div>
                     )}
-
                     {!isEdit && form.audience === 'Employee-Specific' && (
-                        <div>
-                            <label className={lc}>Employee</label>
-                            <select name="employeeID" value={form.employeeID} onChange={handle} required className={fc}>
+                        <div className="pg-field">
+                            <label className="pg-label">Employee</label>
+                            <select name="employeeID" value={form.employeeID} onChange={handle} required className="pg-input">
                                 <option value="">Select employee</option>
-                                {employeeList.map(e => (
-                                    <option key={e._id} value={e._id}>{e.firstname} {e.lastname}</option>
-                                ))}
+                                {employeeList.map(e => <option key={e._id} value={e._id}>{e.firstname} {e.lastname}</option>)}
                             </select>
                         </div>
                     )}
-
-                    <div>
-                        <label className={lc}>Notice Title</label>
-                        <input name="title" value={form.title} onChange={handle} required
-                            placeholder="e.g. Office closed on Friday"
-                            className={fc} />
+                    <div className="pg-field">
+                        <label className="pg-label">Notice Title</label>
+                        <input name="title" value={form.title} onChange={handle} required placeholder="Title" className="pg-input" />
                     </div>
-
-                    <div>
-                        <label className={lc}>Notice Content</label>
-                        <textarea name="content" value={form.content} onChange={handle} required
-                            rows={5} placeholder="Write the notice content here..."
-                            className={fc} />
+                    <div className="pg-field">
+                        <label className="pg-label">Notice Content</label>
+                        <textarea name="content" value={form.content} onChange={handle} required rows={5} placeholder="Content" className="pg-textarea" />
                     </div>
-
-                    <div className="flex justify-end gap-3 pt-1">
-                        <button type="button" onClick={onClose}
-                            className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                            className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                            {isEdit ? 'Save Changes' : 'Issue Notice'}
-                        </button>
+                    <div className="pg-modal-actions">
+                        <button type="button" className="pg-btn-ghost" onClick={onClose}>Cancel</button>
+                        <button type="submit" className="pg-btn-primary">{isEdit ? 'Save Changes' : 'Issue Notice'}</button>
                     </div>
                 </form>
             </div>
@@ -143,207 +157,124 @@ const NoticeDialog = ({ open, onClose, onSubmit, employeeList, departmentList, H
     )
 }
 
-// ─── Notice card ──────────────────────────────────────────────────────────────
-const NoticeCard = ({ notice, onEdit, onDelete }) => (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-2 hover:shadow-sm transition-all">
-        <div className="flex items-start justify-between gap-2">
-            <div className="flex flex-col gap-1">
-                <h3 className="font-semibold text-gray-900 text-sm">{notice.title}</h3>
-                <div className="flex items-center gap-2 flex-wrap">
-                    <AudienceBadge audience={notice.audience} />
-                    <span className="text-xs text-gray-400">
-                        {notice.audience === 'Department-Specific'
-                            ? `Dept: ${notice.department?.name || '—'}`
-                            : `To: ${notice.employee?.firstname} ${notice.employee?.lastname}`}
-                    </span>
-                    <span className="text-xs text-gray-400">• {fmtDate(notice.createdAt)}</span>
-                </div>
-            </div>
-            <div className="flex gap-1 shrink-0">
-                <button onClick={() => onEdit(notice)}
-                    className="px-3 py-1 rounded-md text-xs border border-blue-300 text-blue-600 hover:bg-blue-50">
-                    Edit
-                </button>
-                <button onClick={() => onDelete(notice._id)}
-                    className="px-3 py-1 rounded-md text-xs border border-red-300 text-red-600 hover:bg-red-50">
-                    Delete
-                </button>
-            </div>
-        </div>
-        <p className="text-sm text-gray-600 whitespace-pre-line leading-relaxed border-t border-gray-100 pt-2">
-            {notice.content}
-        </p>
-        {notice.createdby && (
-            <p className="text-xs text-gray-400 text-right">
-                Issued by {notice.createdby?.firstname} {notice.createdby?.lastname}
-            </p>
-        )}
-    </div>
-)
-
 // ─── Main page ────────────────────────────────────────────────────────────────
 export const NoticePage = () => {
-    const dispatch = useDispatch()
-
+    const dispatch    = useDispatch()
     const noticeState = useSelector(s => s.NoticeReducer)
     const empState    = useSelector(s => s.HREmployeesPageReducer)
     const deptState   = useSelector(s => s.HRDepartmentPageReducer)
     const hrState     = useSelector(s => s.HRReducer)
+    const HRID        = hrState?.data?.HRid || hrState?.data?.data?._id || ''
 
-    // Get HRID from the HR auth state (set on check-login / login)
-    const HRID = hrState?.data?.HRid || hrState?.data?.data?._id || ''
-
-    const [activeTab,   setActiveTab]   = useState('department')
-    const [search,      setSearch]      = useState('')
-    const [dialogOpen,  setDialogOpen]  = useState(false)
-    const [editTarget,  setEditTarget]  = useState(null)
+    const [activeTab,  setActiveTab] = useState('department')
+    const [search,     setSearch]    = useState('')
+    const [dialogOpen, setDialogOpen] = useState(false)
+    const [editTarget, setEditTarget] = useState(null)
 
     useEffect(() => {
         dispatch(HandleGetAllNotices())
         dispatch(HandleGetHREmployees({ apiroute: 'GETALL' }))
         dispatch(HandleGetHRDepartments({ apiroute: 'GETALL' }))
-    }, [])
+    }, [dispatch])
 
-    useEffect(() => {
-        if (noticeState.fetchData) dispatch(HandleGetAllNotices())
-    }, [noticeState.fetchData])
+    useEffect(() => { if (noticeState.fetchData) dispatch(HandleGetAllNotices()) }, [noticeState.fetchData, dispatch])
 
-    const employeeList   = empState.data  || []
-    const departmentList = deptState.data || []
-
+    // HANDLERS DEFINED HERE
     const handleCreate = (form) => {
-        // HRID is no longer sent from the client — the server reads it from the HR auth token
-        const { HRID: _ignored, ...payload } = form
-        dispatch(HandleCreateNotice(payload))
-        setDialogOpen(false)
+        const payload = { ...form, HRID };
+        dispatch(HandleCreateNotice(payload));
+        setDialogOpen(false);
     }
 
-    const handleUpdate = (payload) => {
-        dispatch(HandleUpdateNotice(payload))
-        setEditTarget(null)
+    const handleUpdate = (form) => {
+        dispatch(HandleUpdateNotice({ 
+            noticeID: form.noticeID, 
+            UpdatedData: { title: form.title, content: form.content } 
+        }));
+        setEditTarget(null);
     }
 
-    const handleDelete = (noticeID) => {
-        if (window.confirm('Delete this notice?')) dispatch(HandleDeleteNotice({ noticeID }))
+    const handleDelete = (id) => {
+        if (window.confirm('Delete this notice?')) {
+            dispatch(HandleDeleteNotice({ noticeID: id }));
+        }
     }
 
     const filterNotices = (list) => {
+        if (!Array.isArray(list)) return []
         if (!search.trim()) return list
         const q = search.toLowerCase()
         return list.filter(n =>
-            n.title?.toLowerCase().includes(q) ||
-            n.content?.toLowerCase().includes(q) ||
-            n.department?.name?.toLowerCase().includes(q) ||
-            `${n.employee?.firstname} ${n.employee?.lastname}`.toLowerCase().includes(q)
+            (n.title?.toLowerCase() || '').includes(q) ||
+            (n.content?.toLowerCase() || '').includes(q)
         )
     }
 
-    const deptNotices = filterNotices(noticeState.departmentNotices)
-    const empNotices  = filterNotices(noticeState.employeeNotices)
-    const totalCount  = noticeState.departmentNotices.length + noticeState.employeeNotices.length
+    const deptNotices = filterNotices(noticeState.departmentNotices || [])
+    const empNotices  = filterNotices(noticeState.employeeNotices   || [])
+    const totalCount  = (noticeState.departmentNotices?.length || 0) + (noticeState.employeeNotices?.length || 0)
 
     if (noticeState.isLoading && totalCount === 0) return <Loading />
 
     return (
-        <div className="notices-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
+            <style>{`
+                .notice-card { background: rgba(0,0,0,0.012); border: 1px solid rgba(0,0,0,0.07); }
+                .notice-card:hover { border-color: rgba(99,102,241,0.2) !important; background: rgba(99,102,241,0.02) !important; }
+                .notice-title { color: #0f172a; }
+                .notice-content { color: rgba(0,0,0,0.6); border-top-color: rgba(0,0,0,0.06); }
+                .notice-meta { color: rgba(0,0,0,0.38); }
+                .nt-pill-dept { background: rgba(99,102,241,0.08); color: #4f46e5; border-color: rgba(99,102,241,0.22); }
+                .nt-pill-emp { background: rgba(139,92,246,0.08); color: #7c3aed; border-color: rgba(139,92,246,0.22); }
+                .nt-tab-btn { flex: 1; padding: 9px 0; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; background: transparent; border: 1px solid rgba(0,0,0,0.1); color: rgba(0,0,0,0.45); }
+                .nt-tab-btn.active { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.08); color: #6366f1; }
+                [data-theme="dark"] .notice-card { background: rgba(255,255,255,0.03) !important; border-color: rgba(255,255,255,0.08) !important; }
+                [data-theme="dark"] .notice-title { color: #f1f5f9 !important; }
+                [data-theme="dark"] .notice-content { color: rgba(255,255,255,0.55) !important; border-top-color: rgba(255,255,255,0.07) !important; }
+                [data-theme="dark"] .notice-meta { color: rgba(255,255,255,0.45) !important; }
+                [data-theme="dark"] .nt-pill-dept { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3); }
+                [data-theme="dark"] .nt-pill-emp { background: rgba(139,92,246,0.15); color: #a78bfa; border-color: rgba(139,92,246,0.3); }
+                [data-theme="dark"] .nt-tab-btn { border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
+                [data-theme="dark"] .nt-tab-btn.active { border-color: rgba(99,102,241,0.5); background: rgba(99,102,241,0.12); color: #818cf8; }
+                [data-theme="dark"] .pg-modal { background: #18181b !important; border: 1px solid #27272a !important; }
+            `}</style>
 
-            {/* Header */}
-            <div className="flex justify-between items-center flex-wrap gap-3">
-                <div>
-                    <h1 className="text-3xl font-bold">Issue Notices</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Send notices to departments or individual employees
-                    </p>
-                </div>
-                <button
-                    onClick={() => setDialogOpen(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg"
-                >
-                    + Issue Notice
-                </button>
+            <PageHeader eyebrow="Communications" title="Issue Notices" subtitle="Send notices to departments or individual employees">
+                <button className="pg-btn-primary" onClick={() => setDialogOpen(true)}>+ Issue Notice</button>
+            </PageHeader>
+
+            <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                <div className="pg-stat-card"><span className="pg-stat-value">{totalCount}</span><span className="pg-stat-label">Total Notices</span></div>
+                <div className="pg-stat-card"><span className="pg-stat-value">{deptNotices.length}</span><span className="pg-stat-label">Department Notices</span></div>
+                <div className="pg-stat-card"><span className="pg-stat-value">{empNotices.length}</span><span className="pg-stat-label">Employee Notices</span></div>
             </div>
 
-            {/* Summary strip */}
-            <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-2xl font-bold">{totalCount}</p>
-                    <p className="text-sm text-gray-500">Total Notices</p>
-                </div>
-                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-                    <p className="text-2xl font-bold">{noticeState.departmentNotices.length}</p>
-                    <p className="text-sm text-gray-500">Department Notices</p>
-                </div>
-                <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
-                    <p className="text-2xl font-bold">{noticeState.employeeNotices.length}</p>
-                    <p className="text-sm text-gray-500">Employee Notices</p>
-                </div>
-            </div>
-
-            {/* Search + Tabs */}
-            <div className="flex flex-wrap items-center gap-3">
-                <input
-                    type="text"
-                    placeholder="Search notices..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                />
-                <div className="flex gap-1 ml-auto">
-                    {[
-                        { key: 'department', label: `Department (${deptNotices.length})` },
-                        { key: 'employee',   label: `Employee (${empNotices.length})` },
-                    ].map(tab => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                                activeTab === tab.key
-                                    ? 'bg-blue-600 text-white border-blue-600'
-                                    : 'border-gray-300 text-gray-600 hover:border-blue-400'
-                            }`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
+            <div className="pg-filters">
+                <input className="pg-search" type="text" placeholder="Search notices…"
+                    value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 240 }} />
+                <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+                    <button onClick={() => setActiveTab('department')} className={`pg-pill${activeTab === 'department' ? ' active' : ''}`}>Department</button>
+                    <button onClick={() => setActiveTab('employee')} className={`pg-pill${activeTab === 'employee' ? ' active' : ''}`}>Employee</button>
                 </div>
             </div>
 
-            {/* Notice cards list */}
-            <div className="flex flex-col gap-3 overflow-auto flex-1">
-                {activeTab === 'department' && (
-                    deptNotices.length === 0
-                        ? <div className="text-center text-gray-400 py-16">No department notices found.</div>
-                        : deptNotices.map(n => (
-                            <NoticeCard key={n._id} notice={n} onEdit={setEditTarget} onDelete={handleDelete} />
-                        ))
-                )}
-                {activeTab === 'employee' && (
-                    empNotices.length === 0
-                        ? <div className="text-center text-gray-400 py-16">No employee notices found.</div>
-                        : empNotices.map(n => (
-                            <NoticeCard key={n._id} notice={n} onEdit={setEditTarget} onDelete={handleDelete} />
-                        ))
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', flex: 1 }}>
+                {activeTab === 'department' ? (
+                    deptNotices.length === 0 
+                        ? <div className="pg-empty"><p className="pg-empty-title">No department notices found.</p></div>
+                        : deptNotices.map(n => <NoticeCard key={n._id} notice={n} onEdit={setEditTarget} onDelete={handleDelete} />)
+                ) : (
+                    empNotices.length === 0 
+                        ? <div className="pg-empty"><p className="pg-empty-title">No employee notices found.</p></div>
+                        : empNotices.map(n => <NoticeCard key={n._id} notice={n} onEdit={setEditTarget} onDelete={handleDelete} />)
                 )}
             </div>
 
-            {/* Dialogs */}
-            <NoticeDialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                onSubmit={handleCreate}
-                employeeList={employeeList}
-                departmentList={departmentList}
-                HRID={HRID}
-            />
-            <NoticeDialog
-                open={!!editTarget}
-                onClose={() => setEditTarget(null)}
-                onSubmit={handleUpdate}
-                employeeList={employeeList}
-                departmentList={departmentList}
-                HRID={HRID}
-                initialData={editTarget}
-            />
-        </div>
+            {/* Modals with verified onSubmit handlers */}
+            <NoticeDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSubmit={handleCreate}
+                employeeList={empState.data || []} departmentList={deptState.data || []} HRID={HRID} />
+            <NoticeDialog open={!!editTarget} onClose={() => setEditTarget(null)} onSubmit={handleUpdate}
+                employeeList={empState.data || []} departmentList={deptState.data || []} HRID={HRID} initialData={editTarget} />
+        </PageShell>
     )
 }

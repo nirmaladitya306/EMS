@@ -2,50 +2,133 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetAllRequests, HandleUpdateRequestStatus, HandleDeleteRequest } from '../../../redux/Thunks/RequestThunk'
 import { Loading } from '../../../components/common/loading'
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
-const StatusBadge = ({ status }) => {
-    const map = {
-        Pending:  'bg-yellow-100 text-yellow-800 border-yellow-300',
-        Approved: 'bg-green-100  text-green-800  border-green-300',
-        Denied:   'bg-red-100    text-red-800    border-red-300',
-    }
-    return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${map[status] || ''}`}>{status}</span>
-}
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --rq-text-main: #fafafa;
+    --rq-text-muted: #a1a1aa;
+    --rq-text-faint: #71717a;
+    --rq-modal-bg: #18181b;
+    --rq-border: #27272a;
+    --rq-subtle-bg: rgba(255,255,255,0.03);
+    
+    /* Status Variable Boosts */
+    --rq-stat-pending: #fbbf24;
+    --rq-stat-pending-bg: rgba(234,179,8,0.15);
+    --rq-stat-approved: #4ade80;
+    --rq-stat-approved-bg: rgba(22,163,74,0.15);
+    --rq-stat-denied: #f87171;
+    --rq-stat-denied-bg: rgba(220,38,38,0.15);
 
-const SummaryCard = ({ label, value, color }) => (
-    <div className={`rounded-xl border p-4 flex flex-col gap-1 ${color}`}>
-        <span className="text-xl font-bold">{value}</span>
-        <span className="text-sm text-gray-500">{label}</span>
+    --rq-pill-neutral-bg: rgba(255,255,255,0.08);
+  }
+
+  [data-theme='dark'] .pg-modal {
+    background: var(--rq-modal-bg) !important;
+    border: 1px solid var(--rq-border) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8) !important;
+  }
+`
+
+const fmtDate = (d) =>
+    d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
+const initials = (first, last) =>
+    `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase()
+
+const Avatar = ({ first, last }) => (
+    <div style={{
+        width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'white', fontWeight: 700, fontSize: 11,
+        fontFamily: "'DM Serif Display', serif",
+    }}>
+        {initials(first, last)}
     </div>
 )
 
-const ReviewDialog = ({ open, request, onClose, onSubmit, HRID }) => {
-    const [status, setStatus] = useState('Approved')
-    useEffect(() => { if (open) setStatus('Approved') }, [open])
-    if (!open || !request) return null
+const STATUS = {
+    Pending:  { bg: 'var(--rq-stat-pending-bg, rgba(234,179,8,0.09))',  color: 'var(--rq-stat-pending, #854d0e)', border: 'rgba(234,179,8,0.3)'   },
+    Approved: { bg: 'var(--rq-stat-approved-bg, rgba(22,163,74,0.08))', color: 'var(--rq-stat-approved, #15803d)', border: 'rgba(22,163,74,0.22)' },
+    Denied:   { bg: 'var(--rq-stat-denied-bg, rgba(220,38,38,0.07))',   color: 'var(--rq-stat-denied, #dc2626)',   border: 'rgba(220,38,38,0.2)'   },
+}
+
+const StatusPill = ({ status }) => {
+    const s = STATUS[status] || { bg: 'var(--rq-pill-neutral-bg, rgba(0,0,0,0.04))', color: 'var(--rq-text-muted, rgba(0,0,0,0.45))', border: 'var(--rq-border, rgba(0,0,0,0.1))' }
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 mx-4">
-                <h2 className="text-xl font-bold mb-4">Review Request</h2>
-                <div className="flex flex-col gap-2 text-sm text-gray-700 mb-5">
-                    <p><span className="font-medium">Employee:</span> {request.employee?.firstname} {request.employee?.lastname}</p>
-                    <p><span className="font-medium">Title:</span> {request.requesttitle}</p>
-                    <p><span className="font-medium">Content:</span> {request.requestconent}</p>
-                    <p><span className="font-medium">Department:</span> {request.department?.name || '—'}</p>
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '3px 10px', borderRadius: 100, fontSize: 11, fontWeight: 600,
+            background: s.bg, color: s.color, border: `1px solid ${s.border}`, whiteSpace: 'nowrap',
+        }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+            {status}
+        </span>
+    )
+}
+
+const ReviewModal = ({ request, onClose, onSubmit, HRID }) => {
+    const [decision, setDecision] = useState('Approved')
+    if (!request) return null
+    const rows = [
+        { label: 'Employee',   value: `${request.employee?.firstname} ${request.employee?.lastname}` },
+        { label: 'Department', value: request.department?.name || '—' },
+        { label: 'Title',      value: request.requesttitle },
+        { label: 'Content',    value: request.requestconent },
+    ]
+    return (
+        <div className="pg-modal-overlay">
+            <div className="pg-modal">
+                <div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.25rem', color: 'var(--rq-text-main, #0f172a)', letterSpacing: '-0.02em', marginBottom: 4 }}>
+                        Review Request
+                    </div>
+                    <p style={{ fontSize: 12, color: 'var(--rq-text-muted, rgba(0,0,0,0.38))', margin: 0 }}>
+                        Approve or deny this employee request.
+                    </p>
                 </div>
-                <div className="mb-5">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Decision</label>
-                    <select value={status} onChange={e => setStatus(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        <option value="Approved">Approve</option>
-                        <option value="Denied">Deny</option>
-                    </select>
+                <div className="pg-divider" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {rows.map(({ label, value }, i) => (
+                        <div key={label} style={{
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                            gap: 16, padding: '9px 0',
+                            borderBottom: i < rows.length - 1 ? '1px solid var(--rq-border, rgba(0,0,0,0.05))' : 'none',
+                        }}>
+                            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--rq-text-faint, rgba(0,0,0,0.35))', flexShrink: 0 }}>{label}</span>
+                            <span style={{ fontSize: 13, color: 'var(--rq-text-main, #0f172a)', fontWeight: 500, textAlign: 'right' }}>{value}</span>
+                        </div>
+                    ))}
                 </div>
-                <div className="flex justify-end gap-3">
-                    <button onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                    <button onClick={() => onSubmit({ requestID: request._id, status, HRID })}
-                        className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                        Confirm
+                <div className="pg-divider" />
+                <div className="pg-field">
+                    <label className="pg-label">Decision</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        {['Approved', 'Denied'].map(opt => {
+                            const s = STATUS[opt]
+                            const active = decision === opt
+                            return (
+                                <button key={opt} onClick={() => setDecision(opt)} style={{
+                                    flex: 1, padding: '9px 0', borderRadius: 10,
+                                    fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                                    fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s',
+                                    border: active ? `1px solid ${s.border}` : '1px solid var(--rq-border, rgba(0,0,0,0.1))',
+                                    background: active ? s.bg : 'transparent',
+                                    color: active ? s.color : 'var(--rq-text-muted, rgba(0,0,0,0.45))',
+                                }}>
+                                    {opt === 'Approved' ? '✓ Approve' : '✕ Deny'}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+                <div className="pg-modal-actions">
+                    <button className="pg-btn-ghost" onClick={onClose}>Cancel</button>
+                    <button className="pg-btn-primary" onClick={() => onSubmit({ requestID: request._id, status: decision, HRID })}>
+                        Confirm Decision
                     </button>
                 </div>
             </div>
@@ -72,7 +155,7 @@ export const RequestsPage = () => {
     }
 
     const filtered = (state.data || []).filter(r => {
-        const name = `${r.employee?.firstname || ''} ${r.employee?.lastname || ''}`.toLowerCase()
+        const name = `${r.employee?.firstname ?? ''} ${r.employee?.lastname ?? ''}`.toLowerCase()
         return name.includes(search.toLowerCase()) && (filterStatus === 'All' || r.status === filterStatus)
     })
 
@@ -84,72 +167,72 @@ export const RequestsPage = () => {
     if (state.isLoading && !state.data?.length) return <Loading />
 
     return (
-        <div className="requests-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <PageShell>
+            <style>{styles}</style>
+            <PageHeader eyebrow="Operations" title="Employee Requests" subtitle="Review and action employee-generated requests" />
 
-            <div>
-                <h1 className="text-3xl font-bold">Employee Requests</h1>
-                <p className="text-sm text-gray-500 mt-1">Review and action employee-generated requests</p>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <SummaryCard label="Total"    value={total}    color="border-gray-200  bg-gray-50"   />
-                <SummaryCard label="Pending"  value={pending}  color="border-yellow-200 bg-yellow-50" />
-                <SummaryCard label="Approved" value={approved} color="border-green-200  bg-green-50"  />
-                <SummaryCard label="Denied"   value={denied}   color="border-red-200    bg-red-50"    />
-            </div>
-
-            <div className="flex flex-wrap gap-3 items-center">
-                <input type="text" placeholder="Search by employee name..."
-                    value={search} onChange={e => setSearch(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                {['All', 'Pending', 'Approved', 'Denied'].map(s => (
-                    <button key={s} onClick={() => setFilterStatus(s)}
-                        className={`px-3 py-1.5 rounded-full text-sm border transition-all ${filterStatus === s ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:border-blue-400'}`}>
-                        {s}
-                    </button>
+            <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+                {[
+                    { label: 'Total',    value: total    },
+                    { label: 'Pending',  value: pending  },
+                    { label: 'Approved', value: approved },
+                    { label: 'Denied',   value: denied   },
+                ].map(s => (
+                    <div key={s.label} className="pg-stat-card">
+                        <span className="pg-stat-value">{s.value}</span>
+                        <span className="pg-stat-label">{s.label}</span>
+                    </div>
                 ))}
             </div>
 
-            <div className="flex flex-col gap-2 overflow-auto flex-1">
-                <div className="grid grid-cols-6 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
-                    <span className="col-span-2">Employee</span>
-                    <span className="col-span-2">Request</span>
-                    <span>Status</span>
-                    <span>Actions</span>
-                </div>
-
-                {filtered.length === 0
-                    ? <div className="text-center text-gray-400 py-16">No requests found.</div>
-                    : filtered.map(r => (
-                        <div key={r._id} className="grid grid-cols-6 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-gray-50 transition-all">
-                            <div className="col-span-2">
-                                <p className="font-medium">{r.employee?.firstname} {r.employee?.lastname}</p>
-                                <p className="text-xs text-gray-400">{r.department?.name || ''}</p>
-                            </div>
-                            <div className="col-span-2 pe-4">
-                                <p className="font-medium">{r.requesttitle}</p>
-                                <p className="text-xs text-gray-400 truncate">{r.requestconent}</p>
-                            </div>
-                            <StatusBadge status={r.status} />
-                            <div className="flex gap-2">
-                                <button
-                                    disabled={r.status !== 'Pending'}
-                                    onClick={() => setSelected(r)}
-                                    className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                                    Review
-                                </button>
-                                <button onClick={() => handleDelete(r._id)}
-                                    className="px-3 py-1 rounded-md text-xs border border-red-400 text-red-600 hover:bg-red-50">
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    ))
-                }
+            <div className="pg-filters">
+                <input className="pg-search" type="text" placeholder="Search by employee name…"
+                    value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 240 }} />
+                {['All', 'Pending', 'Approved', 'Denied'].map(s => (
+                    <button key={s} className={`pg-pill${filterStatus === s ? ' active' : ''}`}
+                        onClick={() => setFilterStatus(s)}>{s}</button>
+                ))}
             </div>
 
-            <ReviewDialog open={!!selected} request={selected} HRID={HRID}
-                onClose={() => setSelected(null)} onSubmit={handleUpdate} />
-        </div>
+            <div className="pg-table-wrap">
+                <div className="pg-table-head" style={{ gridTemplateColumns: '2fr 2fr 110px 110px' }}>
+                    <span className="pg-th">Employee</span>
+                    <span className="pg-th">Request</span>
+                    <span className="pg-th">Status</span>
+                    <span className="pg-th">Actions</span>
+                </div>
+
+                {filtered.length === 0 && (
+                    <div className="pg-empty">
+                        <span className="pg-empty-icon">📬</span>
+                        <p className="pg-empty-title">{search || filterStatus !== 'All' ? 'No records match your filters' : 'No requests yet'}</p>
+                        <p className="pg-empty-sub">{search || filterStatus !== 'All' ? 'Try adjusting your search or filter.' : 'Employee requests will appear here.'}</p>
+                    </div>
+                )}
+
+                {filtered.map(r => (
+                    <div key={r._id} className="pg-table-row" style={{ gridTemplateColumns: '2fr 2fr 110px 110px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <Avatar first={r.employee?.firstname} last={r.employee?.lastname} />
+                            <div>
+                                <div className="pg-td-name">{r.employee?.firstname} {r.employee?.lastname}</div>
+                                <div className="pg-td-sub">{r.department?.name || ''}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="pg-td-name">{r.requesttitle}</div>
+                            <div className="pg-td-sub" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>{r.requestconent}</div>
+                        </div>
+                        <span><StatusPill status={r.status} /></span>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                            <button className="pg-action-btn indigo" disabled={r.status !== 'Pending'} onClick={() => setSelected(r)}>Review</button>
+                            <button className="pg-action-btn red" onClick={() => handleDelete(r._id)}>Delete</button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {selected && <ReviewModal request={selected} HRID={HRID} onClose={() => setSelected(null)} onSubmit={handleUpdate} />}
+        </PageShell>
     )
 }

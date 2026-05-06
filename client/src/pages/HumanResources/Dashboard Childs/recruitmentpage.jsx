@@ -2,39 +2,138 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetAllRecruitments, HandleCreateRecruitment, HandleDeleteRecruitment } from '../../../redux/Thunks/RecruitmentThunk'
 import { Loading } from '../../../components/common/loading'
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 
-const SummaryCard = ({ label, value, color }) => (
-    <div className={`rounded-xl border p-4 flex flex-col gap-1 ${color}`}>
-        <span className="text-xl font-bold">{value}</span>
-        <span className="text-sm text-gray-500">{label}</span>
-    </div>
-)
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  [data-theme='dark'] {
+    --rc-modal-bg: #18181b;
+    --rc-border: #27272a;
+    --rc-text-main: #fafafa;
+    --rc-text-muted: #a1a1aa;
+    --rc-text-faint: #71717a;
+    
+    /* Applicant Pill Overrides */
+    --rc-pill-active-bg: rgba(99, 102, 241, 0.15);
+    --rc-pill-active-text: #818cf8;
+    --rc-pill-active-border: rgba(99, 102, 241, 0.4);
+    
+    --rc-pill-empty-bg: rgba(255, 255, 255, 0.05);
+    --rc-pill-empty-text: #71717a;
+    --rc-pill-empty-border: rgba(255, 255, 255, 0.1);
+  }
 
-const CreateDialog = ({ open, onClose, onSubmit }) => {
-    const [form, setForm] = useState({ jobtitle: '', description: '' })
-    if (!open) return null
-    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-    const lc = "block text-xs font-medium text-gray-600 mb-1"
-    const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-    const submit = (e) => { e.preventDefault(); onSubmit(form); setForm({ jobtitle: '', description: '' }) }
+  [data-theme='dark'] .pg-modal {
+    background: var(--rc-modal-bg) !important;
+    border: 1px solid var(--rc-border) !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8) !important;
+  }
+`
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const initials = (title) =>
+    title?.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('') || '?'
+
+// ─── Job icon tile ────────────────────────────────────────────────────────────
+const JobIcon = ({ title, size = 36 }) => {
+    const PALETTES = [
+        'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        'linear-gradient(135deg, #0ea5e9, #6366f1)',
+        'linear-gradient(135deg, #14b8a6, #0ea5e9)',
+        'linear-gradient(135deg, #f59e0b, #ef4444)',
+        'linear-gradient(135deg, #8b5cf6, #ec4899)',
+    ]
+    const bg = PALETTES[(title?.charCodeAt(0) ?? 0) % PALETTES.length]
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 mx-4">
-                <h2 className="text-xl font-bold mb-5">Create Job Posting</h2>
-                <form onSubmit={submit} className="flex flex-col gap-4">
-                    <div>
-                        <label className={lc}>Job Title</label>
-                        <input name="jobtitle" value={form.jobtitle} onChange={handle} required
-                            placeholder="e.g. Senior Developer" className={fc} />
+        <div style={{
+            width: size, height: size, borderRadius: 10, flexShrink: 0,
+            background: bg,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', fontWeight: 700, fontSize: size * 0.33,
+            fontFamily: "'DM Serif Display', serif", letterSpacing: '0.03em',
+        }}>
+            {initials(title)}
+        </div>
+    )
+}
+
+// ─── Applicant count chip ─────────────────────────────────────────────────────
+const ApplicantChip = ({ count }) => {
+    const hasApps = count > 0;
+    return (
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '3px 10px', borderRadius: 100, fontSize: 11, fontWeight: 600,
+            background: hasApps ? 'var(--rc-pill-active-bg, rgba(99,102,241,0.08))' : 'var(--rc-pill-empty-bg, rgba(0,0,0,0.04))',
+            color:      hasApps ? 'var(--rc-pill-active-text, #4f46e5)'           : 'var(--rc-pill-empty-text, rgba(0,0,0,0.35))',
+            border:     `1px solid ${hasApps ? 'var(--rc-pill-active-border, rgba(99,102,241,0.2))' : 'var(--rc-pill-empty-border, rgba(0,0,0,0.08))'}`,
+            whiteSpace: 'nowrap',
+        }}>
+            <span style={{
+                width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
+                background: hasApps ? 'var(--rc-pill-active-text, #6366f1)' : 'var(--rc-pill-empty-text, rgba(0,0,0,0.25))',
+            }} />
+            {count} {count === 1 ? 'applicant' : 'applicants'}
+        </span>
+    )
+}
+
+// ─── Create posting modal ─────────────────────────────────────────────────────
+const CreateModal = ({ onClose, onSubmit }) => {
+    const [form, setForm] = useState({ jobtitle: '', description: '' })
+    const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+    const submit = (e) => {
+        e.preventDefault()
+        onSubmit(form)
+        setForm({ jobtitle: '', description: '' })
+    }
+
+    return (
+        <div className="pg-modal-overlay">
+            <div className="pg-modal">
+                <div>
+                    <div style={{
+                        fontFamily: "'DM Serif Display', serif",
+                        fontSize: '1.25rem', color: 'var(--rc-text-main, #0f172a)',
+                        letterSpacing: '-0.02em', marginBottom: 4,
+                    }}>
+                        New Job Posting
                     </div>
-                    <div>
-                        <label className={lc}>Description</label>
-                        <textarea name="description" value={form.description} onChange={handle} required
-                            rows={4} placeholder="Job responsibilities, requirements..." className={fc} />
+                    <p style={{ fontSize: 12, color: 'var(--rc-text-muted, rgba(0,0,0,0.38))', margin: 0 }}>
+                        Create a new opening. Applicants can be tracked once the posting is live.
+                    </p>
+                </div>
+
+                <div className="pg-divider" />
+
+                <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div className="pg-field">
+                        <label className="pg-label">Job Title</label>
+                        <input
+                            name="jobtitle"
+                            value={form.jobtitle}
+                            onChange={handle}
+                            required
+                            placeholder="e.g. Senior Frontend Engineer"
+                            className="pg-input"
+                        />
                     </div>
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Create</button>
+                    <div className="pg-field">
+                        <label className="pg-label">Description</label>
+                        <textarea
+                            name="description"
+                            value={form.description}
+                            onChange={handle}
+                            required
+                            rows={5}
+                            placeholder="Describe responsibilities..."
+                            className="pg-textarea"
+                        />
+                    </div>
+
+                    <div className="pg-modal-actions">
+                        <button type="button" className="pg-btn-ghost" onClick={onClose}>Cancel</button>
+                        <button type="submit" className="pg-btn-primary">Create Posting</button>
                     </div>
                 </form>
             </div>
@@ -42,22 +141,104 @@ const CreateDialog = ({ open, onClose, onSubmit }) => {
     )
 }
 
-const DetailDialog = ({ open, record, onClose }) => {
-    if (!open || !record) return null
+// ─── Detail modal ─────────────────────────────────────────────────────────────
+const DetailModal = ({ record, onClose }) => {
+    if (!record) return null
+    const appCount = record.application?.length || 0
+
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 mx-4">
-                <h2 className="text-xl font-bold mb-1">{record.jobtitle}</h2>
-                <p className="text-sm text-gray-500 mb-4">{record.description}</p>
-                <p className="text-sm font-medium text-gray-700 mb-2">Applicants: {record.application?.length || 0}</p>
-                <div className="flex justify-end">
-                    <button onClick={onClose} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Close</button>
+        <div className="pg-modal-overlay">
+            <div className="pg-modal">
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                    <JobIcon title={record.jobtitle} size={48} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                            fontFamily: "'DM Serif Display', serif",
+                            fontSize: '1.2rem', color: 'var(--rc-text-main, #0f172a)',
+                            letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 6,
+                        }}>
+                            {record.jobtitle}
+                        </div>
+                        <ApplicantChip count={appCount} />
+                    </div>
+                </div>
+
+                <div className="pg-divider" />
+
+                <div>
+                    <div style={{
+                        fontSize: 11, fontWeight: 600, letterSpacing: '0.09em',
+                        textTransform: 'uppercase', color: 'var(--rc-text-faint, rgba(0,0,0,0.35))',
+                        marginBottom: 8,
+                    }}>
+                        Description
+                    </div>
+                    <p style={{
+                        fontSize: 13, color: 'var(--rc-text-muted, rgba(0,0,0,0.65))',
+                        lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap',
+                    }}>
+                        {record.description}
+                    </p>
+                </div>
+
+                {appCount > 0 && (
+                    <>
+                        <div className="pg-divider" />
+                        <div>
+                            <div style={{
+                                fontSize: 11, fontWeight: 600, letterSpacing: '0.09em',
+                                textTransform: 'uppercase', color: 'var(--rc-text-faint, rgba(0,0,0,0.35))',
+                                marginBottom: 10,
+                            }}>
+                                Applicants ({appCount})
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                                {record.application.map((app, i) => (
+                                    <div key={app._id || i} style={{
+                                        display: 'flex', alignItems: 'center',
+                                        justifyContent: 'space-between', gap: 12,
+                                        padding: '9px 0',
+                                        borderBottom: i < record.application.length - 1
+                                            ? '1px solid var(--rc-border, rgba(0,0,0,0.05))' : 'none',
+                                    }}>
+                                        <div>
+                                            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--rc-text-main, #0f172a)' }}>
+                                                {app.firstname} {app.lastname}
+                                            </div>
+                                            {app.email && (
+                                                <div style={{ fontSize: 11, color: 'var(--rc-text-muted, rgba(0,0,0,0.38))', marginTop: 1 }}>
+                                                    {app.email}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {app.status && (
+                                            <span style={{
+                                                fontSize: 11, fontWeight: 600,
+                                                padding: '2px 9px', borderRadius: 100,
+                                                background: 'var(--rc-pill-active-bg, rgba(99,102,241,0.07))',
+                                                color: 'var(--rc-pill-active-text, #4f46e5)',
+                                                border: '1px solid var(--rc-pill-active-border, rgba(99,102,241,0.18))',
+                                                whiteSpace: 'nowrap',
+                                            }}>
+                                                {app.status}
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                <div className="pg-modal-actions">
+                    <button className="pg-btn-ghost" onClick={onClose}>Close</button>
                 </div>
             </div>
         </div>
     )
 }
 
+// ─── Main page ────────────────────────────────────────────────────────────────
 export const RecruitmentPage = () => {
     const dispatch = useDispatch()
     const state    = useSelector(s => s.RecruitmentReducer)
@@ -69,72 +250,106 @@ export const RecruitmentPage = () => {
     useEffect(() => { dispatch(HandleGetAllRecruitments()) }, [])
     useEffect(() => { if (state.fetchData) dispatch(HandleGetAllRecruitments()) }, [state.fetchData])
 
-    const handleCreate = (form) => { dispatch(HandleCreateRecruitment(form)); setCreateOpen(false) }
+    const handleCreate = (form) => {
+        dispatch(HandleCreateRecruitment(form))
+        setCreateOpen(false)
+    }
+
     const handleDelete = (recruitmentID) => {
-        if (window.confirm('Delete this job posting?')) dispatch(HandleDeleteRecruitment({ recruitmentID }))
+        if (window.confirm('Delete this job posting? This cannot be undone.'))
+            dispatch(HandleDeleteRecruitment({ recruitmentID }))
     }
 
     const filtered = (state.data || []).filter(r =>
         r.jobtitle?.toLowerCase().includes(search.toLowerCase())
     )
 
-    const total      = state.data?.length || 0
-    const totalApps  = state.data?.reduce((sum, r) => sum + (r.application?.length || 0), 0) || 0
+    const total     = state.data?.length || 0
+    const totalApps = state.data?.reduce((sum, r) => sum + (r.application?.length || 0), 0) || 0
+    const withApps  = state.data?.filter(r => (r.application?.length || 0) > 0).length || 0
 
     if (state.isLoading && !state.data?.length) return <Loading />
 
     return (
-        <div className="recruitment-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
-
-            <div className="flex justify-between items-center flex-wrap gap-3">
-                <div>
-                    <h1 className="text-3xl font-bold">Recruitment</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage job postings and track applicants</p>
-                </div>
-                <button onClick={() => setCreateOpen(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
-                    + New Job Posting
+        <PageShell>
+            <style>{styles}</style>
+            <PageHeader
+                eyebrow="Recruitment"
+                title="Job Postings"
+                subtitle="Create openings, track applicants and manage your hiring pipeline"
+            >
+                <button className="pg-btn-primary" onClick={() => setCreateOpen(true)}>
+                    + New Posting
                 </button>
+            </PageHeader>
+
+            <div className="pg-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                {[
+                    { label: 'Active Postings',    value: total     },
+                    { label: 'With Applicants',    value: withApps  },
+                    { label: 'Total Applicants',   value: totalApps },
+                ].map(s => (
+                    <div key={s.label} className="pg-stat-card">
+                        <span className="pg-stat-value">{s.value}</span>
+                        <span className="pg-stat-label">{s.label}</span>
+                    </div>
+                ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-                <SummaryCard label="Active Postings" value={total}     color="border-blue-200   bg-blue-50"  />
-                <SummaryCard label="Total Applicants" value={totalApps} color="border-purple-200 bg-purple-50" />
+            <div className="pg-filters">
+                <input
+                    className="pg-search"
+                    type="text"
+                    placeholder="Search by job title…"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    style={{ minWidth: 260 }}
+                />
+                {search && (
+                    <button className="pg-btn-ghost" style={{ padding: '8px 14px', fontSize: 12 }} onClick={() => setSearch('')}>
+                        Clear
+                    </button>
+                )}
             </div>
 
-            <input type="text" placeholder="Search by job title..."
-                value={search} onChange={e => setSearch(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-
-            <div className="flex flex-col gap-2 overflow-auto flex-1">
-                <div className="grid grid-cols-5 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
-                    <span className="col-span-2">Job Title</span>
-                    <span className="col-span-2">Description</span>
-                    <span>Actions</span>
+            <div className="pg-table-wrap">
+                <div className="pg-table-head" style={{ gridTemplateColumns: '2.5fr 3fr 130px 110px' }}>
+                    <span className="pg-th">Job Title</span>
+                    <span className="pg-th">Description</span>
+                    <span className="pg-th">Applicants</span>
+                    <span className="pg-th">Actions</span>
                 </div>
 
-                {filtered.length === 0
-                    ? <div className="text-center text-gray-400 py-16">No job postings found.</div>
-                    : filtered.map(r => (
-                        <div key={r._id} className="grid grid-cols-5 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-gray-50 transition-all">
-                            <div className="col-span-2">
-                                <p className="font-medium">{r.jobtitle}</p>
-                                <p className="text-xs text-gray-400">{r.application?.length || 0} applicants</p>
-                            </div>
-                            <p className="col-span-2 text-gray-600 text-xs truncate pe-4">{r.description}</p>
-                            <div className="flex gap-2">
-                                <button onClick={() => setDetailRec(r)}
-                                    className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50">View</button>
-                                <button onClick={() => handleDelete(r._id)}
-                                    className="px-3 py-1 rounded-md text-xs border border-red-400 text-red-600 hover:bg-red-50">Delete</button>
-                            </div>
+                {filtered.length === 0 && (
+                    <div className="pg-empty">
+                        <span className="pg-empty-icon">📋</span>
+                        <p className="pg-empty-title">{search ? 'No postings match your search' : 'No job postings yet'}</p>
+                        <p className="pg-empty-sub">{search ? 'Try a different job title.' : 'Create your first job posting to start tracking applicants.'}</p>
+                    </div>
+                )}
+
+                {filtered.map(r => (
+                    <div key={r._id} className="pg-table-row" style={{ gridTemplateColumns: '2.5fr 3fr 130px 110px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <JobIcon title={r.jobtitle} size={34} />
+                            <div className="pg-td-name">{r.jobtitle}</div>
                         </div>
-                    ))
-                }
+                        <div className="pg-td-muted" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 16 }}>
+                            {r.description}
+                        </div>
+                        <span>
+                            <ApplicantChip count={r.application?.length || 0} />
+                        </span>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                            <button className="pg-action-btn indigo" onClick={() => setDetailRec(r)}>View</button>
+                            <button className="pg-action-btn red" onClick={() => handleDelete(r._id)}>Delete</button>
+                        </div>
+                    </div>
+                ))}
             </div>
 
-            <CreateDialog open={createOpen} onClose={() => setCreateOpen(false)} onSubmit={handleCreate} />
-            <DetailDialog open={!!detailRec} record={detailRec} onClose={() => setDetailRec(null)} />
-        </div>
+            {createOpen && <CreateModal onClose={() => setCreateOpen(false)} onSubmit={handleCreate} />}
+            {detailRec && <DetailModal record={detailRec} onClose={() => setDetailRec(null)} />}
+        </PageShell>
     )
 }

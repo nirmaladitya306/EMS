@@ -66,9 +66,14 @@ export const ALL_PERMISSIONS = [
     'activitylog.view',
     'activitylog.clear',
 
-    // Access Drift
-    'accessdrift.view',
-    'accessdrift.resolve',
+    // Security Alerts (Old Access Drift)
+    'securityalerts.view',
+    'securityalerts.resolve',
+
+    // Privilege Drift (Temporary Roles)
+    'privilegedrift.view',
+    'privilegedrift.extend',
+    'privilegedrift.revoke',
 
     // Payroll Compliance
     'payrollcompliance.view',
@@ -93,6 +98,7 @@ export const ALL_PERMISSIONS = [
 ]
 
 // ─── Permission groups for UI display ────────────────────────────────────────
+// ─── Permission groups for UI display ────────────────────────────────────────
 export const PERMISSION_GROUPS = {
     'Employees':          ALL_PERMISSIONS.filter(p => p.startsWith('employee')),
     'Departments':        ALL_PERMISSIONS.filter(p => p.startsWith('department')),
@@ -105,7 +111,11 @@ export const PERMISSION_GROUPS = {
     'Requests':           ALL_PERMISSIONS.filter(p => p.startsWith('request')),
     'Exit Clearance':     ALL_PERMISSIONS.filter(p => p.startsWith('exitclearance')),
     'Activity Log':       ALL_PERMISSIONS.filter(p => p.startsWith('activitylog')),
-    'Access Drift':       ALL_PERMISSIONS.filter(p => p.startsWith('accessdrift')),
+    
+    // 👇 THESE ARE THE TWO NEW GROUPS
+    'Security Alerts':    ALL_PERMISSIONS.filter(p => p.startsWith('securityalerts')),
+    'Privilege Drift':    ALL_PERMISSIONS.filter(p => p.startsWith('privilegedrift')),
+    
     'Payroll Compliance': ALL_PERMISSIONS.filter(p => p.startsWith('payrollcompliance')),
     'Analytics':          ALL_PERMISSIONS.filter(p => p.startsWith('analytics')),
     'HR Profiles':        ALL_PERMISSIONS.filter(p => p.startsWith('hr')),

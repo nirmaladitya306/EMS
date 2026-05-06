@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { HREmployeesPageAsyncReducer } from "../AsyncReducers/asyncreducer.js";
-import { HandleDeleteHREmployees, HandlePostHREmployees, HandleGetHREmployees, HandleSearchEmployeesBySkills, HandleGetEmployeeTimelineByHR } from "../Thunks/HREmployeesThunk.js";
+import { HandleDeleteHREmployees, HandlePostHREmployees, HandleGetHREmployees, HandleSearchEmployeesBySkills, HandleGetEmployeeTimelineByHR, HandlePatchHREmployees } from "../Thunks/HREmployeesThunk.js";
 
 const HREmployeesSlice = createSlice({
     name: "HREmployees",
@@ -51,6 +51,23 @@ const HREmployeesSlice = createSlice({
             .addCase(HandleGetEmployeeTimelineByHR.rejected, (state) => {
                 state.timelineLoading = false
                 state.employeeTimeline = null
+            })
+
+        builder
+            .addCase(HandlePatchHREmployees.pending, (state) => {
+                state.isLoading = true
+                state.error.content = null
+            })
+            .addCase(HandlePatchHREmployees.fulfilled, (state) => {
+                state.isLoading = false
+                state.error.status = false
+                state.error.message = null
+                state.fetchData = true
+            })
+            .addCase(HandlePatchHREmployees.rejected, (state, action) => {
+                state.isLoading = false
+                state.error.status = true
+                state.error.message = action.payload?.message
             })
     }
 })

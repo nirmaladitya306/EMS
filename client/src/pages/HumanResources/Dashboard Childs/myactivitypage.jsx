@@ -1,31 +1,8 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HandleGetMyActivity } from '../../../redux/Thunks/EmployeeDashboardThunk'
 import { Loading } from '../../../components/common/loading'
-
-// ─── Action styles ────────────────────────────────────────────────────────────
-const ACTION_STYLES = {
-    LOGIN:            { bg: 'bg-green-100',  text: 'text-green-800',  dot: 'bg-green-500'  },
-    LOGOUT:           { bg: 'bg-gray-100',   text: 'text-gray-600',   dot: 'bg-gray-400'   },
-    LEAVE_CREATED:    { bg: 'bg-yellow-100', text: 'text-yellow-800', dot: 'bg-yellow-500' },
-    LEAVE_APPROVED:   { bg: 'bg-green-100',  text: 'text-green-800',  dot: 'bg-green-500'  },
-    LEAVE_REJECTED:   { bg: 'bg-red-100',    text: 'text-red-800',    dot: 'bg-red-500'    },
-    EMPLOYEE_UPDATED: { bg: 'bg-blue-100',   text: 'text-blue-800',   dot: 'bg-blue-400'   },
-    ATTENDANCE_UPDATED:{ bg: 'bg-blue-100',  text: 'text-blue-800',   dot: 'bg-blue-400'   },
-}
-const getStyle = (action) =>
-    ACTION_STYLES[action] || { bg: 'bg-purple-100', text: 'text-purple-800', dot: 'bg-purple-400' }
-
-// ─── Action badge ─────────────────────────────────────────────────────────────
-const ActionBadge = ({ action }) => {
-    const s = getStyle(action)
-    return (
-        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${s.dot} shrink-0`} />
-            {action.replace(/_/g, ' ')}
-        </span>
-    )
-}
 
 // ─── Relative time ────────────────────────────────────────────────────────────
 const relativeTime = (dateStr) => {
@@ -36,7 +13,80 @@ const relativeTime = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Action Styles ───────────────────────────────────────────────────────────
+const ACTION_CONFIG = {
+    'LOGIN':            { bg: 'rgba(16,185,129,0.07)',  border: 'rgba(16,185,129,0.25)', color: '#059669' },
+    'LOGOUT':           { bg: 'rgba(107,114,128,0.08)', border: 'rgba(107,114,128,0.28)', color: '#4b5563' },
+    'LEAVE_CREATED':    { bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.28)', color: '#b45309' },
+    'LEAVE_APPROVED':   { bg: 'rgba(16,185,129,0.07)',  border: 'rgba(16,185,129,0.25)', color: '#059669' },
+    'LEAVE_REJECTED':   { bg: 'rgba(239,68,68,0.07)',   border: 'rgba(239,68,68,0.25)',  color: '#dc2626' },
+    'EMPLOYEE_UPDATED': { bg: 'rgba(59,130,246,0.08)',  border: 'rgba(59,130,246,0.25)', color: '#2563eb' },
+    'ATTENDANCE_UPDATED':{ bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)', color: '#2563eb' },
+}
+
+// ─── Local Dark Mode Overrides ────────────────────────────────────────────────
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+  
+  [data-theme='dark'] {
+    --ma-card-bg: rgba(99,102,241,0.05); /* Very subtle indigo tint */
+    --ma-card-border: rgba(99,102,241,0.2);
+    --ma-card-text: #818cf8; /* Light Indigo */
+    --ma-text-muted: #a1a1aa;
+    --ma-text-faint: #71717a;
+    --ma-border: #27272a;
+    --ma-text-clear: #818cf8;
+  }
+
+  .ac-action-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 100px; border: 1px solid;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    font-family: 'DM Sans', sans-serif; white-space: nowrap;
+    text-transform: uppercase;
+  }
+  .ac-action-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  
+  .ac-summary-card {
+    background: var(--ma-card-bg, linear-gradient(135deg, #f5f7ff 0%, #eeefff 100%));
+    border: 1px solid var(--ma-card-border, #e0e4ff); 
+    border-radius: 12px; padding: 16px 20px;
+    margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;
+  }
+  
+  .ac-summary-title {
+    font-size: 1.5rem; 
+    font-weight: 700; 
+    color: var(--ma-card-text, #4338ca); /* indigo-700 in light mode */
+    margin-top: 4px;
+  }
+  
+  .ac-summary-subtitle {
+    color: var(--ma-text-muted, #64748b); 
+    font-size: 13px;
+  }
+  
+  .ac-clear-btn {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ma-text-muted, #9ca3af); /* gray-400 */
+    transition: color 0.2s;
+  }
+  .ac-clear-btn:hover {
+    color: var(--ma-text-clear, #4f46e5); /* indigo-600 */
+  }
+`
+
+const ActionBadge = ({ action }) => {
+    const cfg = ACTION_CONFIG[action] || { bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.25)', color: '#7c3aed' }
+    return (
+        <span className="ac-action-badge" style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.color }}>
+            <span className="ac-action-dot" style={{ background: cfg.color }} />
+            {action.replace(/_/g, ' ')}
+        </span>
+    )
+}
+
 export const MyActivityPage = () => {
     const dispatch     = useDispatch()
     const state        = useSelector(s => s.EmployeeDashboardReducer)
@@ -45,17 +95,14 @@ export const MyActivityPage = () => {
     const [filterAction, setFilterAction] = useState('')
     const [search,       setSearch]       = useState('')
 
-    useEffect(() => { dispatch(HandleGetMyActivity()) }, [])
-    useEffect(() => {
-        if (state.fetchActivity) dispatch(HandleGetMyActivity())
-    }, [state.fetchActivity])
+    useEffect(() => { dispatch(HandleGetMyActivity()) }, [dispatch])
+    useEffect(() => { if (state.fetchActivity) dispatch(HandleGetMyActivity()) }, [state.fetchActivity, dispatch])
 
-    // Unique action types from logs for the filter dropdown
     const uniqueActions = [...new Set(activitylogs.map(l => l.action))]
 
     const filtered = activitylogs.filter(log => {
         const matchAction = !filterAction || log.action === filterAction
-        const matchSearch = !search ||
+        const matchSearch = !search || 
             log.description?.toLowerCase().includes(search.toLowerCase()) ||
             log.action?.toLowerCase().includes(search.toLowerCase())
         return matchAction && matchSearch
@@ -64,91 +111,95 @@ export const MyActivityPage = () => {
     if (state.isLoading && !activitylogs.length) return <Loading />
 
     return (
-        <div className="my-activity-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
-
-            {/* Header */}
-            <div className="flex justify-between items-center flex-wrap gap-3">
-                <div>
-                    <h1 className="text-3xl font-bold">My Activity</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        A history of all actions you've performed in the system
-                    </p>
-                </div>
-                <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-2 text-center">
-                    <span className="text-2xl font-bold text-purple-700">{activitylogs.length}</span>
-                    <p className="text-xs text-gray-500">Total Actions</p>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap gap-3 items-center">
-                <input
-                    type="text"
-                    placeholder="Search activity..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-purple-300"
+        <>
+            <style>{styles}</style>
+            <PageShell>
+                <PageHeader 
+                    eyebrow="Security" 
+                    title="My Activity" 
+                    subtitle="A history of all actions you have performed in the system" 
                 />
-                <select
-                    value={filterAction}
-                    onChange={e => setFilterAction(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
-                >
-                    <option value="">All actions</option>
-                    {uniqueActions.map(a => (
-                        <option key={a} value={a}>{a.replace(/_/g, ' ')}</option>
-                    ))}
-                </select>
-                {(filterAction || search) && (
-                    <button
-                        onClick={() => { setFilterAction(''); setSearch('') }}
-                        className="text-sm text-gray-400 hover:text-gray-600 underline"
+
+                {/* Search and Filters */}
+                <div className="flex flex-wrap gap-3 mb-5 items-center">
+                    <input
+                        type="text"
+                        placeholder="Search activity description..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="pg-input"
+                        style={{ width: '260px' }}
+                    />
+                    <select
+                        value={filterAction}
+                        onChange={e => setFilterAction(e.target.value)}
+                        className="pg-input"
+                        style={{ width: '180px', padding: '7px 12px' }}
                     >
-                        Clear
-                    </button>
-                )}
-            </div>
-
-            {/* Activity list */}
-            <div className="flex flex-col gap-2 overflow-auto flex-1">
-
-                {/* Table header */}
-                <div className="grid grid-cols-12 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
-                    <span className="col-span-3">Action</span>
-                    <span className="col-span-7">Description</span>
-                    <span className="col-span-2 text-right">Time</span>
+                        <option value="">All Actions</option>
+                        {uniqueActions.map(a => (
+                            <option key={a} value={a}>{a.replace(/_/g, ' ')}</option>
+                        ))}
+                    </select>
+                    {(filterAction || search) && (
+                        <button
+                            onClick={() => { setFilterAction(''); setSearch('') }}
+                            className="ac-clear-btn"
+                        >
+                            Clear Filters
+                        </button>
+                    )}
                 </div>
 
-                {filtered.length === 0 ? (
-                    <div className="text-center text-gray-400 py-16">
-                        {activitylogs.length === 0
-                            ? 'No activity recorded yet. Your actions in the system will appear here.'
-                            : 'No matching activity found.'
-                        }
+                {/* Summary Card */}
+                <div className="ac-summary-card">
+                    <div>
+                        <p className="pg-td-sub ac-summary-subtitle">System Audit Log</p>
+                        <p className="ac-summary-title">
+                            {activitylogs.length} Total Actions
+                        </p>
                     </div>
-                ) : (
-                    filtered.map(log => (
-                        <div
-                            key={log._id}
-                            className="grid grid-cols-12 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-purple-50 hover:border-purple-200 transition-all"
-                        >
-                            <span className="col-span-3">
-                                <ActionBadge action={log.action} />
-                            </span>
-                            <span className="col-span-7 text-gray-500 text-xs truncate pr-4">
-                                {log.description}
-                            </span>
-                            <span className="col-span-2 text-xs text-gray-400 text-right whitespace-nowrap">
-                                {relativeTime(log.createdAt)}
-                            </span>
-                        </div>
-                    ))
-                )}
-            </div>
+                    <div className="text-right">
+                        <p style={{ fontSize: '0.75rem', color: 'var(--ma-text-faint, #9ca3af)' }}>Last updated</p>
+                        <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--ma-text-muted, #4b5563)' }}>{relativeTime(new Date())}</p>
+                    </div>
+                </div>
 
-            <p className="text-xs text-gray-400 border-t border-gray-100 pt-3">
-                Showing last 100 actions. Older records are archived automatically.
-            </p>
-        </div>
+                {/* Table */}
+                <div className="pg-table-wrap">
+                    <div className="pg-table-head grid grid-cols-12">
+                        <span className="pg-th col-span-3">Action</span>
+                        <span className="pg-th col-span-7">Description</span>
+                        <span className="pg-th col-span-2 text-right">Time</span>
+                    </div>
+
+                    {filtered.length === 0 ? (
+                        <div className="pg-empty">
+                            <span className="pg-empty-icon">🛡️</span>
+                            <p className="pg-empty-title">No activity found</p>
+                            <p className="pg-empty-sub">Your system interactions will be logged here for security.</p>
+                        </div>
+                    ) : (
+                        filtered.map(log => (
+                            <div key={log._id} className="pg-table-row grid grid-cols-12 items-center">
+                                <span className="col-span-3">
+                                    <ActionBadge action={log.action} />
+                                </span>
+                                <span className="col-span-7 pg-td-sub truncate pr-6" title={log.description}>
+                                    {log.description}
+                                </span>
+                                <span className="col-span-2 text-right pg-td-muted whitespace-nowrap">
+                                    {relativeTime(log.createdAt)}
+                                </span>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                <p style={{ fontSize: '0.75rem', color: 'var(--ma-text-faint, #9ca3af)', borderTop: '1px solid var(--ma-border, #f3f4f6)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                    Showing last 100 security events. Older records are archived automatically.
+                </p>
+            </PageShell>
+        </>
     )
 }

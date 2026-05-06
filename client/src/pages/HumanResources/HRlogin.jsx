@@ -66,19 +66,9 @@ export const HRLogin = () => {
   }, [HRState.isAuthenticated, navigate]);
 
   return (
-    <div>
-      <div className="employee-login-content flex justify-center items-center h-[100vh]">
-        <LoadingBar ref={loadingbar} />
-
-        <SignIn
-          image={"../../src/assets/Employee-Welcome.jpg"}
-          handlesigninform={handlesigninform}
-          handlesigninsubmit={handlesigninsubmit}
-          targetedstate={HRState}
-          statevalue={signinform}
-          redirectpath={"/auth/hr/forgot-password"} // ✅ correct casing
-        />
-      </div>
-    </div>
-  );
+    <>
+        <LoadingBar ref={loadingbar} color="#6366f1" />
+        <SignIn handlesigninform={handlesigninform} handlesigninsubmit={handlesigninsubmit} targetedstate={HRState} statevalue={signinform} redirectpath={"/auth/hr/forgot-password"} role="HR" />
+    </>
+)
 };

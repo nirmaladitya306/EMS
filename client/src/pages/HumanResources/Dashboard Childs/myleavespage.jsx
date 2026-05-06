@@ -1,3 +1,4 @@
+import { PageShell, PageHeader } from '../../../components/common/Dashboard/PageShell.jsx'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -9,13 +10,33 @@ import { Loading } from '../../../components/common/loading'
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
+const STATUS_CONFIG = {
+    Pending:  { bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.28)', color: '#b45309' },
+    Approved: { bg: 'rgba(16,185,129,0.07)',  border: 'rgba(16,185,129,0.25)', color: '#059669' },
+    Rejected: { bg: 'rgba(239,68,68,0.07)',   border: 'rgba(239,68,68,0.25)',  color: '#dc2626' },
+}
+
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  .lv-status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 100px; border: 1px solid;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    font-family: 'DM Sans', sans-serif; white-space: nowrap;
+  }
+  .lv-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+`
+
 const StatusBadge = ({ status }) => {
-    const map = {
-        Pending:  'bg-yellow-100 text-yellow-800 border-yellow-300',
-        Approved: 'bg-green-100  text-green-800  border-green-300',
-        Rejected: 'bg-red-100    text-red-800    border-red-300',
-    }
-    return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${map[status] || ''}`}>{status}</span>
+    const cfg = STATUS_CONFIG[status]
+    if (!cfg) return <span style={{ fontSize: '12px', color: 'rgba(0,0,0,0.4)' }}>{status}</span>
+    return (
+        <span className="lv-status-badge" style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.color }}>
+            <span className="lv-status-dot" style={{ background: cfg.color }} />
+            {status}
+        </span>
+    )
 }
 
 const LeaveDialog = ({ open, onClose, onSubmit, initialData }) => {
@@ -36,41 +57,38 @@ const LeaveDialog = ({ open, onClose, onSubmit, initialData }) => {
     }, [open, initialData])
 
     if (!open) return null
-    const fc = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-    const lc = "block text-xs font-medium text-gray-600 mb-1"
     const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
     const submit = (e) => { e.preventDefault(); onSubmit(form) }
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 mx-4">
-                <h2 className="text-xl font-bold mb-5">{isEdit ? 'Edit Leave Request' : 'Apply for Leave'}</h2>
-                <form onSubmit={submit} className="flex flex-col gap-4">
-                    <div>
-                        <label className={lc}>Title</label>
+        <div className="pg-modal-overlay">
+            <div className="pg-modal">
+                <h2 className="pg-modal-title">{isEdit ? 'Edit Leave Request' : 'Apply for Leave'}</h2>
+                <div className="pg-divider" />
+                <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div className="pg-field">
+                        <label className="pg-label">Title</label>
                         <input name="title" value={form.title} onChange={handle} required
-                            placeholder="e.g. Annual Leave" className={fc} />
+                            placeholder="e.g. Annual Leave" className="pg-input" />
                     </div>
-                    <div>
-                        <label className={lc}>Reason</label>
+                    <div className="pg-field">
+                        <label className="pg-label">Reason</label>
                         <textarea name="reason" value={form.reason} onChange={handle} required
-                            rows={3} placeholder="Describe your reason..." className={fc} />
+                            rows={3} placeholder="Describe your reason…" className="pg-textarea" />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={lc}>Start Date</label>
-                            <input name="startdate" type="date" value={form.startdate} onChange={handle} required className={fc} />
+                    <div className="pg-grid-2">
+                        <div className="pg-field">
+                            <label className="pg-label">Start Date</label>
+                            <input name="startdate" type="date" value={form.startdate} onChange={handle} required className="pg-input" />
                         </div>
-                        <div>
-                            <label className={lc}>End Date</label>
-                            <input name="enddate" type="date" value={form.enddate} onChange={handle} required className={fc} />
+                        <div className="pg-field">
+                            <label className="pg-label">End Date</label>
+                            <input name="enddate" type="date" value={form.enddate} onChange={handle} required className="pg-input" />
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={onClose}
-                            className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Cancel</button>
-                        <button type="submit"
-                            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700">
+                    <div className="pg-modal-actions">
+                        <button type="button" onClick={onClose} className="pg-btn-ghost">Cancel</button>
+                        <button type="submit" className="pg-btn-primary">
                             {isEdit ? 'Save Changes' : 'Submit'}
                         </button>
                     </div>
@@ -107,69 +125,79 @@ export const MyLeavesPage = () => {
     if (state.isLoading && !leaves.length) return <Loading />
 
     return (
-        <div className="my-leaves-page w-full mx-auto my-8 flex flex-col gap-6 h-[94%] pe-5">
+        <>
+            <style>{styles}</style>
+            <PageShell>
 
-            <div className="flex justify-between items-center flex-wrap gap-3">
-                <div>
-                    <h1 className="text-3xl font-bold">My Leaves</h1>
-                    <p className="text-sm text-gray-500 mt-1">Apply for and manage your leave requests</p>
+                <PageHeader eyebrow="Work" title="My Leaves" subtitle="Apply for and manage your leave requests">
+                    <button className="pg-btn-primary" onClick={() => setApplyOpen(true)}>
+                        + Apply for Leave
+                    </button>
+                </PageHeader>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-3">
+                    {[
+                        { label: 'Pending',  value: pending  },
+                        { label: 'Approved', value: approved },
+                        { label: 'Rejected', value: rejected },
+                    ].map(c => (
+                        <div key={c.label} className="pg-stat-card">
+                            <span className="pg-stat-value">{c.value}</span>
+                            <span className="pg-stat-label">{c.label}</span>
+                        </div>
+                    ))}
                 </div>
-                <button onClick={() => setApplyOpen(true)}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg">
-                    + Apply for Leave
-                </button>
-            </div>
 
-            <div className="grid grid-cols-3 gap-3">
-                {[
-                    { label: 'Pending',  value: pending,  color: 'border-yellow-200 bg-yellow-50' },
-                    { label: 'Approved', value: approved, color: 'border-green-200  bg-green-50'  },
-                    { label: 'Rejected', value: rejected, color: 'border-red-200    bg-red-50'    },
-                ].map(c => (
-                    <div key={c.label} className={`rounded-xl border p-4 flex flex-col gap-1 ${c.color}`}>
-                        <span className="text-2xl font-bold">{c.value}</span>
-                        <span className="text-sm text-gray-500">{c.label}</span>
+                {/* Table */}
+                <div className="pg-table-wrap">
+                    <div className="pg-table-head grid grid-cols-6">
+                        <span className="pg-th col-span-2">Title</span>
+                        <span className="pg-th">From</span>
+                        <span className="pg-th">To</span>
+                        <span className="pg-th">Status</span>
+                        <span className="pg-th">Actions</span>
                     </div>
-                ))}
-            </div>
 
-            <div className="flex flex-col gap-2 overflow-auto flex-1">
-                <div className="grid grid-cols-6 bg-gray-100 rounded-lg px-4 py-2 text-xs font-semibold text-gray-500 sticky top-0">
-                    <span className="col-span-2">Title</span>
-                    <span>From</span>
-                    <span>To</span>
-                    <span>Status</span>
-                    <span>Actions</span>
-                </div>
-
-                {leaves.length === 0
-                    ? <div className="text-center text-gray-400 py-16">No leave requests yet.</div>
-                    : leaves.map(l => (
-                        <div key={l._id} className="grid grid-cols-6 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm items-center hover:bg-gray-50 transition-all">
+                    {leaves.length === 0 ? (
+                        <div className="pg-empty">
+                            <span className="pg-empty-icon">🌴</span>
+                            <p className="pg-empty-title">No leave requests yet</p>
+                            <p className="pg-empty-sub">Apply for leave and it will appear here.</p>
+                        </div>
+                    ) : leaves.map(l => (
+                        <div key={l._id} className="pg-table-row grid grid-cols-6">
                             <div className="col-span-2">
-                                <p className="font-medium">{l.title}</p>
-                                <p className="text-xs text-gray-400 truncate">{l.reason}</p>
+                                <p className="pg-td-name">{l.title}</p>
+                                <p className="pg-td-sub truncate">{l.reason}</p>
                             </div>
-                            <span className="text-gray-600 text-xs">{fmtDate(l.startdate)}</span>
-                            <span className="text-gray-600 text-xs">{fmtDate(l.enddate)}</span>
+                            <span className="pg-td-muted">{fmtDate(l.startdate)}</span>
+                            <span className="pg-td-muted">{fmtDate(l.enddate)}</span>
                             <StatusBadge status={l.status} />
-                            <div className="flex gap-2">
-                                <button disabled={l.status !== 'Pending'} onClick={() => setEditTarget(l)}
-                                    className="px-3 py-1 rounded-md text-xs border border-blue-400 text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                    disabled={l.status !== 'Pending'}
+                                    onClick={() => setEditTarget(l)}
+                                    className="pg-action-btn indigo"
+                                >
                                     Edit
                                 </button>
-                                <button disabled={l.status !== 'Pending'} onClick={() => handleDelete(l._id)}
-                                    className="px-3 py-1 rounded-md text-xs border border-red-400 text-red-600 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                                <button
+                                    disabled={l.status !== 'Pending'}
+                                    onClick={() => handleDelete(l._id)}
+                                    className="pg-action-btn red"
+                                >
                                     Delete
                                 </button>
                             </div>
                         </div>
-                    ))
-                }
-            </div>
+                    ))}
+                </div>
 
-            <LeaveDialog open={applyOpen}    onClose={() => setApplyOpen(false)}  onSubmit={handleApply} />
-            <LeaveDialog open={!!editTarget} onClose={() => setEditTarget(null)}  onSubmit={handleUpdate} initialData={editTarget} />
-        </div>
+                <LeaveDialog open={applyOpen}    onClose={() => setApplyOpen(false)}  onSubmit={handleApply} />
+                <LeaveDialog open={!!editTarget} onClose={() => setEditTarget(null)}  onSubmit={handleUpdate} initialData={editTarget} />
+
+            </PageShell>
+        </>
     )
 }

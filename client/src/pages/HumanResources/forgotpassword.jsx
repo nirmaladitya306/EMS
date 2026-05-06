@@ -36,13 +36,9 @@ export const HRForgotPasswordPage = () => {
 
 
     return (
-
-        <div className="employee-login-container">
-            <LoadingBar ref={loadingbar} />
-            <div className="employee-login-content flex justify-center items-center h-[100vh]">
-                <ForgotPassowrd handleforgotpasswordsubmit={handleforgotpasswordsubmit} handlesforgotpasswordform={handlesforgotpasswordform} targetState={HRstate} redirectpath={"/auth/hr/login"} />
-            </div>
-        </div>
-
-    )
+    <>
+        <LoadingBar ref={loadingbar} color="#6366f1" />
+        <ForgotPassowrd handleforgotpasswordsubmit={handleforgotpasswordsubmit} handlesforgotpasswordform={handlesforgotpasswordform} targetState={HRstate} redirectpath={"/auth/hr/login"} />
+    </>
+)
 }
