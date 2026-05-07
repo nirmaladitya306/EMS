@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { SignIn } from "../../components/common/sign-in.jsx"
 import { useDispatch, useSelector } from "react-redux"
-import { HandlePostEmployees, HandleGetEmployees } from "../../redux/Thunks/EmployeeThunk.js"
+import { HandlePostEmployees } from "../../redux/Thunks/EmployeeThunk.js"
 import LoadingBar from 'react-top-loading-bar'
 import { useNavigate } from 'react-router-dom'
 import { CommonStateHandler } from "../../utils/commonhandler.js"
@@ -27,25 +27,18 @@ export const EmployeeLogin = () => {
         dispatch(HandlePostEmployees({ apiroute: "LOGIN", data: signinform }))
     }
 
-    const RedirectToDashbaord = () => {
-        loadingbar.current?.complete()
-        navigate("/auth/employee/employee-dashboard")
-    }
-
-    // 👇 FIXED: Wrapped in useEffect so React doesn't crash during render
+    // Stop loading bar on error
     useEffect(() => {
         if (EmployeeState.error.status) {
             loadingbar.current?.complete()
         }
     }, [EmployeeState.error.status])
 
+    // Navigate to dashboard once authenticated
     useEffect(() => {
-        if (!EmployeeState.isAuthenticated) {
-            dispatch(HandleGetEmployees({ apiroute: "CHECKELOGIN" }))
-        }
-
         if (EmployeeState.isAuthenticated) {
-            RedirectToDashbaord()
+            loadingbar.current?.complete()
+            navigate("/auth/employee/employee-dashboard/overview")
         }
     }, [EmployeeState.isAuthenticated])
 
